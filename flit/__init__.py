@@ -1,6 +1,5 @@
 """A simple packaging tool for simple packages."""
 import argparse
-import configparser
 import hashlib
 import logging
 import os
@@ -10,9 +9,10 @@ import sys
 from importlib.machinery import SourceFileLoader
 import zipfile
 
+from . import common
+
 __version__ = '0.1'
 
-import logging
 log = logging.getLogger(__name__)
 
 def get_info_from_module(target):
@@ -23,37 +23,11 @@ def get_info_from_module(target):
             'long_description': '\n'.join(docstring_lines[1:]),
             'version': m.__version__}
 
-def get_info_from_ini(target):
-    cp = configparser.ConfigParser()
-    with target.ini_file.open() as f:
-        cp.read_file(f)
-    return cp
-
-script_template = """\
-#!python
-from {module} import {func}
-{func}()
-"""
-
 wheel_file_template = """\
 Wheel-Version: 1.0
 Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
-
-def parse_entry_point(ep: str):
-    if ':' not in ep:
-        raise ValueError("Invalid entry point (no ':'): %r" % ep)
-    mod, func = ep.split(':')
-
-    if not func.isidentifier():
-        raise ValueError("Invalid entry point: %r is not an identifier" % func)
-    for piece in mod.split('.'):
-        if not piece.isidentifier():
-            raise ValueError("Invalid entry point: %r is not a module path" % piece)
-
-    return mod, func
-
 
 def wheel(target, upload=False):
     build_dir = target.path.parent / 'build' / 'flit'
@@ -71,7 +45,7 @@ def wheel(target, upload=False):
         shutil.copy2(str(target.path), str(build_dir))
 
     module_info = get_info_from_module(target)
-    ini_info = get_info_from_ini(target)
+    ini_info = common.get_info_from_ini(target)
     dist_version = target.name + '-' + module_info['version']
     py2_support = ini_info.getboolean('package', 'python2', fallback=False)
 
@@ -81,12 +55,16 @@ def wheel(target, upload=False):
     if ini_info.has_section('scripts'):
         (data_dir / 'scripts').mkdir(parents=True)
         for name, entrypt in ini_info['scripts'].items():
-            module, func = parse_entry_point(entrypt)
+            module, func = common.parse_entry_point(entrypt)
             script_file = (data_dir / 'scripts' / name)
             log.debug('Writing script to %s', script_file)
             script_file.touch(0o755, exist_ok=False)
             with script_file.open('w') as f:
-                f.write(script_template.format(module=module, func=func))
+                f.write(common.script_template.format(
+                    interpreter='python',
+                    module=module,
+                    func=func
+                ))
 
     dist_info = build_dir / (dist_version + '.dist-info')
     dist_info.mkdir()
@@ -164,9 +142,6 @@ def wheel(target, upload=False):
 
     log.info("Created %s", dist_dir / filename)
 
-def install(package, symlink=False):
-    pass
-
 class Importable(object):
     def __init__(self, path):
         self.path = pathlib.Path(path)
@@ -225,6 +200,7 @@ def main(argv=None):
     if args.subcmd == 'wheel':
         wheel(pkg, upload=args.upload)
     elif args.subcmd == 'install':
+        from .install import install
         install(pkg, symlink=args.symlink)
     else:
         sys.exit('No command specified')
