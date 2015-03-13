@@ -127,6 +127,7 @@ def wheel(target, upload=False):
     with (dist_info / 'METADATA').open('w') as f:
         for field, value in metadata:
             f.write("{}: {}\n".format(field, value))
+        if module_info['long_description']:
             f.write('\n' + module_info['long_description'] + '\n')
 
     records = []
