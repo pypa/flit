@@ -2,6 +2,7 @@
 import argparse
 import configparser
 import hashlib
+import logging
 import os
 import pathlib
 import shutil
@@ -10,6 +11,9 @@ from importlib.machinery import SourceFileLoader
 import zipfile
 
 __version__ = '0.1'
+
+import logging
+log = logging.getLogger(__name__)
 
 def get_info_from_module(target):
     sl = SourceFileLoader(target.name, str(target.file))
@@ -79,6 +83,7 @@ def wheel(target, upload=False):
         for name, entrypt in ini_info['scripts'].items():
             module, func = parse_entry_point(entrypt)
             script_file = (data_dir / 'scripts' / name)
+            log.debug('Writing script to %s', script_file)
             script_file.touch(0o755, exist_ok=False)
             with script_file.open('w') as f:
                 f.write(script_template.format(module=module, func=func))
@@ -156,6 +161,8 @@ def wheel(target, upload=False):
             for file in files:
                 z.write(os.path.join(dirpath, file), os.path.join(reldir, file))
 
+    log.info("Created %s", dist_dir / filename)
+
 def install(package, symlink=False):
     pass
 
@@ -209,6 +216,8 @@ def main(argv=None):
     parser_install.add_argument('--symlink', action='store_true')
 
     args = ap.parse_args(argv)
+
+    logging.basicConfig(level=logging.INFO)
     pkg = Importable(args.package)
     pkg.check()
 
