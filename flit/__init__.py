@@ -186,7 +186,8 @@ def main(argv=None):
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 
     parser_wheel = subparsers.add_parser('wheel')
-    parser_wheel.add_argument('--upload', action='store_true')
+    parser_wheel.add_argument('--upload', action='store', nargs='?',
+                              const='pypi', default=None)
 
     parser_install = subparsers.add_parser('install')
     parser_install.add_argument('--symlink', action='store_true')
