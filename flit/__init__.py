@@ -10,6 +10,7 @@ from importlib.machinery import SourceFileLoader
 import zipfile
 
 from . import common
+from . import inifile
 
 __version__ = '0.1'
 
@@ -19,8 +20,8 @@ def get_info_from_module(target):
     sl = SourceFileLoader(target.name, str(target.file))
     m = sl.load_module()
     docstring_lines = m.__doc__.splitlines()
-    return {'description': docstring_lines[0],
-            'long_description': '\n'.join(docstring_lines[1:]),
+    return {'summary': docstring_lines[0],
+            'description': '\n'.join(docstring_lines[1:]),
             'version': m.__version__}
 
 wheel_file_template = """\
@@ -29,7 +30,7 @@ Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
-def wheel(target, upload=False):
+def wheel(target, upload=None):
     build_dir = target.path.parent / 'build' / 'flit'
     try:
         build_dir.mkdir(parents=True)
@@ -44,18 +45,21 @@ def wheel(target, upload=False):
     else:
         shutil.copy2(str(target.path), str(build_dir))
 
-    module_info = get_info_from_module(target)
-    ini_info = common.get_info_from_ini(target)
-    dist_version = target.name + '-' + module_info['version']
-    py2_support = ini_info.getboolean('package', 'python2', fallback=False)
+    ini_info = inifile.read_pypi_ini(target.ini_file)
+    md_dict = {'name': target.name, 'provides': [target.name]}
+    md_dict.update(ini_info['metadata'])
+    md_dict.update(get_info_from_module(target))
+    metadata = common.Metadata(md_dict)
+
+    dist_version = metadata.name + '-' + metadata.version
+    py2_support = not (metadata.requires_python or '').startswith(('3', '>3', '>=3'))
 
     data_dir = build_dir / (dist_version + '.data')
 
     # Write scripts
-    if ini_info.has_section('scripts'):
+    if ini_info['scripts']:
         (data_dir / 'scripts').mkdir(parents=True)
-        for name, entrypt in ini_info['scripts'].items():
-            module, func = common.parse_entry_point(entrypt)
+        for name, (module, func) in ini_info['scripts'].items():
             script_file = (data_dir / 'scripts' / name)
             log.debug('Writing script to %s', script_file)
             script_file.touch(0o755, exist_ok=False)
@@ -75,38 +79,8 @@ def wheel(target, upload=False):
             f.write("Tag: py2-none-any\n")
         f.write("Tag: py3-none-any\n")
 
-    pkg_config = ini_info['package']
-    metadata = [
-        ('Metadata-Version', '1.2'),
-        ('Name', target.name),
-        ('Version', module_info['version']),
-        ('Summary', module_info['description']),
-        ('Home-page', pkg_config['url']),
-        ('License', ini_info.get('package', 'license', fallback='UNKNOWN')),
-        ('Platform', ini_info.get('package', 'platform', fallback='UNKNOWN')),
-    ]
-    optional_fields = [
-        ('Keywords', 'keywords'),
-        ('Author', 'author'),
-        ('Author-email', 'author-email'),
-        ('Maintainer', 'maintainer'),
-        ('Maintainer-email', 'maintainer-email'),
-        ('License', 'license'),
-    ]
-    for dst, src in optional_fields:
-        if src in pkg_config:
-            metadata.append((dst, pkg_config[src]))
-    for clsfr in ini_info.get('package', 'classifiers', fallback='').splitlines():
-        metadata.append(('Classifier', clsfr))
-    for req in ini_info.get('package', 'requirements', fallback='').splitlines():
-        metadata.append(('Requires-Dist', req))
-
-
     with (dist_info / 'METADATA').open('w') as f:
-        for field, value in metadata:
-            f.write("{}: {}\n".format(field, value))
-        if module_info['long_description']:
-            f.write('\n' + module_info['long_description'] + '\n')
+        metadata.write_metadata_file(f)
 
     records = []
     for dirpath, dirs, files in os.walk(str(build_dir)):
@@ -141,6 +115,10 @@ def wheel(target, upload=False):
                 z.write(os.path.join(dirpath, file), os.path.join(reldir, file))
 
     log.info("Created %s", dist_dir / filename)
+
+    if upload is not None:
+        from .upload import do_upload
+        do_upload(dist_dir / filename, metadata, upload)
 
 class Importable(object):
     def __init__(self, path):
