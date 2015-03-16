@@ -21,6 +21,8 @@ metadata_allowed_fields = {
 } | metadata_list_fields
 
 def read_pypi_ini(path):
+    """Read and check the pypi.ini file with data about the package.
+    """
     cp = configparser.ConfigParser()
     with path.open() as f:
         cp.read_file(f)

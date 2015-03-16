@@ -6,9 +6,11 @@ import site
 import sys
 
 from . import common
+from .inifile import read_pypi_ini
 
 log = logging.getLogger(__name__)
 
+# For the directories where we'll install stuff
 _interpolation_vars = {
     'userbase': site.USER_BASE,
     'usersite': site.USER_SITE,
@@ -18,6 +20,8 @@ _interpolation_vars = {
 }
 
 def get_dirs(user=True):
+    """Get the 'scripts' and 'purelib' directories we'll install into.
+    """
     if user:
         purelib = site.USER_SITE
         if sys.platform == 'win32':

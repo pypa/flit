@@ -13,6 +13,11 @@ log = logging.getLogger(__name__)
 PYPI = "https://pypi.python.org/pypi"
 
 def get_repositories(file="~/.pypirc"):
+    """Get the known repositories from a pypirc file.
+
+    This returns a dict keyed by name, of dicts with keys 'url', 'username',
+    'password'. Username and password may be None.
+    """
     file = os.path.expanduser(file)
 
     if not os.path.isfile(file):
@@ -37,6 +42,13 @@ def get_repositories(file="~/.pypirc"):
     return repos
 
 def get_repository(name, cfg_file="~/.pypirc"):
+    """Get the url, username and password for one repository.
+
+    If username or password are not specified in the config file, the user
+    will be prompted to enter them at the terminal.
+
+    Returns a dict with keys 'url', 'username', 'password'.
+    """
     repos = get_repositories(cfg_file)
 
     repo = repos[name]
@@ -54,6 +66,8 @@ def get_repository(name, cfg_file="~/.pypirc"):
     return repo
 
 def build_post_data(action, metadata:Metadata):
+    """Prepare the metadata needed for requests to PyPI.
+    """
     d = {
         ":action": action,
 
@@ -91,6 +105,8 @@ def build_post_data(action, metadata:Metadata):
     return {k:v for k,v in d.items() if v}
 
 def _attempt_upload(file:Path, metadata:Metadata, repo):
+    """Upload a file to the PyPI server.
+    """
     data = build_post_data('file_upload', metadata)
     data['protocol_version'] = '1'
     data['filetype'] = 'bdist_wheel'
@@ -112,6 +128,8 @@ def _attempt_upload(file:Path, metadata:Metadata, repo):
     resp.raise_for_status()
 
 def register(metadata:Metadata, repo):
+    """Register a new package name with the PyPI server.
+    """
     data = build_post_data('submit', metadata)
     resp = requests.post(repo['url'], data=data,
                          auth=(repo['username'], repo['password'])
@@ -120,6 +138,8 @@ def register(metadata:Metadata, repo):
     log.info('Registered %s with PyPI', metadata.name)
 
 def verify(metadata:Metadata, repo_name):
+    """Verify the metadata with the PyPI server.
+    """
     repo = get_repository(repo_name)
     data = build_post_data('verify', metadata)
     resp = requests.post(repo['url'], data=data,
@@ -129,6 +149,8 @@ def verify(metadata:Metadata, repo_name):
     log.info('Verification succeeded')
 
 def do_upload(file:Path, metadata:Metadata, repo_name='pypi'):
+    """Upload a wheel, registering a new package if necessary.
+    """
     repo = get_repository(repo_name)
     try:
         _attempt_upload(file, metadata, repo)

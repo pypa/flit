@@ -17,6 +17,8 @@ __version__ = '0.1'
 log = logging.getLogger(__name__)
 
 def get_info_from_module(target):
+    """Load the module/package, get its docstring and __version__
+    """
     sl = SourceFileLoader(target.name, str(target.file))
     m = sl.load_module()
     docstring_lines = m.__doc__.splitlines()
@@ -31,6 +33,8 @@ Root-Is-Purelib: true
 """.format(version=__version__)
 
 def wheel(target, upload=None, verify_metadata=None):
+    """Build a wheel from a module/package
+    """
     build_dir = target.path.parent / 'build' / 'flit'
     try:
         build_dir.mkdir(parents=True)
@@ -47,8 +51,8 @@ def wheel(target, upload=None, verify_metadata=None):
 
     ini_info = inifile.read_pypi_ini(target.ini_file)
     md_dict = {'name': target.name, 'provides': [target.name]}
-    md_dict.update(ini_info['metadata'])
     md_dict.update(get_info_from_module(target))
+    md_dict.update(ini_info['metadata'])
     metadata = common.Metadata(md_dict)
 
     dist_version = metadata.name + '-' + metadata.version
@@ -82,6 +86,7 @@ def wheel(target, upload=None, verify_metadata=None):
     with (dist_info / 'METADATA').open('w') as f:
         metadata.write_metadata_file(f)
 
+    # Generate the record of the files in the wheel
     records = []
     for dirpath, dirs, files in os.walk(str(build_dir)):
         reldir = os.path.relpath(dirpath, str(build_dir))
@@ -100,6 +105,8 @@ def wheel(target, upload=None, verify_metadata=None):
         # RECORD itself is recorded with no hash or size
         f.write(dist_version + '.dist-info/RECORD,,\n')
 
+    # So far, we've built the wheel file structure in a directory.
+    # Now, zip it up into a .whl file.
     dist_dir = target.path.parent / 'dist'
     try:
         dist_dir.mkdir()
@@ -125,11 +132,15 @@ def wheel(target, upload=None, verify_metadata=None):
         do_upload(dist_dir / filename, metadata, upload)
 
 class Importable(object):
+    """This represents the module/package that we are going to distribute
+    """
     def __init__(self, path):
         self.path = pathlib.Path(path)
 
     @property
     def name(self):
+        """The name that would be used in an import statement.
+        """
         n = self.path.name
         if n.endswith('.py'):
             n = n[:-3]
@@ -144,16 +155,22 @@ class Importable(object):
 
     @property
     def is_package(self):
+        """True if we're dealing with a package, False for a standalone module.
+        """
         return self.path.is_dir()
 
     @property
     def ini_file(self):
+        """Path to the ini file with metadata for this package.
+        """
         if self.is_package:
             return self.path / 'pypi.ini'
         else:
             return self.path.with_name(self.name + '-pypi.ini')
 
     def check(self):
+        """Basic checks of the package to show clearer errors.
+        """
         if not self.file.is_file():
             raise FileNotFoundError(self.path)
         if not self.name.isidentifier():
@@ -178,7 +195,9 @@ def main(argv=None):
     )
 
     parser_install = subparsers.add_parser('install')
-    parser_install.add_argument('--symlink', action='store_true')
+    parser_install.add_argument('--symlink', action='store_true',
+        help="Symlink the module/package into site packages instead of copying it"
+    )
 
     args = ap.parse_args(argv)
 

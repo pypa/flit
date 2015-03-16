@@ -5,6 +5,10 @@ from {module} import {func}
 """
 
 def parse_entry_point(ep: str):
+    """Check and parse a 'package.module:func' style entry point specification.
+
+    Returns (modulename, funcname)
+    """
     if ':' not in ep:
         raise ValueError("Invalid entry point (no ':'): %r" % ep)
     mod, func = ep.split(':')
