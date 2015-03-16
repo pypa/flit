@@ -9,7 +9,7 @@ Say you're writing a module ``foobar.py`` and you want to distribute it.
 
        """An amazing sample package!"""
 
-        __version__ = '0.1'
+       __version__ = '0.1'
 
 2. Create a file ``foobar-pypi.ini``—or ``foobar/pypi.ini`` if foobar is
    a package. It should look like this:
