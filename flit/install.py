@@ -56,17 +56,15 @@ def install(target, user=True, symlink=False):
         log.info("Copying file %s -> %s", src, dst)
         shutil.copy2(src, dst)
 
-    ini_info = common.get_info_from_ini(target)
+    scripts = read_pypi_ini(target.ini_file)['scripts']
 
-    if ini_info.has_section('scripts'):
-        for name, entrypt in ini_info['scripts'].items():
-            module, func = common.parse_entry_point(entrypt)
-            script_file = pathlib.Path(dirs['scripts']) / name
-            log.debug('Writing script to %s', script_file)
-            with script_file.open('w') as f:
-                f.write(common.script_template.format(
-                    interpreter=sys.executable,
-                    module=module,
-                    func=func
-                ))
-            script_file.chmod(0o755)
+    for name, (module, func) in scripts.items():
+        script_file = pathlib.Path(dirs['scripts']) / name
+        log.debug('Writing script to %s', script_file)
+        with script_file.open('w') as f:
+            f.write(common.script_template.format(
+                interpreter=sys.executable,
+                module=module,
+                func=func
+            ))
+        script_file.chmod(0o755)

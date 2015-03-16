@@ -1,11 +1,3 @@
-import configparser
-
-def get_info_from_ini(target):
-    cp = configparser.ConfigParser()
-    with target.ini_file.open() as f:
-        cp.read_file(f)
-    return cp
-
 script_template = """\
 #!{interpreter}
 from {module} import {func}
