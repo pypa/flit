@@ -1,3 +1,5 @@
+"""Install packages locally for development
+"""
 import logging
 import os
 import pathlib
@@ -21,6 +23,8 @@ _interpolation_vars = {
 
 def get_dirs(user=True):
     """Get the 'scripts' and 'purelib' directories we'll install into.
+
+    This is an abbreviated version of distutils.command.install.INSTALL_SCHEMES
     """
     if user:
         purelib = site.USER_SITE
@@ -41,6 +45,8 @@ def get_dirs(user=True):
     }
 
 def install(target, user=True, symlink=False):
+    """Install a module/package into site-packages, and create its scripts.
+    """
     dirs = get_dirs(user=user)
     dst = os.path.join(dirs['purelib'], target.path.name)
     if os.path.lexists(dst):

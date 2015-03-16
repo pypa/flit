@@ -1,3 +1,8 @@
+"""Code to communicate with PyPI to register distributions and upload files.
+
+This is cribbed heavily from distutils.command.(upgrade|register), which as part
+of Python is under the PSF license.
+"""
 import configparser
 import getpass
 import hashlib
