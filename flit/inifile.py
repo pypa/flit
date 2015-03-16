@@ -62,6 +62,11 @@ def read_pypi_ini(path):
         else:
             md_dict[k2] = value
 
+    # What we call requires in the ini file is technically requires_dist in
+    # the metadata.
+    if 'requires' in md_dict:
+        md_dict['requires_dist'] = md_dict.pop('requires')
+
     if cp.has_section('scripts'):
         scripts_dict = {k: common.parse_entry_point(v) for k, v in cp['scripts'].items()}
     else:
