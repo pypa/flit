@@ -104,8 +104,8 @@ def build_post_data(action, metadata:Metadata):
 
     return {k:v for k,v in d.items() if v}
 
-def _attempt_upload(file:Path, metadata:Metadata, repo):
-    """Upload a file to the PyPI server.
+def upload_wheel(file:Path, metadata:Metadata, repo):
+    """Upload a .whl file to the PyPI server.
     """
     data = build_post_data('file_upload', metadata)
     data['protocol_version'] = '1'
@@ -128,7 +128,7 @@ def _attempt_upload(file:Path, metadata:Metadata, repo):
     resp.raise_for_status()
 
 def register(metadata:Metadata, repo):
-    """Register a new package name with the PyPI server.
+    """Register a new release with the PyPI server.
     """
     data = build_post_data('submit', metadata)
     resp = requests.post(repo['url'], data=data,
@@ -152,14 +152,10 @@ def do_upload(file:Path, metadata:Metadata, repo_name='pypi'):
     """Upload a wheel, registering a new package if necessary.
     """
     repo = get_repository(repo_name)
-    try:
-        _attempt_upload(file, metadata, repo)
-    except requests.HTTPError as e:
-        if e.response.status_code == 403: # forbidden
-            # 403 can be because the package doesn't exist, so try registering
-            # it and uploading again.
-            log.warn('Upload forbidden; attempting to register new package.')
-            register(metadata, repo)
-            _attempt_upload(file, metadata, repo)
-        else:
-            raise
+    # setup.py only needs to explicitly register a package name once, and
+    # uploading a new file can trigger a new release. When I uploading a new
+    # version without registering it first, I get a 500 error. So for now,
+    # let's just call register() every time.
+    register(metadata, repo)
+    upload_wheel(file, metadata, repo)
+    log.info("Package is at %s/%s", repo['url'], metadata.name)
