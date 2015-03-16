@@ -75,7 +75,7 @@ def build_post_data(action, metadata:Metadata):
         "version": metadata.version,
 
         # additional meta-data
-        "metadata_version": '1.2',
+        "metadata_version": '1.1',
         "summary": metadata.summary,
         "home_page": metadata.home_page,
         "author": metadata.author,
@@ -94,12 +94,12 @@ def build_post_data(action, metadata:Metadata):
         "requires": metadata.requires,
         "obsoletes": metadata.obsoletes,
         # Metadata 1.2 - PyPI gives a 500 error when I try to supply any of these
-        # "project_urls": metadata.project_urls,
-        # "provides_dist": metadata.provides_dist,
-        # "obsoletes_dist": metadata.obsoletes_dist,
-        # "requires_dist": metadata.requires_dist,
-        # "requires_external": metadata.requires_external,
-        # "requires_python": metadata.requires_python,
+        "project_urls": metadata.project_urls,
+        "provides_dist": metadata.provides_dist,
+        "obsoletes_dist": metadata.obsoletes_dist,
+        "requires_dist": metadata.requires_dist,
+        "requires_external": metadata.requires_external,
+        "requires_python": metadata.requires_python,
       }
 
     return {k:v for k,v in d.items() if v}
@@ -152,10 +152,16 @@ def do_upload(file:Path, metadata:Metadata, repo_name='pypi'):
     """Upload a wheel, registering a new package if necessary.
     """
     repo = get_repository(repo_name)
-    # setup.py only needs to explicitly register a package name once, and
-    # uploading a new file can trigger a new release. When I uploading a new
-    # version without registering it first, I get a 500 error. So for now,
-    # let's just call register() every time.
-    register(metadata, repo)
-    upload_wheel(file, metadata, repo)
+    try:
+        upload_wheel(file, metadata, repo)
+    except requests.HTTPError as e:
+        if e.response.status_code == 403:
+            # 403 can happens if the package is not already on PyPI - try
+            # registering it and uploading again.
+            log.warning('Uploading forbidden; trying to register and upload again')
+            register(metadata, repo)
+            upload_wheel(file, metadata, repo)
+        else:
+            raise
+
     log.info("Package is at %s/%s", repo['url'], metadata.name)
