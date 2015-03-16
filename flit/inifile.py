@@ -20,6 +20,12 @@ metadata_allowed_fields = {
     'requires-python'
 } | metadata_list_fields
 
+metadata_required_fields = {
+    'author',
+    'author-email',
+    'home-page',
+}
+
 def read_pypi_ini(path):
     """Read and check the pypi.ini file with data about the package.
     """
@@ -35,8 +41,9 @@ def read_pypi_ini(path):
         raise ConfigError('[metadata] section is required')
 
     md_sect = cp['metadata']
-    if 'author-email' not in md_sect:
-        raise ConfigError('author-email key is required')
+    if not set(md_sect).issuperset(metadata_required_fields):
+        missing = metadata_required_fields - set(md_sect)
+        raise ConfigError("Required fields missing: " + '\n'.join(missing))
 
     md_dict = {}
 
