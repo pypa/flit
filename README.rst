@@ -27,7 +27,7 @@ Say you're writing a module ``foobar.py`` and you want to distribute it.
        # foobar:main means the script will do: from foobar import main; main()
        foobar=foobar:main
 
-   There are other fields you can add - see the docs.
+   There are other fields you can add - see the pypi.ini page of the docs.
 
 3. Run this command to upload your code to PyPI::
 
@@ -35,7 +35,7 @@ Say you're writing a module ``foobar.py`` and you want to distribute it.
 
 To install a package locally for development, run::
 
-    flit path/to/foobar.py install [--user] [--symlink]
+    flit path/to/foobar.py install [--symlink]
 
 Flit packages a single importable module or package at a time, using the import
 name as the name on PyPI. All subpackages and data files within a package are
