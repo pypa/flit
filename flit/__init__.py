@@ -11,6 +11,7 @@ import zipfile
 
 from . import common
 from . import inifile
+from .log import enable_colourful_output
 
 __version__ = '0.1'
 
@@ -201,7 +202,8 @@ def main(argv=None):
 
     args = ap.parse_args(argv)
 
-    logging.basicConfig(level=logging.INFO)
+    enable_colourful_output()
+
     pkg = Importable(args.package)
     pkg.check()
 
