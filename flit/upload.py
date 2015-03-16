@@ -68,24 +68,24 @@ def build_post_data(action, metadata:Metadata):
         "author_email": metadata.author_email,
         "maintainer": metadata.maintainer,
         "maintainer_email": metadata.maintainer_email,
-        "license": metadata.license or 'UNKNOWN',
+        "license": metadata.license,
         "description": metadata.description,
         "keywords": metadata.keywords,
-        "platform": metadata.platform or ['UNKNOWN'],
+        "platform": metadata.platform,
         "classifiers": metadata.classifiers,
-        "download_url": metadata.download_url or 'UNKNOWN',
+        "download_url": metadata.download_url,
         "supported_platform": metadata.supported_platform,
         # PEP 314
         "provides": metadata.provides,
         "requires": metadata.requires,
         "obsoletes": metadata.obsoletes,
-        # Metadata 1.2
-        "project_urls": metadata.project_urls,
-        "provides_dist": metadata.provides_dist,
-        "obsoletes_dist": metadata.obsoletes_dist,
-        "requires_dist": metadata.requires_dist,
-        "requires_external": metadata.requires_external,
-        "requires_python": metadata.requires_python,
+        # Metadata 1.2 - PyPI gives a 500 error when I try to supply any of these
+        # "project_urls": metadata.project_urls,
+        # "provides_dist": metadata.provides_dist,
+        # "obsoletes_dist": metadata.obsoletes_dist,
+        # "requires_dist": metadata.requires_dist,
+        # "requires_external": metadata.requires_external,
+        # "requires_python": metadata.requires_python,
       }
 
     return {k:v for k,v in d.items() if v}
@@ -113,13 +113,20 @@ def _attempt_upload(file:Path, metadata:Metadata, repo):
 
 def register(metadata:Metadata, repo):
     data = build_post_data('submit', metadata)
-    import pprint
-    pprint.pprint(data)
     resp = requests.post(repo['url'], data=data,
                          auth=(repo['username'], repo['password'])
                         )
     resp.raise_for_status()
     log.info('Registered %s with PyPI', metadata.name)
+
+def verify(metadata:Metadata, repo_name):
+    repo = get_repository(repo_name)
+    data = build_post_data('verify', metadata)
+    resp = requests.post(repo['url'], data=data,
+                         auth=(repo['username'], repo['password'])
+                        )
+    resp.raise_for_status()
+    log.info('Verification succeeded')
 
 def do_upload(file:Path, metadata:Metadata, repo_name='pypi'):
     repo = get_repository(repo_name)

@@ -30,7 +30,7 @@ Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
-def wheel(target, upload=None):
+def wheel(target, upload=None, verify_metadata=None):
     build_dir = target.path.parent / 'build' / 'flit'
     try:
         build_dir.mkdir(parents=True)
@@ -116,6 +116,10 @@ def wheel(target, upload=None):
 
     log.info("Created %s", dist_dir / filename)
 
+    if verify_metadata is not None:
+        from .upload import verify
+        verify(metadata, verify_metadata)
+
     if upload is not None:
         from .upload import do_upload
         do_upload(dist_dir / filename, metadata, upload)
@@ -165,7 +169,13 @@ def main(argv=None):
 
     parser_wheel = subparsers.add_parser('wheel')
     parser_wheel.add_argument('--upload', action='store', nargs='?',
-                              const='pypi', default=None)
+                              const='pypi', default=None,
+          help="Upload the built wheel to PyPI"
+    )
+    parser_wheel.add_argument('--verify-metadata', action='store', nargs='?',
+                              const='pypi', default=None,
+          help="Verify the package metadata with the PyPI server"
+    )
 
     parser_install = subparsers.add_parser('install')
     parser_install.add_argument('--symlink', action='store_true')
@@ -177,7 +187,7 @@ def main(argv=None):
     pkg.check()
 
     if args.subcmd == 'wheel':
-        wheel(pkg, upload=args.upload)
+        wheel(pkg, upload=args.upload, verify_metadata=args.verify_metadata)
     elif args.subcmd == 'install':
         from .install import install
         install(pkg, symlink=args.symlink)
