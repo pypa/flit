@@ -13,7 +13,8 @@ def get_info_from_module(target):
 script_template = """\
 #!{interpreter}
 from {module} import {func}
-{func}()
+if __name__ == '__main__':
+    {func}()
 """
 
 def parse_entry_point(ep: str):
