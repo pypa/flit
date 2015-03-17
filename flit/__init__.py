@@ -6,7 +6,6 @@ import os
 import pathlib
 import shutil
 import sys
-from importlib.machinery import SourceFileLoader
 import zipfile
 
 from . import common
@@ -16,16 +15,6 @@ from .log import enable_colourful_output
 __version__ = '0.1'
 
 log = logging.getLogger(__name__)
-
-def get_info_from_module(target):
-    """Load the module/package, get its docstring and __version__
-    """
-    sl = SourceFileLoader(target.name, str(target.file))
-    m = sl.load_module()
-    docstring_lines = m.__doc__.splitlines()
-    return {'summary': docstring_lines[0],
-            'description': '\n'.join(docstring_lines[1:]),
-            'version': m.__version__}
 
 wheel_file_template = """\
 Wheel-Version: 1.0
@@ -52,7 +41,7 @@ def wheel(target, upload=None, verify_metadata=None):
 
     ini_info = inifile.read_pypi_ini(target.ini_file)
     md_dict = {'name': target.name, 'provides': [target.name]}
-    md_dict.update(get_info_from_module(target))
+    md_dict.update(common.get_info_from_module(target))
     md_dict.update(ini_info['metadata'])
     metadata = common.Metadata(md_dict)
 

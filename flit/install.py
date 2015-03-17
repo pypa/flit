@@ -44,29 +44,43 @@ def get_dirs(user=True):
         'purelib': purelib.format_map(_interpolation_vars),
     }
 
-def install(target, user=True, symlink=False):
+def record_installed_directory(path, fileslist):
+    site_pkgs = os.path.dirname(path)
+    for dirpath, dirnames, files in os.walk(path):
+        for f in files:
+            filepath = os.path.join(dirpath, f)
+            from_site_pkgs = os.path.relpath(filepath, site_pkgs)
+            # The record is from the .egg-info directory, hence the ../
+            fileslist.append(os.path.join('..', from_site_pkgs))
+
+def install(mod, user=True, symlink=False):
     """Install a module/package into site-packages, and create its scripts.
     """
     dirs = get_dirs(user=user)
-    dst = os.path.join(dirs['purelib'], target.path.name)
+    dst = os.path.join(dirs['purelib'], mod.path.name)
     if os.path.lexists(dst):
         if os.path.isdir(dst) and not os.path.islink(dst):
             shutil.rmtree(dst)
         else:
             os.unlink(dst)
 
-    src = str(target.path)
+    installed_files = []
+
+    src = str(mod.path)
     if symlink:
         log.info("Symlinking %s -> %s", src, dst)
-        os.symlink(str(target.path.resolve()), dst)
-    elif target.path.is_dir():
+        os.symlink(str(mod.path.resolve()), dst)
+        installed_files.append(os.path.join('..', mod.path.name))
+    elif mod.path.is_dir():
         log.info("Copying directory %s -> %s", src, dst)
         shutil.copytree(src, dst)
+        record_installed_directory()
     else:
         log.info("Copying file %s -> %s", src, dst)
         shutil.copy2(src, dst)
+        installed_files.append(os.path.join('..', mod.path.name))
 
-    scripts = read_pypi_ini(target.ini_file)['scripts']
+    scripts = read_pypi_ini(mod.ini_file)['scripts']
 
     for name, (module, func) in scripts.items():
         script_file = pathlib.Path(dirs['scripts']) / name
@@ -78,3 +92,28 @@ def install(target, user=True, symlink=False):
                 func=func
             ))
         script_file.chmod(0o755)
+
+        from_site_pkgs = os.path.relpath(str(script_file), dirs['purelib'])
+        installed_files.append(os.path.join('..', from_site_pkgs))
+
+    # Record metadata about installed files to give pip a fighting chance of
+    # uninstalling it correctly.
+    module_info = common.get_info_from_module(mod)
+    egg_info = pathlib.Path(dirs['purelib']) / '{}-{}.egg-info'.format(
+                                               mod.name, module_info['version'])
+    try:
+        egg_info.mkdir()
+    except FileExistsError:
+        shutil.rmtree(str(egg_info))
+        egg_info.mkdir()
+    installed_files.append('./')
+
+    # Not sure what this is for, but it's easy to do, and perhaps it will
+    # placate the heathen gods of packaging.
+    with (egg_info / 'top_level.txt').open('w') as f:
+        f.write(mod.name)
+    installed_files.append('top_level.txt')
+
+    with (egg_info / 'installed-files.txt').open('w') as f:
+        for path in installed_files:
+            f.write(path + '\n')

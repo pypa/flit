@@ -1,3 +1,15 @@
+from importlib.machinery import SourceFileLoader
+
+def get_info_from_module(target):
+    """Load the module/package, get its docstring and __version__
+    """
+    sl = SourceFileLoader(target.name, str(target.file))
+    m = sl.load_module()
+    docstring_lines = m.__doc__.splitlines()
+    return {'summary': docstring_lines[0],
+            'description': '\n'.join(docstring_lines[1:]),
+            'version': m.__version__}
+
 script_template = """\
 #!{interpreter}
 from {module} import {func}
