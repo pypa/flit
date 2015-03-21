@@ -8,7 +8,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   pypi_ini
+   pkg_ini
 
 
 

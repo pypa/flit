@@ -8,7 +8,7 @@ import site
 import sys
 
 from . import common
-from .inifile import read_pypi_ini
+from .inifile import read_pkg_ini
 
 log = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ def install(mod, user=True, symlink=False):
         shutil.copy2(src, dst)
         installed_files.append(os.path.join('..', mod.path.name))
 
-    scripts = read_pypi_ini(mod.ini_file)['scripts']
+    scripts = read_pkg_ini(mod.ini_file)['scripts']
 
     for name, (module, func) in scripts.items():
         script_file = pathlib.Path(dirs['scripts']) / name

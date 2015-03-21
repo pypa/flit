@@ -34,12 +34,12 @@ def wheel(target, upload=None, verify_metadata=None):
 
     # Copy module/package to build directory
     if target.is_package:
-        ignore = shutil.ignore_patterns('*.pyc', '__pycache__', 'pypi.ini')
+        ignore = shutil.ignore_patterns('*.pyc', '__pycache__')
         shutil.copytree(str(target.path), str(build_dir / target.name), ignore=ignore)
     else:
         shutil.copy2(str(target.path), str(build_dir))
 
-    ini_info = inifile.read_pypi_ini(target.ini_file)
+    ini_info = inifile.read_pkg_ini(target.ini_file)
     md_dict = {'name': target.name, 'provides': [target.name]}
     md_dict.update(common.get_info_from_module(target))
     md_dict.update(ini_info['metadata'])
@@ -124,17 +124,20 @@ def wheel(target, upload=None, verify_metadata=None):
 class Importable(object):
     """This represents the module/package that we are going to distribute
     """
-    def __init__(self, path):
-        self.path = pathlib.Path(path)
-
-    @property
-    def name(self):
-        """The name that would be used in an import statement.
-        """
-        n = self.path.name
-        if n.endswith('.py'):
-            n = n[:-3]
-        return n
+    def __init__(self, name):
+        self.name = name
+        pkg_dir = pathlib.Path(name)
+        py_file = pathlib.Path(name+'.py')
+        if pkg_dir.is_dir() and py_file.is_file():
+            raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
+        elif pkg_dir.is_dir():
+            self.path = pkg_dir
+            self.is_package = True
+        elif py_file.is_file():
+            self.path = py_file
+            self.is_package = False
+        else:
+            raise ValueError("No file/folder found for module {}".format(name))
 
     @property
     def file(self):
@@ -144,33 +147,24 @@ class Importable(object):
             return self.path
 
     @property
-    def is_package(self):
-        """True if we're dealing with a package, False for a standalone module.
-        """
-        return self.path.is_dir()
-
-    @property
     def ini_file(self):
         """Path to the ini file with metadata for this package.
         """
-        if self.is_package:
-            return self.path / 'pypi.ini'
-        else:
-            return self.path.with_name(self.name + '-pypi.ini')
+        return self.path.with_name(self.name + '-pkg.ini')
 
     def check(self):
         """Basic checks of the package to show clearer errors.
         """
-        if not self.file.is_file():
-            raise FileNotFoundError(self.path)
         if not self.name.isidentifier():
             raise ValueError("{} is not a valid package name".format(self.name))
+        if not self.ini_file.is_file():
+            raise FileNotFoundError(self.ini_file)
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('package',
-        help="Path to the Python package/module to package",
+        help="Name of the Python package/module to package",
     )
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 

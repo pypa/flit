@@ -1,9 +1,7 @@
-The pypi.ini config file
+The -pkg.ini config file
 ========================
 
-For a package, this lives inside the package's directory at ``pkg/pypi.ini``.
-For a single-file module, it lives next to the module ``.py`` file at
-``module-pypi.ini``.
+This file lives next to the module or package at :file:`{modulename}-pkg.ini`.
 
 Metadata section
 ----------------
@@ -61,7 +59,7 @@ Here's the full example from flit itself:
     home-page=https://github.com/takluyver/flit
     requires=requests
     requires-python=3
-    description-file=../README.rst
+    description-file=README.rst
     classifiers=Intended Audience :: Developers
         License :: OSI Approved :: BSD License
         Programming Language :: Python :: 3

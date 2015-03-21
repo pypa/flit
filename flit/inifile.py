@@ -26,8 +26,8 @@ metadata_required_fields = {
     'home-page',
 }
 
-def read_pypi_ini(path):
-    """Read and check the pypi.ini file with data about the package.
+def read_pkg_ini(path):
+    """Read and check the -pkg.ini file with data about the package.
     """
     cp = configparser.ConfigParser()
     with path.open() as f:
