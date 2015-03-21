@@ -7,7 +7,6 @@ def get_info_from_module(target):
     m = sl.load_module()
     docstring_lines = m.__doc__.splitlines()
     return {'summary': docstring_lines[0],
-            'description': '\n'.join(docstring_lines[1:]),
             'version': m.__version__}
 
 script_template = """\
