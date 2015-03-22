@@ -1,0 +1,6 @@
+language: python
+python:
+  - "3.4"
+# command to run tests
+script: py.test
+sudo: false
