@@ -63,7 +63,17 @@ class Installer(object):
                 ))
             script_file.chmod(0o755)
 
-            self.installed_files.append(str(script_file))
+            self.installed_files.append(script_file)
+
+            if sys.platform == 'win32':
+                cmd_file = script_file.with_suffix('.cmd')
+                cmd = '"{python}" "%~dp0\{script}" %*\r\n'.format(
+                            python=sys.executable, script=name)
+                log.debug("Writing script wrapper to %s", cmd_file)
+                with cmd_file.open('w') as f:
+                    f.write(cmd)
+
+                self.installed_files.append(cmd_file)
 
     def _record_installed_directory(self, path):
         for dirpath, dirnames, files in os.walk(path):
