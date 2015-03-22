@@ -193,8 +193,8 @@ def main(argv=None):
     if args.subcmd == 'wheel':
         wheel(pkg, upload=args.upload, verify_metadata=args.verify_metadata)
     elif args.subcmd == 'install':
-        from .install import install
-        install(pkg, symlink=args.symlink)
+        from .install import Installer
+        Installer(pkg, symlink=args.symlink).install()
     else:
         sys.exit('No command specified')
 
