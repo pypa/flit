@@ -1,6 +1,6 @@
 language: python
 python:
   - "3.4"
-# command to run tests
+install: pip install testpath
 script: py.test
 sudo: false
