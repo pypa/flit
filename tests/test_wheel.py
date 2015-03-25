@@ -5,7 +5,7 @@ from testpath import assert_isfile
 
 from flit import Importable, wheel
 
-class ImportableTests(TestCase):
+class WheelTests(TestCase):
     def setUp(self):
         self.orig_working_dir = os.getcwd()
         samples_dir = os.path.join(os.path.dirname(__file__), 'samples')
