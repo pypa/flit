@@ -1,5 +1,6 @@
 """A simple packaging tool for simple packages."""
 import argparse
+import configparser
 import hashlib
 import logging
 import os
@@ -48,24 +49,17 @@ def wheel(target, upload=None, verify_metadata=None):
     dist_version = metadata.name + '-' + metadata.version
     py2_support = not (metadata.requires_python or '').startswith(('3', '>3', '>=3'))
 
-    data_dir = build_dir / (dist_version + '.data')
-
-    # Write scripts
-    if ini_info['scripts']:
-        (data_dir / 'scripts').mkdir(parents=True)
-        for name, (module, func) in ini_info['scripts'].items():
-            script_file = (data_dir / 'scripts' / name)
-            log.debug('Writing script to %s', script_file)
-            script_file.touch(0o755, exist_ok=False)
-            with script_file.open('w') as f:
-                f.write(common.script_template.format(
-                    interpreter='python',
-                    module=module,
-                    func=func
-                ))
-
     dist_info = build_dir / (dist_version + '.dist-info')
     dist_info.mkdir()
+
+    # Write entry points
+    if ini_info['scripts']:
+        cp = configparser.ConfigParser()
+        cp['console_scripts'] = {k: '%s:%s' % v
+                                 for (k,v) in ini_info['scripts'].items()}
+        log.debug('Writing entry_points.txt in %s', dist_info)
+        with (dist_info / 'entry_points.txt').open('w') as f:
+            cp.write(f)
 
     with (dist_info / 'WHEEL').open('w') as f:
         f.write(wheel_file_template)
