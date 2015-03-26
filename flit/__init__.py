@@ -13,7 +13,7 @@ from . import common
 from . import inifile
 from .log import enable_colourful_output
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 log = logging.getLogger(__name__)
 
