@@ -87,6 +87,7 @@ class Metadata:
             'Author-email',
             'Maintainer',
             'Maintainer-email',
+            'Requires-Python',
         ]
 
         for field in fields:
