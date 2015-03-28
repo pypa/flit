@@ -12,11 +12,12 @@ or as a directory—and you want to distribute it.
 
        __version__ = '0.1'
 
-2. Create a file ``foobar-pkg.ini``. It should look like this:
+2. Create a file ``flit.ini`` next to the module. It should look like this:
 
    .. code-block:: ini
 
        [metadata]
+       module=foobar
        author=Sir Robin
        author-email=robin@camelot.uk
        home-page=http://github.com/sirrobin/foobar
@@ -35,11 +36,11 @@ or as a directory—and you want to distribute it.
 
 4. Run this command to upload your code to PyPI::
 
-       flit foobar wheel --upload
+       flit wheel --upload
 
 To install a package locally for development, run::
 
-    flit foobar install [--symlink]
+    flit install [--symlink]
 
 Flit packages a single importable module or package at a time, using the import
 name as the name on PyPI. All subpackages and data files within a package are

@@ -23,7 +23,7 @@ Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
-def wheel(target, upload=None, verify_metadata=None):
+def wheel(target, ini_info, upload=None, verify_metadata=None):
     """Build a wheel from a module/package
     """
     build_dir = target.path.parent / 'build' / 'flit'
@@ -40,7 +40,6 @@ def wheel(target, upload=None, verify_metadata=None):
     else:
         shutil.copy2(str(target.path), str(build_dir))
 
-    ini_info = inifile.read_pkg_ini(target.ini_file)
     md_dict = {'name': target.name, 'provides': [target.name]}
     md_dict.update(common.get_info_from_module(target))
     md_dict.update(ini_info['metadata'])
@@ -140,26 +139,16 @@ class Importable(object):
         else:
             return self.path
 
-    @property
-    def ini_file(self):
-        """Path to the ini file with metadata for this package.
-        """
-        return self.path.with_name(self.name + '-pkg.ini')
-
     def check(self):
         """Basic checks of the package to show clearer errors.
         """
         if not self.name.isidentifier():
             raise ValueError("{} is not a valid package name".format(self.name))
-        if not self.ini_file.is_file():
-            raise FileNotFoundError(self.ini_file)
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument('package',
-        help="Name of the Python package/module to package",
-    )
+    ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='flit.ini')
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 
     parser_wheel = subparsers.add_parser('wheel')
@@ -181,14 +170,16 @@ def main(argv=None):
 
     enable_colourful_output()
 
-    pkg = Importable(args.package)
-    pkg.check()
+    ini_info = inifile.read_pkg_ini(args.ini_file)
+
+    mod = Importable(ini_info['metadata'].pop('module'))
+    mod.check()
 
     if args.subcmd == 'wheel':
-        wheel(pkg, upload=args.upload, verify_metadata=args.verify_metadata)
+        wheel(mod, ini_info, upload=args.upload, verify_metadata=args.verify_metadata)
     elif args.subcmd == 'install':
         from .install import Installer
-        Installer(pkg, symlink=args.symlink).install()
+        Installer(mod, ini_info, symlink=args.symlink).install()
     else:
         sys.exit('No command specified')
 

@@ -10,6 +10,7 @@ metadata_list_fields = {
 }
 
 metadata_allowed_fields = {
+    'module',
     'author',
     'author-email',
     'maintainer',
@@ -21,6 +22,7 @@ metadata_allowed_fields = {
 } | metadata_list_fields
 
 metadata_required_fields = {
+    'module',
     'author',
     'author-email',
     'home-page',

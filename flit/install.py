@@ -8,7 +8,6 @@ import site
 import sys
 
 from . import common
-from .inifile import read_pkg_ini
 
 log = logging.getLogger(__name__)
 
@@ -45,8 +44,9 @@ def get_dirs(user=True):
     }
 
 class Installer(object):
-    def __init__(self, module, user=True, symlink=False):
+    def __init__(self, module, ini_info, user=True, symlink=False):
         self.module = module
+        self.ini_info = ini_info
         self.user = user
         self.symlink = symlink
         self.installed_files = []
@@ -108,7 +108,7 @@ class Installer(object):
             shutil.copy2(src, dst)
             self.installed_files.append(dst)
 
-        scripts = read_pkg_ini(self.module.ini_file)['scripts']
+        scripts = self.ini_info['scripts']
         self.install_scripts(scripts, dirs['scripts'])
 
         self.write_dist_info(dirs['purelib'])
