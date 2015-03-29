@@ -8,6 +8,7 @@ import pathlib
 import shutil
 import sys
 import zipfile
+import requests
 
 from . import common
 from . import inifile
@@ -120,6 +121,7 @@ class Importable(object):
     """
     def __init__(self, name):
         self.name = name
+        self._ini_info = None
         pkg_dir = pathlib.Path(name)
         py_file = pathlib.Path(name+'.py')
         if pkg_dir.is_dir() and py_file.is_file():
@@ -146,6 +148,14 @@ class Importable(object):
         """
         return self.path.with_name(self.name + '-pkg.ini')
 
+    @property
+    def ini_info(self):
+        if not self._ini_info:
+            self._ini_info = inifile.read_pkg_ini(self.ini_file)
+        return self._ini_info
+
+
+
     def check(self):
         """Basic checks of the package to show clearer errors.
         """
@@ -153,6 +163,16 @@ class Importable(object):
             raise ValueError("{} is not a valid package name".format(self.name))
         if not self.ini_file.is_file():
             raise FileNotFoundError(self.ini_file)
+        response = requests.get('https://pypi.python.org/pypi?%3Aaction=list_classifiers')
+        if response.status_code == 200:
+            known_classifiers = set(response.content.decode('utf-8').split('\n'))
+            non_classifiers=set(self.ini_info['metadata'].get('classifiers', set([]))) - known_classifiers
+            if(non_classifiers):
+                raise  ValueError('The following are not valid classifiers,'
+                        'you will not be able to upload you package: \n\t— '\
+                                  +'\n\t— '.join(non_classifiers))
+
+
 
 
 def main(argv=None):
