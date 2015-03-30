@@ -1,4 +1,4 @@
-The -pkg.ini config file
+The flit.ini config file
 ========================
 
 This file lives next to the module or package at :file:`{modulename}-pkg.ini`.
