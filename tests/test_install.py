@@ -14,9 +14,7 @@ class InstallTests(TestCase):
     def setUp(self):
         td = tempfile.TemporaryDirectory()
         scripts_dir = os.path.join(td.name, 'scripts')
-        os.mkdir(scripts_dir)
         purelib_dir = os.path.join(td.name, 'site-packages')
-        os.mkdir(purelib_dir)
         self.addCleanup(td.cleanup)
         self.get_dirs_patch = patch('flit.install.get_dirs',
                 return_value={'scripts': scripts_dir, 'purelib': purelib_dir})
