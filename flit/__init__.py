@@ -38,9 +38,9 @@ def main(argv=None):
     enable_colourful_output()
 
     if args.subcmd == 'wheel':
-        from .wheel import make_wheel
-        make_wheel(args.ini_file, upload=args.upload,
-                    verify_metadata=args.verify_metadata)
+        from .wheel import WheelBuilder
+        WheelBuilder(args.ini_file, upload=args.upload,
+                     verify_metadata=args.verify_metadata).build()
     elif args.subcmd == 'install':
         from .install import Installer
         Installer(args.ini_file, symlink=args.symlink).install()
