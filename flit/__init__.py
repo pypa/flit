@@ -8,6 +8,7 @@ import pathlib
 import shutil
 import sys
 import zipfile
+import re
 
 from . import common
 from . import inifile
@@ -155,6 +156,46 @@ class Importable(object):
             raise FileNotFoundError(self.ini_file)
 
 
+def get_value(guesser, input_str, flag_value):
+    final_value = None
+    if flag_value:
+        final_value = flag_value
+    else:
+        guessed_value = guesser()
+        # res = input('is '+input_str+' "{}" ? [Y/n] '.format(guessed_value))
+        # if res.lower() in [None, '','yes','y']:
+        #     final_value = guessed_value
+        #while not final_value:
+        val = input(input_str+' ['+guessed_value+'] : ')
+        if not val:
+            final_value = guessed_value
+        else:
+            final_value = val
+
+    return final_value
+
+def get_git_homepage():
+    try:
+        import configparser
+        cp = configparser.ConfigParser()
+        cp.read('.git/config')
+        guessed_hp = cp['remote "origin"']['url']
+    except Exception:
+        guessed_hp = ''
+    return guessed_hp
+
+def get_git_author_name(subkey='name'):
+    try:
+        import configparser
+        cp = configparser.ConfigParser()
+        cp.read(os.path.expanduser('~/.gitconfig'))
+        guessed_name = cp['user'][subkey]
+    except Exception:
+        guessed_name = ''
+    return guessed_name
+
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('package',
@@ -177,6 +218,14 @@ def main(argv=None):
         help="Symlink the module/package into site packages instead of copying it"
     )
 
+    parser_init = subparsers.add_parser('init')
+    parser_init.add_argument('--name', help='The new package name')
+    parser_init.add_argument('--author', help='Auhthor in the form "My Mame <my.name@provider.ext>"')
+    parser_init.add_argument('--no-interactif', action='store_false', default=True, 
+                              help="should I prompt the user for the answers I don't know")
+    parser_init.add_argument('--home-page', help='home page of the project')
+    parser_init.add_argument('--license', help='license of the project')
+
     args = ap.parse_args(argv)
 
     enable_colourful_output()
@@ -189,6 +238,14 @@ def main(argv=None):
     elif args.subcmd == 'install':
         from .install import Installer
         Installer(pkg, symlink=args.symlink).install()
+    elif args.subcmd == 'init':
+        md = {}
+        md['name']    = get_value(lambda: os.path.split(os.getcwd())[-1], 'package name', args.name)
+        md['license'] = get_value(lambda: "BSD", 'package license', args.license)
+        md['home_page'] = get_value(get_git_homepage, "home page", args.home_page)
+        md['author'] = get_value(get_git_author_name, "author name", args.author)
+        md['author_email'] = get_value(lambda:get_git_author_name('email'), "author email", args.author)
+
     else:
         sys.exit('No command specified')
 
