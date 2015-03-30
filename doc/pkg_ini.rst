@@ -6,8 +6,10 @@ This file lives next to the module or package at :file:`{modulename}-pkg.ini`.
 Metadata section
 ----------------
 
-There are three required fields:
+There are four required fields:
 
+module
+  The name of the module/package, as you'd use in an import statement.
 author
   Your name
 author-email
@@ -20,6 +22,7 @@ e.g. for flit itself
 .. code-block:: ini
 
     [metadata]
+    module=flit
     author=Thomas Kluyver
     author-email=thomas@kluyver.me.uk
     home-page=https://github.com/takluyver/flit
