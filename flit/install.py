@@ -8,6 +8,7 @@ import site
 import sys
 
 from . import common
+from . import inifile
 
 log = logging.getLogger(__name__)
 
@@ -44,9 +45,11 @@ def get_dirs(user=True):
     }
 
 class Installer(object):
-    def __init__(self, module, ini_info, user=True, symlink=False):
-        self.module = module
-        self.ini_info = ini_info
+    def __init__(self, ini_path, user=True, symlink=False):
+        self.ini_path = ini_path
+        self.ini_info = inifile.read_pkg_ini(ini_path)
+        self.module = common.Module(self.ini_info['module'],
+                                    ini_path.parent)
         self.user = user
         self.symlink = symlink
         self.installed_files = []

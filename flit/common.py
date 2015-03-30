@@ -1,4 +1,33 @@
 from importlib.machinery import SourceFileLoader
+from pathlib import Path
+
+class Module(object):
+    """This represents the module/package that we are going to distribute
+    """
+    def __init__(self, name, directory='.'):
+        self.name = name
+
+        # It must exist either as a .py file or a directory, but not both
+        pkg_dir = Path(directory, name)
+        py_file = Path(directory, name+'.py')
+        if pkg_dir.is_dir() and py_file.is_file():
+            raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
+        elif pkg_dir.is_dir():
+            self.path = pkg_dir
+            self.is_package = True
+        elif py_file.is_file():
+            self.path = py_file
+            self.is_package = False
+        else:
+            raise ValueError("No file/folder found for module {}".format(name))
+
+    @property
+    def file(self):
+        if self.is_package:
+            return self.path / '__init__.py'
+        else:
+            return self.path
+
 
 def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__

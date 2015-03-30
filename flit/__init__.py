@@ -23,15 +23,20 @@ Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
-def wheel(target, ini_info, upload=None, verify_metadata=None):
+def wheel(ini_path, upload=None, verify_metadata=None):
     """Build a wheel from a module/package
     """
-    build_dir = target.path.parent / 'build' / 'flit'
+    directory = ini_path.parent
+    ini_info = inifile.read_pkg_ini(ini_path)
+
+    build_dir = directory / 'build' / 'flit'
     try:
         build_dir.mkdir(parents=True)
     except FileExistsError:
         shutil.rmtree(str(build_dir))
         build_dir.mkdir()
+
+    target = common.Module(ini_info['module'], directory)
 
     # Copy module/package to build directory
     if target.is_package:
@@ -114,37 +119,6 @@ def wheel(target, ini_info, upload=None, verify_metadata=None):
         from .upload import do_upload
         do_upload(dist_dir / filename, metadata, upload)
 
-class Importable(object):
-    """This represents the module/package that we are going to distribute
-    """
-    def __init__(self, name):
-        self.name = name
-        pkg_dir = pathlib.Path(name)
-        py_file = pathlib.Path(name+'.py')
-        if pkg_dir.is_dir() and py_file.is_file():
-            raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
-        elif pkg_dir.is_dir():
-            self.path = pkg_dir
-            self.is_package = True
-        elif py_file.is_file():
-            self.path = py_file
-            self.is_package = False
-        else:
-            raise ValueError("No file/folder found for module {}".format(name))
-
-    @property
-    def file(self):
-        if self.is_package:
-            return self.path / '__init__.py'
-        else:
-            return self.path
-
-    def check(self):
-        """Basic checks of the package to show clearer errors.
-        """
-        if not self.name.isidentifier():
-            raise ValueError("{} is not a valid package name".format(self.name))
-
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
@@ -170,16 +144,12 @@ def main(argv=None):
 
     enable_colourful_output()
 
-    ini_info = inifile.read_pkg_ini(args.ini_file)
-
-    mod = Importable(ini_info['metadata'].pop('module'))
-    mod.check()
-
     if args.subcmd == 'wheel':
-        wheel(mod, ini_info, upload=args.upload, verify_metadata=args.verify_metadata)
+        wheel(args.ini_file, upload=args.upload,
+              verify_metadata=args.verify_metadata)
     elif args.subcmd == 'install':
         from .install import Installer
-        Installer(mod, ini_info, symlink=args.symlink).install()
+        Installer(args.ini_file, symlink=args.symlink).install()
     else:
         sys.exit('No command specified')
 

@@ -47,6 +47,10 @@ def read_pkg_ini(path):
         missing = metadata_required_fields - set(md_sect)
         raise ConfigError("Required fields missing: " + '\n'.join(missing))
 
+    module = md_sect.pop('module')
+    if not module.isidentifier():
+        raise ConfigError("Module name %r is not a valid identifier" % module)
+
     md_dict = {}
 
     if 'description-file' in md_sect:
@@ -75,6 +79,7 @@ def read_pkg_ini(path):
         scripts_dict = {}
 
     return {
+        'module': module,
         'metadata': md_dict,
         'scripts': scripts_dict,
     }
