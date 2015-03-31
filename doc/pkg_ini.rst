@@ -1,7 +1,7 @@
 The flit.ini config file
 ========================
 
-This file lives next to the module or package at :file:`{modulename}-pkg.ini`.
+This file lives next to the module or package.
 
 Metadata section
 ----------------
@@ -43,6 +43,9 @@ classifiers
 requires-python
   A version specifier for the versions of Python this requires, e.g. ``3`` or
   ``>=3.3``.
+dist-name
+  If you want your package's name on PyPI to be different from the importable
+  module name, set this to the PyPI name.
 keywords
   Space separated list of words to help with searching for your package.
 license

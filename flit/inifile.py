@@ -18,7 +18,8 @@ metadata_allowed_fields = {
     'home-page',
     'license',
     'keywords',
-    'requires-python'
+    'requires-python',
+    'dist-name',
 } | metadata_list_fields
 
 metadata_required_fields = {
@@ -72,6 +73,10 @@ def read_pkg_ini(path):
     # the metadata.
     if 'requires' in md_dict:
         md_dict['requires_dist'] = md_dict.pop('requires')
+
+    # And what we call dist-name is name in the metadata
+    if 'dist_name' in md_dict:
+        md_dict['name'] = md_dict.pop('dist_name')
 
     if cp.has_section('scripts'):
         scripts_dict = {k: common.parse_entry_point(v) for k, v in cp['scripts'].items()}
