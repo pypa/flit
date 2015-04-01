@@ -1,5 +1,14 @@
 import configparser
+import logging
+import os
+from pathlib import Path
+import sys
+
+import requests
+
 from . import common
+
+log = logging.getLogger(__name__)
 
 class ConfigError(ValueError):
     pass
@@ -28,6 +37,56 @@ metadata_required_fields = {
     'author-email',
     'home-page',
 }
+
+def get_cache_dir():
+    if os.name == 'posix' and sys.platform != 'darwin':
+        # Linux, Unix, AIX, etc.
+        # use ~/.cache if empty OR not set
+        xdg = os.environ.get("XDG_CACHE_HOME", None) or (os.path.expanduser('~/.cache'))
+        return Path(xdg, 'flit')
+
+    elif sys.platform == 'darwin':
+        return Path(os.path.expanduser('~'), 'Library/Caches/flit')
+
+    else:
+        # Windows (hopefully)
+        local = os.environ.get('LOCALAPPDATA', None) or (os.path.expanduser('~\\AppData\\Local'))
+        return Path(local, 'flit')
+
+def _verify_classifiers_cached(classifiers):
+    with (get_cache_dir() / 'classifiers.lst').open() as f:
+        valid_classifiers = set(l.strip() for l in f)
+
+    invalid = classifiers - valid_classifiers
+    if invalid:
+        raise ConfigError("Invalid classifiers:\n" +
+                          "\n".join(invalid))
+
+def _download_classifiers():
+    log.info('Fetching list of valid trove classifiers')
+    resp = requests.get('https://pypi.python.org/pypi?%3Aaction=list_classifiers')
+    resp.raise_for_status()
+
+    cache_dir = get_cache_dir()
+    try:
+        cache_dir.mkdir(parents=True)
+    except FileExistsError:
+        pass
+    with (get_cache_dir() / 'classifiers.lst').open('wb') as f:
+        f.write(resp.content)
+
+def verify_classifiers(classifiers):
+    classifiers = set(classifiers)
+    try:
+        _verify_classifiers_cached(classifiers)
+    except (FileNotFoundError, ConfigError):
+        # FileNotFoundError: We haven't yet got the classifiers cached
+        # ConfigError: At least one is invalid, but it may have been added since
+        #   last time we fetched them.
+        _download_classifiers()
+
+    _verify_classifiers_cached(classifiers)
+
 
 def read_pkg_ini(path):
     """Read and check the -pkg.ini file with data about the package.
@@ -78,6 +137,10 @@ def read_pkg_ini(path):
     if 'dist_name' in md_dict:
         md_dict['name'] = md_dict.pop('dist_name')
 
+    if 'classifiers' in md_dict:
+        verify_classifiers(md_dict['classifiers'])
+
+    # Scripts ---------------
     if cp.has_section('scripts'):
         scripts_dict = {k: common.parse_entry_point(v) for k, v in cp['scripts'].items()}
     else:
