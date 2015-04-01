@@ -120,8 +120,9 @@ class Installer(object):
         # Record metadata about installed files to give pip a fighting chance of
         # uninstalling it correctly.
         module_info = common.get_info_from_module(self.module)
+        dist_name = self.ini_info['metadata'].get('name', self.module.name)
         egg_info = pathlib.Path(site_pkgs) / '{}-{}.egg-info'.format(
-                                       self.module.name, module_info['version'])
+                                       dist_name, module_info['version'])
         try:
             egg_info.mkdir()
         except FileExistsError:
