@@ -1,3 +1,4 @@
+import hashlib
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
@@ -61,6 +62,11 @@ def parse_entry_point(ep: str):
             raise ValueError("Invalid entry point: %r is not a module path" % piece)
 
     return mod, func
+
+def hash_file(path, algorithm='sha256'):
+    with Path(path).open('rb') as f:
+        h = hashlib.new(algorithm, f.read())
+    return h.hexdigest()
 
 class Metadata:
 
@@ -136,3 +142,9 @@ class Metadata:
 
         if self.description is not None:
             fp.write('\n' + self.description + '\n')
+
+def make_metadata(module, ini_info):
+    md_dict = {'name': module.name, 'provides': [module.name]}
+    md_dict.update(get_info_from_module(module))
+    md_dict.update(ini_info['metadata'])
+    return Metadata(md_dict)

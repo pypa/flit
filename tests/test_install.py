@@ -27,12 +27,12 @@ class InstallTests(TestCase):
     def test_install_module(self):
         Installer(samples_dir / 'module1-pkg.ini').install()
         assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
-        assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.egg-info')
+        assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
 
     def test_install_package(self):
         Installer(samples_dir / 'package1-pkg.ini').install()
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
-        assert_isdir(self.tmpdir / 'site-packages' / 'package1-0.1.egg-info')
+        assert_isdir(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
 
     def test_symlink_package(self):
@@ -40,3 +40,8 @@ class InstallTests(TestCase):
         assert_islink(self.tmpdir / 'site-packages' / 'package1',
                       to=str(samples_dir / 'package1'))
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
+
+    def test_dist_name(self):
+        Installer(samples_dir / 'altdistname.ini').install()
+        assert_isdir(self.tmpdir / 'site-packages' / 'package1')
+        assert_isdir(self.tmpdir / 'site-packages' / 'packagedist1-0.1.dist-info')

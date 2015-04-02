@@ -1,5 +1,4 @@
 import configparser
-import hashlib
 import logging
 import os
 import shutil
@@ -29,10 +28,7 @@ class WheelBuilder:
         self.upload=upload
         self.verify_metadata=verify_metadata
 
-        md_dict = {'name': self.module.name, 'provides': [self.module.name]}
-        md_dict.update(common.get_info_from_module(self.module))
-        md_dict.update(self.ini_info['metadata'])
-        self.metadata = common.Metadata(md_dict)
+        self.metadata = common.make_metadata(self.module, self.ini_info)
 
         self.dist_version = self.metadata.name + '-' + self.metadata.version
         self.wheel_file = None
@@ -92,11 +88,9 @@ class WheelBuilder:
             for f in files:
                 relfile = os.path.join(reldir, f)
                 file = os.path.join(dirpath, f)
-                h = hashlib.sha256()
-                with open(file, 'rb') as fp:
-                    h.update(fp.read())
+                hash = common.hash_file(file)
                 size = os.stat(file).st_size
-                records.append((relfile, h.hexdigest(), size))
+                records.append((relfile, hash, size))
 
         with (self.dist_info / 'RECORD').open('w') as f:
             for path, hash, size in records:

@@ -2,6 +2,7 @@
 """
 import logging
 import os
+import csv
 import pathlib
 import shutil
 import site
@@ -50,6 +51,8 @@ class Installer(object):
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'],
                                     ini_path.parent)
+        self.metadata = common.make_metadata(self.module, self.ini_info)
+
         self.user = user
         self.symlink = symlink
         self.installed_files = []
@@ -117,25 +120,40 @@ class Installer(object):
         self.write_dist_info(dirs['purelib'])
 
     def write_dist_info(self, site_pkgs):
-        # Record metadata about installed files to give pip a fighting chance of
-        # uninstalling it correctly.
-        module_info = common.get_info_from_module(self.module)
-        dist_name = self.ini_info['metadata'].get('name', self.module.name)
-        egg_info = pathlib.Path(site_pkgs) / '{}-{}.egg-info'.format(
-                                       dist_name, module_info['version'])
+        """Write dist-info folder, according to PEP 376"""
+        dist_info = pathlib.Path(site_pkgs) / '{}-{}.dist-info'.format(
+                                       self.metadata.name, self.metadata.version)
         try:
-            egg_info.mkdir()
+            dist_info.mkdir()
         except FileExistsError:
-            shutil.rmtree(str(egg_info))
-            egg_info.mkdir()
+            shutil.rmtree(str(dist_info))
+            dist_info.mkdir()
 
-        # Not sure what this is for, but it's easy to do, and perhaps it will
-        # placate the heathen gods of packaging.
-        with (egg_info / 'top_level.txt').open('w') as f:
-            f.write(self.module.name)
-        self.installed_files.append(egg_info / 'top_level.txt')
+        with (dist_info / 'METADATA').open('w', encoding='utf-8') as f:
+            self.metadata.write_metadata_file(f)
+        self.installed_files.append(dist_info / 'METADATA')
 
-        with (egg_info / 'installed-files.txt').open('w') as f:
+        with (dist_info / 'INSTALLER').open('w') as f:
+            f.write('flit')
+        self.installed_files.append(dist_info / 'INSTALLER')
+
+        # We only handle explicitly requested installations
+        with (dist_info / 'REQUESTED').open('w'): pass
+        self.installed_files.append(dist_info / 'REQUESTED')
+
+        with (dist_info / 'RECORD').open('w', encoding='utf-8') as f:
+            cf = csv.writer(f)
             for path in self.installed_files:
-                rel = os.path.relpath(str(path), str(egg_info))
-                f.write(rel + '\n')
+                path = pathlib.Path(path)
+                if path.is_symlink() or path.suffix in {'.pyc', '.pyo'}:
+                    hash, size = '', ''
+                else:
+                    hash = 'sha256=' + common.hash_file(path)
+                    size = path.stat().st_size
+                try:
+                    path = path.relative_to(site_pkgs)
+                except ValueError:
+                    pass
+                cf.writerow((path, hash, size))
+
+            cf.writerow(((dist_info / 'RECORD').relative_to(site_pkgs), '', ''))
