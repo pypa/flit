@@ -32,6 +32,12 @@ def main(argv=None):
     parser_install.add_argument('--symlink', action='store_true',
         help="Symlink the module/package into site packages instead of copying it"
     )
+    parser_install.add_argument('--user', action='store_true', default=None,
+        help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
+    )
+    parser_install.add_argument('--env', action='store_false', dest='user',
+        help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
+    )
 
     args = ap.parse_args(argv)
 
@@ -43,7 +49,7 @@ def main(argv=None):
                      verify_metadata=args.verify_metadata).build()
     elif args.subcmd == 'install':
         from .install import Installer
-        Installer(args.ini_file, symlink=args.symlink).install()
+        Installer(args.ini_file, user=args.user, symlink=args.symlink).install()
     else:
         sys.exit('No command specified')
 

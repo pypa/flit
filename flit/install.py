@@ -45,15 +45,27 @@ def get_dirs(user=True):
         'purelib': purelib.format_map(_interpolation_vars),
     }
 
+class RootInstallError(Exception):
+    def __str__(self):
+        return ("Installing packages as root is not recommended. "
+            "To allow this, set FLIT_ROOT_INSTALL=1 and try again.")
+
 class Installer(object):
-    def __init__(self, ini_path, user=True, symlink=False):
+    def __init__(self, ini_path, user=None, symlink=False):
         self.ini_path = ini_path
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'],
                                     ini_path.parent)
         self.metadata = common.make_metadata(self.module, self.ini_info)
 
-        self.user = user
+        print(user, site.ENABLE_USER_SITE)
+        if user is None:
+            self.user = site.ENABLE_USER_SITE
+        else:
+            self.user = user
+        if (os.getuid() == 0) and (not os.environ.get('FLIT_ROOT_INSTALL')):
+            raise RootInstallError
+
         self.symlink = symlink
         self.installed_files = []
 
