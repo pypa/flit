@@ -12,7 +12,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   pkg_ini
+   flit_ini
+   history
 
 
 
