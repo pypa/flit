@@ -8,7 +8,7 @@ from . import common
 from . import inifile
 from .log import enable_colourful_output
 
-__version__ = '0.3'
+__version__ = '0.4'
 
 log = logging.getLogger(__name__)
 
