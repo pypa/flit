@@ -1,4 +1,5 @@
 import configparser
+from datetime import date
 import json
 import os
 from pathlib import Path
@@ -44,15 +45,17 @@ def store_defaults(d):
 license_choices = [
     ('mit', "MIT - simple and permissive"),
     ('apache', "Apache - explicitly grants patent rights"),
-    ('gpl', "GPL - ensures that code based on this is shared with the same terms"),
+    ('gpl3', "GPL - ensures that code based on this is shared with the same terms"),
     ('skip', "Skip - choose a license later"),
 ]
 
 license_names_to_classifiers = {
     'mit': 'License :: OSI Approved :: MIT License',
-    'gpl': 'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+    'gpl3': 'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
     'apache': 'License :: OSI Approved :: Apache Software License'
 }
+
+license_templates_dir = Path(__file__).parent / 'license_templates'
 
 class IniterBase:
     def __init__(self, directory='.'):
@@ -90,6 +93,16 @@ class IniterBase:
             self.defaults.update(new_defaults)
             store_defaults(self.defaults)
 
+    def write_license(self, name, author):
+        if (self.directory / 'LICENSE').exists():
+            return
+        year = date.today().year
+        with (license_templates_dir / name).open() as f:
+            license_text = f.read()
+
+        with (self.directory / 'LICENSE').open('w') as f:
+            f.write(license_text.format(year=year, author=author))
+
 
 class TerminalIniter(IniterBase):
     def prompt_text(self, prompt, default, validator):
@@ -118,7 +131,7 @@ class TerminalIniter(IniterBase):
         while True:
             p = "Enter 1-" + str(len(options))
             if default_ix is not None:
-                p += ' [{}]'.format(default_ix+1)
+                p += ' [{}]'.format(default_ix)
             response = input(p+': ')
             if (default_ix is not None) and response == '':
                 return default
@@ -164,6 +177,7 @@ class TerminalIniter(IniterBase):
         ])
         if license != 'skip':
             cp['metadata']['classifiers'] = license_names_to_classifiers[license]
+            self.write_license(license, author)
         with (self.directory / 'flit.ini').open('w') as f:
             cp.write(f)
         print()
