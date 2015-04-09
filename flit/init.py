@@ -41,10 +41,17 @@ def store_defaults(d):
     with (data_dir / 'init_defaults.json').open('w') as f:
         json.dump(d, f, indent=2)
 
+license_choices = [
+    ('mit', "MIT - simple and permissive"),
+    ('apache', "Apache - explicitly grants patent rights"),
+    ('gpl', "GPL - ensures that code based on this is shared with the same terms"),
+    ('skip', "Skip - choose a license later"),
+]
+
 license_names_to_classifiers = {
-    'BSD': 'License :: OSI Approved :: BSD License',
-    'GPL': 'License :: OSI Approved :: GPL License',
-    'Apache': 'License :: OSI Approved :: Apache License'
+    'mit': 'License :: OSI Approved :: MIT License',
+    'gpl': 'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+    'apache': 'License :: OSI Approved :: Apache Software License'
 }
 
 class IniterBase:
@@ -99,40 +106,33 @@ class TerminalIniter(IniterBase):
 
             print("Try again.")
 
-    def prompt_options(self, prompt, options, default_ix=None, allow_other=False,
-                       validator=None):
-        if (default_ix is not None) and not (0 <= default_ix < len(options)):
-            default_ix = None
+    def prompt_options(self, prompt, options, default=None):
+        default_ix = None
 
         print(prompt)
-        for i, opt in enumerate(options, start=1):
-            print("{}. {}".format(i, opt))
-        if allow_other:
-            print("0. Other")
+        for i, (key, text) in enumerate(options, start=1):
+            print("{}. {}".format(i, text))
+            if key == default:
+                default_ix = i
+
         while True:
             p = "Enter 1-" + str(len(options))
-            if allow_other:
-                p += ' or 0'
             if default_ix is not None:
                 p += ' [{}]'.format(default_ix+1)
             response = input(p+': ')
             if (default_ix is not None) and response == '':
-                return options[default_ix]
+                return default
 
             if response.isnumeric():
                 ir = int(response)
                 if 1 <= ir <= len(options):
-                    return options[ir-1]
-                elif allow_other and (ir == 0):
-                    other = input("Other: ")
-                    if validator is None or validator(other):
-                        return other
+                    return options[ir-1][0]
             print("Try again.")
 
     def initialise(self):
         if (self.directory / 'flit.ini').exists():
             resp = input("flit.ini exists - overwrite it? [y/N]: ")
-            if resp[0].lower() != 'y':
+            if (not resp) or resp[0].lower() != 'y':
                 return
 
         module = self.prompt_text('Module name', self.guess_module_name(),
@@ -148,13 +148,8 @@ class TerminalIniter(IniterBase):
             home_page_default = None
         home_page = self.prompt_text('Home page', home_page_default,
                                      lambda s: s != '')
-        license_choices = ['BSD', 'GPL', 'Apache', 'Skip']
-        try:
-            default_license_ix = license_choices.index(self.defaults.get('license'))
-        except ValueError:
-            default_license_ix = None
         license = self.prompt_options('Choose a license',
-                    license_choices, default_license_ix)
+                    license_choices, self.defaults.get('license'))
 
         self.update_defaults(author=author, author_email=author_email,
                              home_page=home_page, module=module, license=license)
@@ -167,7 +162,7 @@ class TerminalIniter(IniterBase):
             ('author-email', author_email),
             ('home-page', home_page),
         ])
-        if license != 'Skip':
+        if license != 'skip':
             cp['metadata']['classifiers'] = license_names_to_classifiers[license]
         with (self.directory / 'flit.ini').open('w') as f:
             cp.write(f)
