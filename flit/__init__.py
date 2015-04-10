@@ -53,8 +53,12 @@ def main(argv=None):
 
     if args.subcmd == 'wheel':
         from .wheel import WheelBuilder
-        WheelBuilder(args.ini_file, upload=args.upload,
+        try:
+            WheelBuilder(args.ini_file, upload=args.upload,
                      verify_metadata=args.verify_metadata).build()
+        except (common.NoDocstringError, common.NoVersionError) as e:
+            print(e.args[0])
+            sys.exit(1)
     elif args.subcmd == 'install':
         from .install import Installer
         Installer(args.ini_file, user=args.user, symlink=args.symlink).install()

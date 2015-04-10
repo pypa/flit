@@ -28,14 +28,24 @@ class Module(object):
             return self.path / '__init__.py'
         else:
             return self.path
-
+class NoDocstringError(ValueError): pass
+class NoVersionError(ValueError): pass
 
 def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__
     """
     sl = SourceFileLoader(target.name, str(target.file))
     m = sl.load_module()
-    docstring_lines = m.__doc__.splitlines()
+    docstring = m.__dict__.get('__doc__', None)
+    if not docstring: 
+        raise NoDocstringError('Cannot build module without docstring. '
+                                'Please add a docstring to you module.')
+    module_version = m.__dict__.get('__version__', None)
+    if not module_version: 
+        raise NoVersionError('Cannot build module without a version string. '
+                             'Please define a `__version__="x.y.z"` in your module')
+
+    docstring_lines = docstring.splitlines()
     return {'summary': docstring_lines[0],
             'version': m.__version__}
 
