@@ -68,7 +68,8 @@ def main(argv=None):
         from .init import TerminalIniter
         TerminalIniter().initialise()
     else:
-        sys.exit('No command specified')
+        ap.print_help()
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
