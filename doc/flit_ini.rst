@@ -1,7 +1,24 @@
 The flit.ini config file
 ========================
 
-This file lives next to the module or package.
+This file lives next to the module or package. It looks like the following:
+
+
+   .. code-block:: ini
+
+       [metadata]
+       module=foobar
+       author=Sir Robin
+       author-email=robin@camelot.uk
+       home-page=http://github.com/sirrobin/foobar
+
+       # If you want command line scripts, this is how to declare them.
+       # If not, you can leave this section out completely.
+       [scripts]
+       # foobar:main means the script will do: from foobar import main; main()
+       foobar=foobar:main
+
+
 
 Metadata section
 ----------------

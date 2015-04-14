@@ -12,27 +12,30 @@ or as a directory—and you want to distribute it.
 
        __version__ = '0.1'
 
-2. Create a file ``flit.ini`` next to the module. It should look like this:
-
-   .. code-block:: ini
-
-       [metadata]
-       module=foobar
-       author=Sir Robin
-       author-email=robin@camelot.uk
-       home-page=http://github.com/sirrobin/foobar
-
-       # If you want command line scripts, this is how to declare them.
-       # If not, you can leave this section out completely.
-       [scripts]
-       # foobar:main means the script will do: from foobar import main; main()
-       foobar=foobar:main
-
-   There are other fields you can add - see the pkg.ini page of the docs.
-
-3. Install flit if you don't already have it::
+2. Install flit if you don't already have it::
 
        pip install flit
+
+3. Generate a flit init using `flit int`:
+
+     .. code-block:: shell
+        $ flit init
+        Module name: flit
+        Author [Thomas kluyver]:
+        Author email [myemail@gmail.com]:
+        Home page [https://github.com/takluyver/flit]:
+        Choose a license
+        1. BSD - simple and permissive
+        2. Apache - explicitly grants patent rights
+        3. GPL - ensures that code based on this is shared with the same terms
+        4. Skip - choose a license later
+        Enter 1-4 [1]: 1
+
+        Written flit.ini; edit that file to add optional extra info.
+
+Flit is smart enough to propose some default values based on the previous one you entered !
+
+For extra configuration, see how to edit the `flit.ini` file in the docs.
 
 4. Run this command to upload your code to PyPI::
 
