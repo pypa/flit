@@ -28,7 +28,12 @@ or as a directory—and you want to distribute it.
        # foobar:main means the script will do: from foobar import main; main()
        foobar=foobar:main
 
-   There are other fields you can add - see the pkg.ini page of the docs.
+   You can use ``flit init`` to easily create a basic ``flit.ini`` file for your
+   package.
+
+   Besides the details shown above, there are other fields you can add—see the
+   `flit.ini page <http://flit.readthedocs.org/en/latest/flit_ini.html>`_
+   of the docs.
 
 3. Install flit if you don't already have it::
 
