@@ -24,11 +24,9 @@ class WheelBuilder:
         self.directory = ini_path.parent
         self.build_dir = self.directory / 'build' / 'flit'
         self.ini_info = inifile.read_pkg_ini(ini_path)
-        self.module = common.Module(self.ini_info['module'], self.directory)
+        self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path)
         self.upload=upload
         self.verify_metadata=verify_metadata
-
-        self.metadata = common.make_metadata(self.module, self.ini_info)
 
         self.dist_version = self.metadata.name + '-' + self.metadata.version
         self.wheel_file = None

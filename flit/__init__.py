@@ -5,7 +5,6 @@ import pathlib
 import sys
 
 from . import common
-from . import inifile
 from .log import enable_colourful_output
 
 __version__ = '0.4'
@@ -48,6 +47,10 @@ def main(argv=None):
         help="Prepare flit.ini for a new package"
     )
 
+    subparsers.add_parser('register',
+            help="register a package on PyPI without uploading any files"
+    )
+
     args = ap.parse_args(argv)
 
     enable_colourful_output()
@@ -65,6 +68,10 @@ def main(argv=None):
             Installer(args.ini_file, user=args.user, symlink=args.symlink).install()
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
+    elif args.subcmd == 'register':
+        from .upload import register
+        mod, meta = common.metadata_and_module_from_ini_file(args.ini_file)
+        register(meta)
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()
