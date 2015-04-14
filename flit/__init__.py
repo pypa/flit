@@ -18,6 +18,11 @@ def main(argv=None):
     ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='flit.ini')
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 
+    ap.add_argument('--data-dir', help="print path where flit search for configuration and exit",
+            action='store_true')
+
+    ap.add_argument('--version', help="print flit version and exit", action='store_true')
+
     parser_wheel = subparsers.add_parser('wheel',
         help="Build a wheel package",
     )
@@ -50,6 +55,15 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     enable_colourful_output()
+
+    if args.data_dir:
+        from .init import get_data_dir
+        print(init.get_data_dir())
+        sys.exit(0)
+
+    if args.version:
+        print(__version__)
+        sys.exit(0)
 
     if args.subcmd == 'wheel':
         from .wheel import WheelBuilder
