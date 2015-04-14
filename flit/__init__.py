@@ -69,7 +69,7 @@ def main(argv=None):
             sys.exit(e.args[0])
     elif args.subcmd == 'register':
         from .upload import register
-        mod, meta = common.matadata_and_module_from_ini_file(args.ini_file)
+        mod, meta = common.metadata_and_module_from_ini_file(args.ini_file)
         register(meta)
     elif args.subcmd == 'init':
         from .init import TerminalIniter
