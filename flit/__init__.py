@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='flit.ini')
+    ap.add_argument('--version', action='version', version='Flit '+__version__)
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 
     parser_wheel = subparsers.add_parser('wheel',
