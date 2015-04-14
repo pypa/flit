@@ -135,6 +135,9 @@ def upload_wheel(file:Path, metadata:Metadata, repo):
 def register(metadata:Metadata, repo):
     """Register a new release with the PyPI server.
     """
+
+    if(type(repo) == str):
+        repo = get_repository(repo)
     data = build_post_data('submit', metadata)
     resp = requests.post(repo['url'], data=data,
                          auth=(repo['username'], repo['password'])
