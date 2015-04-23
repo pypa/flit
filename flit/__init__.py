@@ -70,8 +70,8 @@ def main(argv=None):
             sys.exit(e.args[0])
     elif args.subcmd == 'register':
         from .upload import register
-        mod, meta = common.metadata_and_module_from_ini_path(args.ini_file)
-        register(meta)
+        meta, mod = common.metadata_and_module_from_ini_path(args.ini_file)
+        register(meta, 'pypi')
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()
