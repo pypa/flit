@@ -16,6 +16,11 @@ Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
+class EntryPointsConflict(ValueError):
+    def __str__(self):
+        return ('Please specify console_scripts entry points or scripts in '
+            'flit.ini, not both.')
+
 class WheelBuilder:
     def __init__(self, ini_path, upload=None, verify_metadata=None):
         """Build a wheel from a module/package
@@ -63,11 +68,23 @@ class WheelBuilder:
         # Write entry points
         if self.ini_info['scripts']:
             cp = configparser.ConfigParser()
+
+            if self.ini_info['entry_points_file'] is not None:
+                cp.read(str(self.ini_info['entry_points_file']))
+                if 'console_scripts' in cp:
+                    raise EntryPointsConflict
+
             cp['console_scripts'] = {k: '%s:%s' % v
                                      for (k,v) in self.ini_info['scripts'].items()}
             log.debug('Writing entry_points.txt in %s', dist_info)
             with (dist_info / 'entry_points.txt').open('w') as f:
                 cp.write(f)
+
+        elif self.ini_info['entry_points_file'] is not None:
+            log.debug('Copying entry_points.txt into %s', dist_info)
+            shutil.copy(str(self.ini_info['entry_points_file']),
+                        str(dist_info / 'entry_points.txt')
+                       )
 
         with (dist_info / 'WHEEL').open('w') as f:
             f.write(wheel_file_template)

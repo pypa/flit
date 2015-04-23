@@ -149,6 +149,12 @@ class Installer(object):
         with (dist_info / 'REQUESTED').open('w'): pass
         self.installed_files.append(dist_info / 'REQUESTED')
 
+        if self.ini_info['entry_points_file'] is not None:
+            shutil.copy(str(self.ini_info['entry_points_file']),
+                            str(dist_info / 'entry_points.txt')
+                       )
+            self.installed_files.append(dist_info / 'entry_points.txt')
+
         with (dist_info / 'RECORD').open('w', encoding='utf-8') as f:
             cf = csv.writer(f)
             for path in self.installed_files:

@@ -29,6 +29,7 @@ metadata_allowed_fields = {
     'keywords',
     'requires-python',
     'dist-name',
+    'entry-points-file',
 } | metadata_list_fields
 
 metadata_required_fields = {
@@ -118,6 +119,15 @@ def read_pkg_ini(path):
         with description_file.open() as f:
             md_dict['description'] = f.read()
 
+    if 'entry-points-file' in md_sect:
+        entry_points_file = path.parent / md_sect.pop('entry-points-file')
+        if not entry_points_file.is_file():
+            raise FileNotFoundError(entry_points_file)
+    else:
+        entry_points_file = path.parent / 'entry_points.txt'
+        if not entry_points_file.is_file():
+            entry_points_file = None
+
     for key, value in md_sect.items():
         if key not in metadata_allowed_fields:
             raise ConfigError("Unrecognised metadata key:", key)
@@ -150,4 +160,5 @@ def read_pkg_ini(path):
         'module': module,
         'metadata': md_dict,
         'scripts': scripts_dict,
+        'entry_points_file': entry_points_file,
     }
