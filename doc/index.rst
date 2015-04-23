@@ -13,6 +13,7 @@ Contents:
    :maxdepth: 2
 
    flit_ini
+   entrypoints
    history
 
 

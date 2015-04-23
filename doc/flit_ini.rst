@@ -71,6 +71,8 @@ Here's the full example from flit itself:
         Programming Language :: Python :: 3
         Topic :: Software Development :: Libraries :: Python Modules
 
+.. _flit_ini_scripts:
+
 Scripts section
 ---------------
 
