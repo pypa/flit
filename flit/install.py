@@ -54,7 +54,7 @@ class Installer(object):
     def __init__(self, ini_path, user=None, symlink=False):
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path)
-        log.info(user, site.ENABLE_USER_SITE)
+        log.debug(user, site.ENABLE_USER_SITE)
         if user is None:
             self.user = site.ENABLE_USER_SITE
         else:
