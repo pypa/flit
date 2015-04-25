@@ -46,13 +46,17 @@ def test_upload():
 
 @responses.activate
 def test_upload_registers():
-    responses.add(responses.POST, upload.PYPI, status=403)
+    with patch('flit.upload.register') as register_mock:
+        def upload_callback(request):
+            status = 200 if register_mock.called else 403
+            return (status, {}, '')
 
-    wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini', upload='pypi')
-    with patch('flit.upload.get_repository', return_value=repo_settings), \
-         patch('flit.upload.register') as register_mock, \
-         pytest.raises(requests.HTTPError):
-        wb.build()
+        responses.add_callback(responses.POST, upload.PYPI,
+                               callback=upload_callback)
+
+        wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini', upload='pypi')
+        with patch('flit.upload.get_repository', return_value=repo_settings):
+            wb.build()
 
     assert len(responses.calls) == 2
     assert register_mock.call_count == 1
