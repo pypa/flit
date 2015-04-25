@@ -1,9 +1,11 @@
 import pathlib
 
+import pytest
+import requests
 import responses
 from unittest.mock import patch
 
-from flit import upload, common
+from flit import upload, common, wheel
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 
@@ -31,3 +33,26 @@ def test_verify():
         upload.verify(meta, 'pypi')
 
     assert len(responses.calls) == 1
+
+@responses.activate
+def test_upload():
+    responses.add(responses.POST, upload.PYPI, status=200)
+
+    wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini', upload='pypi')
+    with patch('flit.upload.get_repository', return_value=repo_settings):
+        wb.build()
+
+    assert len(responses.calls) == 1
+
+@responses.activate
+def test_upload_registers():
+    responses.add(responses.POST, upload.PYPI, status=403)
+
+    wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini', upload='pypi')
+    with patch('flit.upload.get_repository', return_value=repo_settings), \
+         patch('flit.upload.register') as register_mock, \
+         pytest.raises(requests.HTTPError):
+        wb.build()
+
+    assert len(responses.calls) == 2
+    assert register_mock.call_count == 1
