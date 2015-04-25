@@ -22,7 +22,7 @@ class EntryPointsConflict(ValueError):
             'flit.ini, not both.')
 
 class WheelBuilder:
-    def __init__(self, ini_path, upload=None, verify_metadata=None):
+    def __init__(self, ini_path, upload=False, verify_metadata=False, repo='pypi'):
         """Build a wheel from a module/package
         """
         self.ini_path = ini_path
@@ -32,6 +32,7 @@ class WheelBuilder:
         self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path)
         self.upload=upload
         self.verify_metadata=verify_metadata
+        self.repo = repo
 
         self.dist_version = self.metadata.name + '-' + self.metadata.version
         self.wheel_file = None
@@ -134,13 +135,13 @@ class WheelBuilder:
         log.info("Created %s", self.wheel_file)
 
     def post_build(self):
-        if self.verify_metadata is not None:
+        if self.verify_metadata:
             from .upload import verify
-            verify(self.metadata, self.verify_metadata)
+            verify(self.metadata, self.repo)
 
-        if self.upload is not None:
+        if self.upload:
             from .upload import do_upload
-            do_upload(self.wheel_file, self.metadata, self.upload)
+            do_upload(self.wheel_file, self.metadata, self.repo)
 
     def build(self):
         self.clean_build_dir()

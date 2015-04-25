@@ -16,22 +16,23 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='flit.ini')
     ap.add_argument('--version', action='version', version='Flit '+__version__)
+    ap.add_argument('--repository', default='pypi',
+        help="Name of the repository to upload to (must be in ~/.pypirc)"
+    )
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 
     parser_wheel = subparsers.add_parser('wheel',
         help="Build a wheel package",
     )
-    parser_wheel.add_argument('--upload', action='store', nargs='?',
-                              const='pypi', default=None,
+    parser_wheel.add_argument('--upload', action='store_true',
           help="Upload the built wheel to PyPI"
     )
-    parser_wheel.add_argument('--verify-metadata', action='store', nargs='?',
-                              const='pypi', default=None,
+    parser_wheel.add_argument('--verify-metadata', action='store_true',
           help="Verify the package metadata with the PyPI server"
     )
 
     parser_install = subparsers.add_parser('install',
-       help="Install the package directly for development",
+        help="Install the package directly for development",
     )
     parser_install.add_argument('--symlink', action='store_true',
         help="Symlink the module/package into site packages instead of copying it"
@@ -48,7 +49,7 @@ def main(argv=None):
     )
 
     subparsers.add_parser('register',
-            help="register a package on PyPI without uploading any files"
+        help="register a package on PyPI without uploading any files"
     )
 
     args = ap.parse_args(argv)
@@ -59,7 +60,8 @@ def main(argv=None):
         from .wheel import WheelBuilder
         try:
             WheelBuilder(args.ini_file, upload=args.upload,
-                     verify_metadata=args.verify_metadata).build()
+                     verify_metadata=args.verify_metadata,
+                     repo=args.repository).build()
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'install':
@@ -71,7 +73,7 @@ def main(argv=None):
     elif args.subcmd == 'register':
         from .upload import register
         meta, mod = common.metadata_and_module_from_ini_path(args.ini_file)
-        register(meta, 'pypi')
+        register(meta, args.repository)
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()
