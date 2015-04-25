@@ -9,6 +9,8 @@ Version 0.5
 - Support for :doc:`entrypoints`.
 - A new ``flit register`` command to register a package without uploading it,
   for when you want to claim a name before you're ready to release.
+- Added a ``--repository`` option for specifying an alternative PyPI instance.
+- Added a ``--debug`` flag to show debug-level log messages.
 - Better error messages when the module docstring or ``__version__`` is missing.
 
 Version 0.4
