@@ -45,7 +45,7 @@ def get_info_from_module(target):
         raise NoVersionError('Cannot build module without a version string. '
                              'Please define a `__version__="x.y.z"` in your module')
 
-    docstring_lines = docstring.splitlines()
+    docstring_lines = docstring.lstrip().splitlines()
     return {'summary': docstring_lines[0],
             'version': m.__version__}
 
