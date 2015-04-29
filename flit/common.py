@@ -1,5 +1,7 @@
+from contextlib import contextmanager
 import hashlib
 from importlib.machinery import SourceFileLoader
+import logging
 from pathlib import Path
 
 class Module(object):
@@ -28,14 +30,29 @@ class Module(object):
             return self.path / '__init__.py'
         else:
             return self.path
+
+
 class NoDocstringError(ValueError): pass
 class NoVersionError(ValueError): pass
+
+@contextmanager
+def _module_load_ctx():
+    """Preserve some global state that modules might change at import time.
+
+    - Handlers on the root logger.
+    """
+    logging_handlers = logging.root.handlers[:]
+    try:
+        yield
+    finally:
+        logging.root.handlers = logging_handlers
 
 def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__
     """
     sl = SourceFileLoader(target.name, str(target.file))
-    m = sl.load_module()
+    with _module_load_ctx():
+        m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
     if not docstring: 
         raise NoDocstringError('Cannot build module without docstring. '
