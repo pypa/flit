@@ -77,15 +77,21 @@ class LogFormatter(logging.Formatter):
             for levelno, code in self.DEFAULT_COLORS.items():
                 self._colors[levelno] = str(curses.tparm(fg_color, code), "ascii")
             self._normal = str(curses.tigetstr("sgr0"), "ascii")
+
+            scr = curses.initscr()
+            self.termwidth = scr.getmaxyx()[1]
+            curses.endwin()
         else:
             self._normal = ''
+            # Default width is usually 80, but too wide is worse than too narrow
+            self.termwidth = 70
 
     def formatMessage(self, record):
         l = len(record.message)
         right_text = '{initial}-{name}'.format(initial=record.levelname[0],
                                                name=record.name)
-        if l + len(right_text) < 80:
-            space = ' ' * (80 - (l + len(right_text)))
+        if l + len(right_text) < self.termwidth:
+            space = ' ' * (self.termwidth - (l + len(right_text)))
         else:
             space = '  '
 
