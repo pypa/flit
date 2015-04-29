@@ -4,6 +4,8 @@ from importlib.machinery import SourceFileLoader
 import logging
 from pathlib import Path
 
+log = logging.getLogger(__name__)
+
 class Module(object):
     """This represents the module/package that we are going to distribute
     """
@@ -50,6 +52,7 @@ def _module_load_ctx():
 def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__
     """
+    log.debug("Loading module %s", target.file)
     sl = SourceFileLoader(target.name, str(target.file))
     with _module_load_ctx():
         m = sl.load_module()
