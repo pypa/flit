@@ -7,7 +7,7 @@ import sys
 from . import common
 from .log import enable_colourful_output
 
-__version__ = '0.5'
+__version__ = '0.5.1'
 
 log = logging.getLogger(__name__)
 
