@@ -32,7 +32,15 @@ The remaining fields are optional:
 requires
   A list of other packages from PyPI that this package needs. Each package
   should be on its own line, and may be followed by a version specifier in
-  parentheses, like ``(>=4.1)``.
+  parentheses, like ``(>=4.1)``, and/or an `environment marker
+  <https://www.python.org/dev/peps/pep-0345/#environment-markers>`_
+  after a semicolon. For example:
+
+  .. code-block:: ini
+
+      requires = requests (>=2.6)
+            configparser; python_version == '2.7'
+
 description-file
   A path (relative to the .ini file) to a file containing a longer description
   of your package to show on PyPI. This should be written in `reStructuredText
