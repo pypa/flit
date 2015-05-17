@@ -6,6 +6,9 @@ import sys
 
 import requests
 
+from readme.rst import render
+import io
+
 from . import common
 
 log = logging.getLogger(__name__)
@@ -117,7 +120,14 @@ def read_pkg_ini(path):
     if 'description-file' in md_sect:
         description_file = path.parent / md_sect.pop('description-file')
         with description_file.open() as f:
-            md_dict['description'] = f.read()
+            raw_desc =  f.read()
+        stream = io.StringIO()
+        _, ok = render(raw_desc, stream)
+        if not ok:
+            log.warn("The file description seems not to be valid rst for PyPI;"
+                    " it will be interpreted as plain text")
+            log.warn(stream.getvalue())
+        md_dict['description'] =  raw_desc
 
     if 'entry-points-file' in md_sect:
         entry_points_file = path.parent / md_sect.pop('entry-points-file')
