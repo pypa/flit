@@ -1,6 +1,7 @@
 language: python
 python:
   - "3.4"
+  - "nightly"
 install: pip install -r requirements-test.txt
 script: py.test
 sudo: false
