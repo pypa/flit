@@ -5,3 +5,6 @@ python:
 install: pip install -r requirements-test.txt
 script: py.test
 sudo: false
+matrix:
+  allow_failures:
+    - python: "nightly"
