@@ -6,7 +6,7 @@ import sys
 
 import requests
 
-from readme.rst import render
+from .vendorized.readme.rst import render
 import io
 
 from . import common
