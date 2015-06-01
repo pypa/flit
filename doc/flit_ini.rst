@@ -44,7 +44,9 @@ requires
 description-file
   A path (relative to the .ini file) to a file containing a longer description
   of your package to show on PyPI. This should be written in `reStructuredText
-  <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_.
+  <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_, if your long
+  description is not valid reStructuredText, a warning will be printed,
+  and it will be interpreted as plain text on PyPI.
 classifiers
   A list of `Trove classifiers <https://pypi.python.org/pypi?%3Aaction=list_classifiers>`_,
   one per line, indented.
