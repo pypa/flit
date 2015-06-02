@@ -121,6 +121,12 @@ def read_pkg_ini(path):
         description_file = path.parent / md_sect.pop('description-file')
         with description_file.open() as f:
             raw_desc =  f.read()
+        if description_file.suffix == '.md':
+            try:
+                import pypandoc
+                raw_desc = pypandoc.convert(raw_desc, 'rst', format='markdown')
+            except Exception:
+                log.warn('Unable to convert markdown to rst. Please install `pypandoc` and `pandoc` to use markdown long description.')
         stream = io.StringIO()
         _, ok = render(raw_desc, stream)
         if not ok:
