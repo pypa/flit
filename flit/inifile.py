@@ -1,4 +1,5 @@
 import configparser
+import difflib
 import logging
 import os
 from pathlib import Path
@@ -146,7 +147,12 @@ def read_pkg_ini(path):
 
     for key, value in md_sect.items():
         if key not in metadata_allowed_fields:
-            raise ConfigError("Unrecognised metadata key:", key)
+            closest = difflib.get_close_matches(key, metadata_allowed_fields,
+                                                n=1, cutoff=0.7)
+            msg = "Unrecognised metadata key: {}".format(key)
+            if closest:
+                msg += " (did you mean {!r}?)".format(closest[0])
+            raise ConfigError(msg)
 
         k2 = key.replace('-', '_')
         if key in metadata_list_fields:
