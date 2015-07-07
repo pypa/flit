@@ -4,6 +4,7 @@ import logging
 import os
 import csv
 import pathlib
+import re
 import shutil
 import site
 import sys
@@ -23,6 +24,32 @@ _interpolation_vars = {
     'py_minor': sys.version_info[1],
     'prefix'  : sys.prefix,
 }
+
+
+# Requires-Dist parsing from pkg_resources
+
+_EQEQ = re.compile(r"([\(,])\s*(\d.*?)\s*([,\)])")
+def _requires_dist_to_requirement(requires_dist):
+    """Parse 'Foo (v); extra == b' from Requires-Dist
+
+    return pip-style 'foo[x]==v'
+
+    Evaluates environment markers if any is present.
+    Returns None if environment markers exclude the dependency.
+    """
+    parts = requires_dist.split(';', 1) + ['']
+    distvers = parts[0].strip()
+    mark = parts[1].strip()
+    distvers = re.sub(_EQEQ, r"\1==\2\3", distvers)
+    distvers = distvers.replace('(', '').replace(')', '')
+    if not mark:
+        return distvers
+    # if an environment marker is present, check it:
+    from _markerlib import compile as compile_marker
+    marker_fn = compile_marker(mark)
+    if marker_fn():
+        return distvers
+
 
 def get_dirs(user=True):
     """Get the 'scripts' and 'purelib' directories we'll install into.
@@ -101,7 +128,13 @@ class Installer(object):
 
         Creates a temporary requirements.txt from requires_dist metadata.
         """
-        requirements = self.metadata.requires_dist
+        requirements = []
+        for req_d in self.metadata.requires_dist:
+            req = _requires_dist_to_requirement(req_d)
+            if req:
+                requirements.append(req)
+        if not requirements:
+            return
         cmd = [sys.executable, '-m', 'pip', 'install']
         if self.user:
             cmd.append('--user')
