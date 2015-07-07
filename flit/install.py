@@ -7,6 +7,8 @@ import pathlib
 import shutil
 import site
 import sys
+import tempfile
+from subprocess import check_call
 
 from . import common
 from . import inifile
@@ -94,6 +96,26 @@ class Installer(object):
             for f in files:
                 self.installed_files.append(os.path.join(dirpath, f))
 
+    def install_requirements(self):
+        """Install requirements of a package with pip.
+
+        Creates a temporary requirements.txt from requires_dist metadata.
+        """
+        requirements = self.metadata.requires_dist
+        cmd = [sys.executable, '-m', 'pip', 'install']
+        if self.user:
+            cmd.append('--user')
+        with tempfile.NamedTemporaryFile(mode='w',
+                                         suffix='requirements.txt',
+                                         delete=False) as tf:
+            tf.file.write('\n'.join(requirements))
+        cmd.extend(['-r', tf.name])
+        log.info("Installing requirements")
+        try:
+            check_call(cmd)
+        finally:
+            os.remove(tf.name)
+
     def install(self):
         """Install a module/package into site-packages, and create its scripts.
         """
@@ -107,6 +129,8 @@ class Installer(object):
                 shutil.rmtree(dst)
             else:
                 os.unlink(dst)
+
+        self.install_requirements()
 
         src = str(self.module.path)
         if self.symlink:
