@@ -4,7 +4,6 @@ import logging
 import os
 import csv
 import pathlib
-import re
 import shutil
 import site
 import sys
@@ -25,31 +24,27 @@ _interpolation_vars = {
     'prefix'  : sys.prefix,
 }
 
-
-# Requires-Dist parsing from pkg_resources
-
-_EQEQ = re.compile(r"([\(,])\s*(\d.*?)\s*([,\)])")
 def _requires_dist_to_requirement(requires_dist):
-    """Parse 'Foo (v); extra == b' from Requires-Dist
+    """Parse "Foo (v); python_version == '2.x'" from Requires-Dist
 
-    return pip-style 'foo[x]==v'
-
-    Evaluates environment markers if any is present.
-    Returns None if environment markers exclude the dependency.
+    Returns pip-style appropriate for requirements.txt.
     """
-    parts = requires_dist.split(';', 1) + ['']
-    distvers = parts[0].strip()
-    mark = parts[1].strip()
-    distvers = re.sub(_EQEQ, r"\1==\2\3", distvers)
-    distvers = distvers.replace('(', '').replace(')', '')
-    if not mark:
-        return distvers
-    # if an environment marker is present, check it:
-    from _markerlib import compile as compile_marker
-    marker_fn = compile_marker(mark)
-    if marker_fn():
-        return distvers
-
+    env_mark = ''
+    if ';' in requires_dist:
+        name_version, env_mark = requires_dist.split(';', 1)
+    else:
+        name_version = requires_dist
+    if '(' in name_version:
+        # turn 'name (X)' and 'name (<X.Y)'
+        # into 'name == X' and 'name < X.Y'
+        name, version = name_version.split('(', 1)
+        name = name.strip()
+        version = version.replace(')', '').strip()
+        if not any(c in version for c in '=<>'):
+            version = '==' + version
+        name_version = name + version
+    # re-add environment marker
+    return ';'.join([name_version, env_mark])
 
 def get_dirs(user=True):
     """Get the 'scripts' and 'purelib' directories we'll install into.
@@ -128,13 +123,12 @@ class Installer(object):
 
         Creates a temporary requirements.txt from requires_dist metadata.
         """
-        requirements = []
-        for req_d in self.metadata.requires_dist:
-            req = _requires_dist_to_requirement(req_d)
-            if req:
-                requirements.append(req)
-        if not requirements:
+        if not self.metadata.requires_dist:
             return
+        requirements = [
+            _requires_dist_to_requirement(req_d)
+            for req_d  in self.metadata.requires_dist
+        ]
         cmd = [sys.executable, '-m', 'pip', 'install']
         if self.user:
             cmd.append('--user')
