@@ -24,7 +24,7 @@ _interpolation_vars = {
     'prefix'  : sys.prefix,
 }
 
-def _requires_dist_to_requirement(requires_dist):
+def _requires_dist_to_pip_requirement(requires_dist):
     """Parse "Foo (v); python_version == '2.x'" from Requires-Dist
 
     Returns pip-style appropriate for requirements.txt.
@@ -126,7 +126,7 @@ class Installer(object):
         if not self.metadata.requires_dist:
             return
         requirements = [
-            _requires_dist_to_requirement(req_d)
+            _requires_dist_to_pip_requirement(req_d)
             for req_d  in self.metadata.requires_dist
         ]
         cmd = [sys.executable, '-m', 'pip', 'install']
