@@ -1,6 +1,16 @@
 Release history
 ===============
 
+Version 0.6
+-----------
+
+- ``flit install`` now ensures requirements specified in ``flit.ini`` are
+  installed, using pip.
+- If you specify a description file, flit now warns you if it's not valid
+  reStructuredText (since invalid reStructuredText is treated as plain text on
+  PyPI).
+- Improved the error message for mis-spelled keys in ``flit.ini``.
+
 Version 0.5
 -----------
 
