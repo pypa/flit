@@ -36,6 +36,7 @@ class Module(object):
 
 class NoDocstringError(ValueError): pass
 class NoVersionError(ValueError): pass
+class MissingMetadataError(ValueError): pass
 
 @contextmanager
 def _module_load_ctx():
@@ -49,6 +50,24 @@ def _module_load_ctx():
     finally:
         logging.root.handlers = logging_handlers
 
+
+requirements = {
+        '__doc__': 'Cannot build module without docstring. '
+                   'Please add a docstring to you module.',
+        '__version__': 'Cannot build module without a version string. '
+                       'Please define a `__version__="x.y.z"` in your module',
+        '__flit_module__': 'Cannot build module without a flit_module string. '
+                           'Please define a `__flit_module__="blah"` in your module',
+        '__author__': 'Cannot build module without author. '
+                      'Please define a `__author__="Eric Idle"` in your module.',
+        '__author_email__': 'Cannot build module without author_email. '
+                            'Please define a `__author_email__="eric@idle.com"` '
+                            'in your module.',
+        '__home_page__': 'Cannot build module without home page. '
+                         'Please define a `__home_page__="http://idle.com"` '
+                         'in your module.',
+        }
+
 def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__
     """
@@ -56,18 +75,18 @@ def get_info_from_module(target):
     sl = SourceFileLoader(target.name, str(target.file))
     with _module_load_ctx():
         m = sl.load_module()
-    docstring = m.__dict__.get('__doc__', None)
-    if not docstring: 
-        raise NoDocstringError('Cannot build module without docstring. '
-                                'Please add a docstring to you module.')
-    module_version = m.__dict__.get('__version__', None)
-    if not module_version: 
-        raise NoVersionError('Cannot build module without a version string. '
-                             'Please define a `__version__="x.y.z"` in your module')
 
-    docstring_lines = docstring.lstrip().splitlines()
-    return {'summary': docstring_lines[0],
-            'version': m.__version__}
+    output = {}
+    for key, msg in requirements.items():
+        lookup_value = m.__dict__.get(key, None)
+        if lookup_value:
+            output[key.strip('__')] = lookup_value
+        else:
+            raise MissingMetadataError(msg)
+
+    # Handle summary
+    output['summary'] = output['doc'].lstrip().splitlines()[0]
+    return output
 
 script_template = """\
 #!{interpreter}
@@ -130,7 +149,8 @@ class Metadata:
         self.author_email = data.pop('author_email')
         self.summary = data.pop('summary')
         for k, v in data.items():
-            assert hasattr(self, k)
+            # TODO Fix later when the rest of the design is worked out.
+            #assert hasattr(self, k)
             setattr(self, k, v)
 
     def _normalise_name(self, n):

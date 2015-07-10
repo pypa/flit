@@ -24,16 +24,21 @@ class ModuleTests(TestCase):
 
     def test_get_info_from_module(self):
         info = get_info_from_module(Module('module1', samples_dir))
-        self.assertEqual(info, {'summary': 'Example module',
-                                'version': '0.1'}
-                         )
+        self.assertEqual(info['summary'], 'Example module')
+        self.assertEqual(info['version'], '0.1')
+        # TODO Others, since we get all the metadata from the module.
+        # self.assertEqual(info['flit_module'], '...')
+        # self.assertEqual(info['author'], '...')
+        # self.assertEqual(info['author_email'], '...')
+        # self.assertEqual(info['home_page'], '...')
+        # self.assertEqual(info['scripts'], '...')
 
         info = get_info_from_module(Module('module2', samples_dir))
-        self.assertEqual(info, {'summary': 'Docstring formatted like this.',
-                                'version': '7.0'}
-                         )
+        self.assertEqual(info['summary'], 'Docstring formatted like this.')
+        self.assertEqual(info['version'], '7.0')
+        # TODO Others, as per above
 
         info = get_info_from_module(Module('package1', samples_dir))
-        self.assertEqual(info, {'summary': 'A sample package',
-                                'version': '0.1'}
-                         )
+        self.assertEqual(info['summary'], 'A sample package')
+        self.assertEqual(info['version'], '0.1')
+        # TODO Others, as per above
