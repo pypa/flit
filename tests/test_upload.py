@@ -28,7 +28,9 @@ def test_register():
 def test_verify():
     responses.add(responses.POST, upload.PYPI, status=200)
 
-    meta, mod = common.metadata_and_module_from_ini_path(samples_dir / 'module1-pkg.ini')
+    meta, mod = common.metadata_and_module_from_ini_path(
+            samples_dir / 'module1-pkg.ini',
+            pyfile=samples_dir / 'module1')
     with patch('flit.upload.get_repository', return_value=repo_settings):
         upload.verify(meta, 'pypi')
 
