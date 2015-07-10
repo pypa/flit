@@ -77,7 +77,8 @@ class RootInstallError(Exception):
 class Installer(object):
     def __init__(self, ini_path, user=None, symlink=False, pyfile=None):
         self.ini_info = inifile.read_pkg_ini(ini_path, pyfile)
-        self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path)
+        self.metadata, self.module = common.metadata_and_module_from_ini_path(
+                ini_path, pyfile=pyfile)
         log.debug('%s, %s',user, site.ENABLE_USER_SITE)
         if user is None:
             self.user = site.ENABLE_USER_SITE
