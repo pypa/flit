@@ -57,7 +57,8 @@ def test_upload_registers():
         responses.add_callback(responses.POST, upload.PYPI,
                                callback=upload_callback)
 
-        wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini', upload='pypi')
+        wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini',
+                pyfile=samples_dir / 'module1', upload='pypi')
         with patch('flit.upload.get_repository', return_value=repo_settings):
             wb.build()
 
