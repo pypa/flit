@@ -47,10 +47,12 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
 
     def test_dist_name(self):
-        Installer(samples_dir / 'altdistname.ini').install()
-        assert_isdir(self.tmpdir / 'site-packages' / 'package1')
+        Installer(samples_dir / 'altdistname.ini',
+                pyfile=samples_dir / 'package3').install()
+        assert_isdir(self.tmpdir / 'site-packages' / 'package3')
         assert_isdir(self.tmpdir / 'site-packages' / 'packagedist1-0.1.dist-info')
 
     def test_entry_points(self):
-        Installer(samples_dir / 'entrypoints_valid.ini').install()
-        assert_isfile(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info' / 'entry_points.txt')
+        Installer(samples_dir / 'entrypoints_valid.ini',
+                pyfile=samples_dir / 'package4').install()
+        assert_isfile(self.tmpdir / 'site-packages' / 'package4-0.1.dist-info' / 'entry_points.txt')
