@@ -25,25 +25,29 @@ def unpack(path):
 
 def test_wheel_module():
     clear_samples_dist()
-    WheelBuilder(samples_dir / 'module1-pkg.ini').build()
+    WheelBuilder(samples_dir / 'module1-pkg.ini',
+            pyfile=samples_dir / 'module1').build()
     assert_isfile(samples_dir / 'dist/module1-0.1-py2.py3-none-any.whl')
 
 def test_wheel_package():
     clear_samples_dist()
-    WheelBuilder(samples_dir / 'package1-pkg.ini').build()
+    WheelBuilder(samples_dir / 'package1-pkg.ini',
+            pyfile=samples_dir / 'package1').build()
     assert_isfile(samples_dir / 'dist/package1-0.1-py2.py3-none-any.whl')
 
 def test_dist_name():
     clear_samples_dist()
-    WheelBuilder(samples_dir / 'altdistname.ini').build()
+    WheelBuilder(samples_dir / 'altdistname.ini',
+            pyfile=samples_dir / 'package3' ).build()
     assert_isfile(samples_dir / 'dist/packagedist1-0.1-py2.py3-none-any.whl')
 
 def test_entry_points():
     clear_samples_dist()
-    WheelBuilder(samples_dir / 'entrypoints_valid.ini').build()
-    assert_isfile(samples_dir / 'dist/package1-0.1-py2.py3-none-any.whl')
-    with unpack(samples_dir / 'dist/package1-0.1-py2.py3-none-any.whl') as td:
-        entry_points = Path(td, 'package1-0.1.dist-info', 'entry_points.txt')
+    WheelBuilder(samples_dir / 'entrypoints_valid.ini',
+            pyfile=samples_dir / 'package4').build()
+    assert_isfile(samples_dir / 'dist/package4-0.1-py2.py3-none-any.whl')
+    with unpack(samples_dir / 'dist/package4-0.1-py2.py3-none-any.whl') as td:
+        entry_points = Path(td, 'package4-0.1.dist-info', 'entry_points.txt')
         assert_isfile(entry_points)
         cp = configparser.ConfigParser()
         cp.read(str(entry_points))
@@ -52,6 +56,7 @@ def test_entry_points():
 
 def test_entry_points_conflict():
     clear_samples_dist()
-    wb = WheelBuilder(samples_dir / 'entrypoints_conflict.ini')
+    wb = WheelBuilder(samples_dir / 'entrypoints_conflict.ini',
+            pyfile=samples_dir / 'package5')
     with pytest.raises(EntryPointsConflict):
         wb.build()
