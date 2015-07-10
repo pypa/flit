@@ -56,21 +56,13 @@ requirements = {
                    'Please add a docstring to you module.',
         '__version__': 'Cannot build module without a version string. '
                        'Please define a `__version__="x.y.z"` in your module',
-        '__flit_module__': 'Cannot build module without a flit_module string. '
-                           'Please define a `__flit_module__="blah"` in your module',
-        '__author__': 'Cannot build module without author. '
-                      'Please define a `__author__="Eric Idle"` in your module.',
-        '__author_email__': 'Cannot build module without author_email. '
-                            'Please define a `__author_email__="eric@idle.com"` '
-                            'in your module.',
-        '__home_page__': 'Cannot build module without home page. '
-                         'Please define a `__home_page__="http://idle.com"` '
-                         'in your module.',
+        '__FLIT__': 'Need the main flit configuration.',
         }
 
 def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__
     """
+    # print(target.file)
     log.debug("Loading module %s", target.file)
     sl = SourceFileLoader(target.name, str(target.file))
     with _module_load_ctx():

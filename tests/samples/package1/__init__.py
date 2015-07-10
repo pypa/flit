@@ -1,13 +1,13 @@
 """A sample package"""
 
+from flit.inifile import flit_config
+
 __version__ = '0.1'
-__flit_module__ = 'package1'
-__author__ = 'Sir Robin'
-__author_email__ = 'robin@camelot.uk'
-__home_page__ = 'http://github.com/sirrobin/package1'
-__scripts__ = {
-        'pkg-script': 'package1:main'
-        }
+__FLIT__ = flit_config(
+        __version__, 'package1', 'Sir Robin', 'robin@camelot.uk',
+        'http://github.com/sirrobin/package1',
+        scripts={ 'pkg-script': 'package1:main' },
+        )
 
 def main():
     print("package1 main")

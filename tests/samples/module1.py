@@ -1,7 +1,12 @@
 """Example module"""
 
+from flit.inifile import flit_config
+
 __version__ = '0.1'
-__flit_module__ = 'module1'
-__author__ = 'Sir Robin'
-__author_email__ = 'robin@camelot.uk'
-__home_page__ = 'http://github.com/sirrobin/module3'
+__FLIT__ = flit_config(
+        version=__version__,
+        module='module1',
+        author='Sir Robin',
+        author_email='robin@camelot.uk',
+        home_page='http://github.com/sirrobin/module3'
+        )

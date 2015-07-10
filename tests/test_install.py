@@ -25,7 +25,10 @@ class InstallTests(TestCase):
         self.get_dirs_patch.stop()
 
     def test_install_module(self):
-        Installer(samples_dir / 'module1-pkg.ini').install()
+        Installer(
+                samples_dir / 'module1-pkg.ini',
+                pyfile=samples_dir / 'module1').install()
+
         assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
         assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
 

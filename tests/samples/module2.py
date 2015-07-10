@@ -2,8 +2,10 @@
 Docstring formatted like this.
 """
 
+from flit.inifile import flit_config
+
 __version__ = '7.0'
-__flit_module__ = 'module2'
-__author__ = 'Sir Robin'
-__author_email__ = 'robin@camelot.uk'
-__home_page__ = 'http://github.com/sirrobin/module3'
+__FLIT__ = flit_config(
+        __version__, 'module2', 'Sir Robin', 'robin@camelot.uk',
+        'http://github.com/sirrobin/module3'
+        )

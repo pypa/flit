@@ -75,8 +75,8 @@ class RootInstallError(Exception):
             "To allow this, set FLIT_ROOT_INSTALL=1 and try again.")
 
 class Installer(object):
-    def __init__(self, ini_path, user=None, symlink=False):
-        self.ini_info = inifile.read_pkg_ini(ini_path)
+    def __init__(self, ini_path, user=None, symlink=False, pyfile=None):
+        self.ini_info = inifile.read_pkg_ini(ini_path, pyfile)
         self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path)
         log.debug('%s, %s',user, site.ENABLE_USER_SITE)
         if user is None:

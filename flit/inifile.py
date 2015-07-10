@@ -23,6 +23,7 @@ metadata_list_fields = {
 }
 
 metadata_allowed_fields = {
+    'version',
     'module',
     'author',
     'author-email',
@@ -42,6 +43,24 @@ metadata_required_fields = {
     'author-email',
     'home-page',
 }
+
+def flit_config(version, module, author, author_email, home_page, **kwargs):
+    """ TODO Nice fat docstring explaining what's what.
+
+    The point of this function is to help package writers know
+    what is required, what is optional, and provide documentation
+    in IDEs.
+
+    """
+    output = {
+        'version': version,
+        'module': module,
+        'author': author,
+        'author-email': author_email,
+        'home-page': home_page,
+        }
+    output.update(kwargs)
+    return output
 
 def get_cache_dir():
     if os.name == 'posix' and sys.platform != 'darwin':
@@ -93,21 +112,31 @@ def verify_classifiers(classifiers):
     _verify_classifiers_cached(classifiers)
 
 
-def read_pkg_ini(path):
+def read_pkg_ini(path, pyfile=None):
     """Read and check the -pkg.ini file with data about the package.
     """
     cp = configparser.ConfigParser()
     with path.open() as f:
         cp.read_file(f)
 
+    if pyfile:
+        pymodule = common.Module(str(pyfile))
+        dunderdata = common.get_info_from_module(pymodule)
+        print(dunderdata)
+
     unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
     if unknown_sections:
         raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
+    # Nothing to do for .py
 
     if not cp.has_section('metadata'):
         raise ConfigError('[metadata] section is required')
+    # Nothing to do for .py
 
     md_sect = cp['metadata']
+    if pyfile:
+        md_sect = dunderdata['FLIT']
+
     if not set(md_sect).issuperset(metadata_required_fields):
         missing = metadata_required_fields - set(md_sect)
         raise ConfigError("Required fields missing: " + '\n'.join(missing))
@@ -177,6 +206,12 @@ def read_pkg_ini(path):
         scripts_dict = {k: common.parse_entry_point(v) for k, v in cp['scripts'].items()}
     else:
         scripts_dict = {}
+
+    if pyfile:
+        if 'scripts' in md_sect:
+            scripts_dict = {k: common.parse_entry_point(v) for k, v in md_sect['scripts'].items()}
+        else:
+            scripts_dict = {}
 
     return {
         'module': module,
