@@ -40,7 +40,8 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
 
     def test_symlink_package(self):
-        Installer(samples_dir / 'package1-pkg.ini', symlink=True).install()
+        Installer(samples_dir / 'package1-pkg.ini',
+                pyfile=samples_dir / 'package1', symlink=True).install()
         assert_islink(self.tmpdir / 'site-packages' / 'package1',
                       to=str(samples_dir / 'package1'))
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
