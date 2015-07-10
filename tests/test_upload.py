@@ -1,7 +1,5 @@
 import pathlib
 
-import pytest
-import requests
 import responses
 from unittest.mock import patch
 
