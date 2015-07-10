@@ -8,5 +8,5 @@ __FLIT__ = flit_config(
         module='module1',
         author='Sir Robin',
         author_email='robin@camelot.uk',
-        home_page='http://github.com/sirrobin/module3'
+        home_page='http://github.com/sirrobin/module1'
         )
