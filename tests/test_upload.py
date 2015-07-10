@@ -40,7 +40,8 @@ def test_verify():
 def test_upload():
     responses.add(responses.POST, upload.PYPI, status=200)
 
-    wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini', upload='pypi')
+    wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini',
+            pyfile=samples_dir / 'module1', upload='pypi')
     with patch('flit.upload.get_repository', return_value=repo_settings):
         wb.build()
 
