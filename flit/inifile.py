@@ -35,6 +35,7 @@ metadata_allowed_fields = {
     'requires-python',
     'dist-name',
     'entry-points-file',
+    'scripts',
 } | metadata_list_fields
 
 metadata_required_fields = {

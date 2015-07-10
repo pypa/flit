@@ -33,7 +33,8 @@ class InstallTests(TestCase):
         assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
 
     def test_install_package(self):
-        Installer(samples_dir / 'package1-pkg.ini').install()
+        Installer(samples_dir / 'package1-pkg.ini',
+                pyfile=samples_dir / 'package1').install()
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
         assert_isdir(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
