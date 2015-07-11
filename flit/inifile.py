@@ -61,7 +61,6 @@ def flit_config(version, module, author, author_email, home_page, **kwargs):
         'home-page': home_page,
         }
     output.update({k.replace('_', '-'): v for k, v in kwargs.items()})
-    print('\nGathered inputs: ', output)
     return output
 
 def get_cache_dir():
