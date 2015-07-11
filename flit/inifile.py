@@ -1,4 +1,3 @@
-import configparser
 import difflib
 import logging
 import os
@@ -23,6 +22,7 @@ metadata_list_fields = {
 }
 
 metadata_allowed_fields = {
+    'version',
     'module',
     'author',
     'author-email',
@@ -34,6 +34,7 @@ metadata_allowed_fields = {
     'requires-python',
     'dist-name',
     'entry-points-file',
+    'scripts',
 } | metadata_list_fields
 
 metadata_required_fields = {
@@ -42,6 +43,24 @@ metadata_required_fields = {
     'author-email',
     'home-page',
 }
+
+def flit_config(version, module, author, author_email, home_page, **kwargs):
+    """ TODO Nice fat docstring explaining what's what.
+
+    The point of this function is to help package writers know
+    what is required, what is optional, and provide documentation
+    in IDEs.
+
+    """
+    output = {
+        'version': version,
+        'module': module,
+        'author': author,
+        'author-email': author_email,
+        'home-page': home_page,
+        }
+    output.update({k.replace('_', '-'): v for k, v in kwargs.items()})
+    return output
 
 def get_cache_dir():
     if os.name == 'posix' and sys.platform != 'darwin':
@@ -96,18 +115,21 @@ def verify_classifiers(classifiers):
 def read_pkg_ini(path):
     """Read and check the -pkg.ini file with data about the package.
     """
-    cp = configparser.ConfigParser()
-    with path.open() as f:
-        cp.read_file(f)
+    pymodule = common.Module(str(path))
+    dunderdata = common.get_info_from_module(pymodule)
 
-    unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
-    if unknown_sections:
-        raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
+    # TODO This still needs to be changed
+    # unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
+    # if unknown_sections:
+    #     raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
+    # Nothing to do for .py
 
-    if not cp.has_section('metadata'):
-        raise ConfigError('[metadata] section is required')
+    # if not cp.has_section('metadata'):
+    #     raise ConfigError('[metadata] section is required')
+    # Nothing to do for .py
 
-    md_sect = cp['metadata']
+    md_sect = dunderdata['FLIT']
+
     if not set(md_sect).issuperset(metadata_required_fields):
         missing = metadata_required_fields - set(md_sect)
         raise ConfigError("Required fields missing: " + '\n'.join(missing))
@@ -172,9 +194,8 @@ def read_pkg_ini(path):
     if 'classifiers' in md_dict:
         verify_classifiers(md_dict['classifiers'])
 
-    # Scripts ---------------
-    if cp.has_section('scripts'):
-        scripts_dict = {k: common.parse_entry_point(v) for k, v in cp['scripts'].items()}
+    if 'scripts' in md_sect:
+        scripts_dict = {k: common.parse_entry_point(v) for k, v in md_sect['scripts'].items()}
     else:
         scripts_dict = {}
 

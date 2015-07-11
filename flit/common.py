@@ -36,6 +36,7 @@ class Module(object):
 
 class NoDocstringError(ValueError): pass
 class NoVersionError(ValueError): pass
+class MissingMetadataError(ValueError): pass
 
 @contextmanager
 def _module_load_ctx():
@@ -49,25 +50,35 @@ def _module_load_ctx():
     finally:
         logging.root.handlers = logging_handlers
 
+
+requirements = {
+        '__doc__': 'Cannot build module without docstring. '
+                   'Please add a docstring to you module.',
+        '__version__': 'Cannot build module without a version string. '
+                       'Please define a `__version__="x.y.z"` in your module',
+        '__FLIT__': 'Need the main flit configuration.',
+        }
+
 def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__
     """
+    # print(target.file)
     log.debug("Loading module %s", target.file)
     sl = SourceFileLoader(target.name, str(target.file))
     with _module_load_ctx():
         m = sl.load_module()
-    docstring = m.__dict__.get('__doc__', None)
-    if not docstring: 
-        raise NoDocstringError('Cannot build module without docstring. '
-                                'Please add a docstring to you module.')
-    module_version = m.__dict__.get('__version__', None)
-    if not module_version: 
-        raise NoVersionError('Cannot build module without a version string. '
-                             'Please define a `__version__="x.y.z"` in your module')
 
-    docstring_lines = docstring.lstrip().splitlines()
-    return {'summary': docstring_lines[0],
-            'version': m.__version__}
+    output = {}
+    for key, msg in requirements.items():
+        lookup_value = m.__dict__.get(key, None)
+        if lookup_value:
+            output[key.strip('__')] = lookup_value
+        else:
+            raise MissingMetadataError(msg)
+
+    # Handle summary
+    output['summary'] = output['doc'].lstrip().splitlines()[0]
+    return output
 
 script_template = """\
 #!{interpreter}
@@ -130,7 +141,8 @@ class Metadata:
         self.author_email = data.pop('author_email')
         self.summary = data.pop('summary')
         for k, v in data.items():
-            assert hasattr(self, k)
+            # TODO Fix later when the rest of the design is worked out.
+            #assert hasattr(self, k)
             setattr(self, k, v)
 
     def _normalise_name(self, n):
@@ -179,11 +191,10 @@ def make_metadata(module, ini_info):
     md_dict.update(ini_info['metadata'])
     return Metadata(md_dict)
 
-def metadata_and_module_from_ini_path(ini_path):
+def metadata_and_module_from_ini_path(path):
     from . import inifile
-    ini_info = inifile.read_pkg_ini(ini_path)
-    module = Module(ini_info['module'],
-                                ini_path.parent)
+    ini_info = inifile.read_pkg_ini(path)
+    module = Module(ini_info['module'], path.parent)
     metadata = make_metadata(module, ini_info)
     return metadata,module
 
