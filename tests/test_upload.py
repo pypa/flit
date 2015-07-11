@@ -17,8 +17,7 @@ def test_register():
     responses.add(responses.POST, upload.PYPI, status=200)
 
     meta, mod = common.metadata_and_module_from_ini_path(
-            samples_dir / 'module1-pkg.ini',
-            pyfile=samples_dir / 'module1')
+            path=samples_dir / 'module1')
     with patch('flit.upload.get_repository', return_value=repo_settings):
         upload.register(meta, 'pypi')
 
@@ -29,8 +28,7 @@ def test_verify():
     responses.add(responses.POST, upload.PYPI, status=200)
 
     meta, mod = common.metadata_and_module_from_ini_path(
-            samples_dir / 'module1-pkg.ini',
-            pyfile=samples_dir / 'module1')
+            samples_dir / 'module1')
     with patch('flit.upload.get_repository', return_value=repo_settings):
         upload.verify(meta, 'pypi')
 
@@ -40,8 +38,7 @@ def test_verify():
 def test_upload():
     responses.add(responses.POST, upload.PYPI, status=200)
 
-    wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini',
-            pyfile=samples_dir / 'module1', upload='pypi')
+    wb = wheel.WheelBuilder(samples_dir / 'module1', upload='pypi')
     with patch('flit.upload.get_repository', return_value=repo_settings):
         wb.build()
 
@@ -57,8 +54,8 @@ def test_upload_registers():
         responses.add_callback(responses.POST, upload.PYPI,
                                callback=upload_callback)
 
-        wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini',
-                pyfile=samples_dir / 'module1', upload='pypi')
+        wb = wheel.WheelBuilder(
+                samples_dir / 'module1', upload='pypi')
         with patch('flit.upload.get_repository', return_value=repo_settings):
             wb.build()
 

@@ -191,16 +191,10 @@ def make_metadata(module, ini_info):
     md_dict.update(ini_info['metadata'])
     return Metadata(md_dict)
 
-def metadata_and_module_from_ini_path(ini_path, pyfile=None):
+def metadata_and_module_from_ini_path(path):
     from . import inifile
-    ini_info = inifile.read_pkg_ini(ini_path, pyfile)
-    if pyfile:
-        module = Module(ini_info['module'],
-                                    pyfile.parent)
-    else:
-        module = Module(ini_info['module'],
-                                    ini_path.parent)
-
+    ini_info = inifile.read_pkg_ini(path)
+    module = Module(ini_info['module'], path.parent)
     metadata = make_metadata(module, ini_info)
     return metadata,module
 

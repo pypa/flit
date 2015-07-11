@@ -1,4 +1,3 @@
-import configparser
 import difflib
 import logging
 import os
@@ -113,30 +112,23 @@ def verify_classifiers(classifiers):
     _verify_classifiers_cached(classifiers)
 
 
-def read_pkg_ini(path, pyfile=None):
+def read_pkg_ini(path):
     """Read and check the -pkg.ini file with data about the package.
     """
-    cp = configparser.ConfigParser()
-    with path.open() as f:
-        cp.read_file(f)
+    pymodule = common.Module(str(path))
+    dunderdata = common.get_info_from_module(pymodule)
 
-    if pyfile:
-        pymodule = common.Module(str(pyfile))
-        dunderdata = common.get_info_from_module(pymodule)
-        print(dunderdata)
-
-    unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
-    if unknown_sections:
-        raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
+    # TODO This still needs to be changed
+    # unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
+    # if unknown_sections:
+    #     raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
     # Nothing to do for .py
 
-    if not cp.has_section('metadata'):
-        raise ConfigError('[metadata] section is required')
+    # if not cp.has_section('metadata'):
+    #     raise ConfigError('[metadata] section is required')
     # Nothing to do for .py
 
-    md_sect = cp['metadata']
-    if pyfile:
-        md_sect = dunderdata['FLIT']
+    md_sect = dunderdata['FLIT']
 
     if not set(md_sect).issuperset(metadata_required_fields):
         missing = metadata_required_fields - set(md_sect)
@@ -202,17 +194,10 @@ def read_pkg_ini(path, pyfile=None):
     if 'classifiers' in md_dict:
         verify_classifiers(md_dict['classifiers'])
 
-    # Scripts ---------------
-    if cp.has_section('scripts'):
-        scripts_dict = {k: common.parse_entry_point(v) for k, v in cp['scripts'].items()}
+    if 'scripts' in md_sect:
+        scripts_dict = {k: common.parse_entry_point(v) for k, v in md_sect['scripts'].items()}
     else:
         scripts_dict = {}
-
-    if pyfile:
-        if 'scripts' in md_sect:
-            scripts_dict = {k: common.parse_entry_point(v) for k, v in md_sect['scripts'].items()}
-        else:
-            scripts_dict = {}
 
     return {
         'module': module,
