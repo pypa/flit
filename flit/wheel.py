@@ -45,11 +45,20 @@ class WheelBuilder:
             self.build_dir.mkdir()
 
     def copy_module(self):
+
+        def verbose_copy2(src, dest, *args, **kwargs):
+            log.debug('copying %s', src)
+            return shutil.copy2(src, dest, *args, **kwargs)
+
+
         mod =  self.module
         # Copy module/package to build directory
         if mod.is_package:
             ignore = shutil.ignore_patterns('*.pyc', '__pycache__')
-            shutil.copytree(str(mod.path), str(self.build_dir / mod.name), ignore=ignore)
+            shutil.copytree(str(mod.path), str(self.build_dir / mod.name),
+                    ignore=ignore,
+                    copy_function=verbose_copy2
+                    )
         else:
             shutil.copy2(str(mod.path), str(self.build_dir))
 

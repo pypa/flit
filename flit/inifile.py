@@ -125,6 +125,7 @@ def read_pkg_ini(path):
         if description_file.suffix == '.md':
             try:
                 import pypandoc
+                log.debug('will convert %s to rst', description_file)
                 raw_desc = pypandoc.convert(raw_desc, 'rst', format='markdown')
             except Exception:
                 log.warn('Unable to convert markdown to rst. Please install `pypandoc` and `pandoc` to use markdown long description.')
