@@ -130,7 +130,7 @@ class Metadata:
         self.author_email = data.pop('author_email')
         self.summary = data.pop('summary')
         for k, v in data.items():
-            assert hasattr(self, k)
+            assert hasattr(self, k), "data does not have attribute '{}'".format(k)
             setattr(self, k, v)
 
     def _normalise_name(self, n):
@@ -179,9 +179,9 @@ def make_metadata(module, ini_info):
     md_dict.update(ini_info['metadata'])
     return Metadata(md_dict)
 
-def metadata_and_module_from_ini_path(ini_path):
+def metadata_and_module_from_ini_path(ini_path, develop=False):
     from . import inifile
-    ini_info = inifile.read_pkg_ini(ini_path)
+    ini_info = inifile.read_pkg_ini(ini_path, develop=develop)
     module = Module(ini_info['module'],
                                 ini_path.parent)
     metadata = make_metadata(module, ini_info)
