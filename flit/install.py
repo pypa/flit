@@ -118,18 +118,24 @@ class Installer(object):
             for f in files:
                 self.installed_files.append(os.path.join(dirpath, f))
 
-    def _install_requirements(self, requires_attr):
+    def install_requirements(self):
         """Install requirements of a package with pip.
 
         Creates a temporary requirements.txt from requires_dist metadata.
         """
+        # construct the full list of requirements, including dev requirements
+        requires_dist = list(getattr(self.metadata, 'requires_dist', []))
+        dev_requires = list(getattr(self.metadata, 'dev_requires', []))
         requirements = [
             _requires_dist_to_pip_requirement(req_d)
-            for req_d in getattr(self.metadata, requires_attr, [])
+            for req_d in requires_dist + dev_requires
         ]
+
+        # there aren't any requirements, so return
         if len(requirements) == 0:
             return
 
+        # install the requirements with pip
         cmd = [sys.executable, '-m', 'pip', 'install']
         if self.user:
             cmd.append('--user')
@@ -138,15 +144,11 @@ class Installer(object):
                                          delete=False) as tf:
             tf.file.write('\n'.join(requirements))
         cmd.extend(['-r', tf.name])
-        log.info("Installing '%s' requirements", requires_attr)
+        log.info("Installing requirements")
         try:
             check_call(cmd)
         finally:
             os.remove(tf.name)
-
-    def install_requirements(self):
-        self._install_requirements('requires_dist')
-        self._install_requirements('dev_requires')
 
     def install(self):
         """Install a module/package into site-packages, and create its scripts.
