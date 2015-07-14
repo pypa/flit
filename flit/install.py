@@ -75,9 +75,9 @@ class RootInstallError(Exception):
             "To allow this, set FLIT_ROOT_INSTALL=1 and try again.")
 
 class Installer(object):
-    def __init__(self, ini_path, user=None, symlink=False, develop=False):
+    def __init__(self, ini_path, user=None, symlink=False):
         self.ini_info = inifile.read_pkg_ini(ini_path)
-        self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path, develop=develop)
+        self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path)
         log.debug('%s, %s',user, site.ENABLE_USER_SITE)
         if user is None:
             self.user = site.ENABLE_USER_SITE
@@ -118,16 +118,16 @@ class Installer(object):
             for f in files:
                 self.installed_files.append(os.path.join(dirpath, f))
 
-    def install_requirements(self):
+    def _install_requirements(self, requires_attr):
         """Install requirements of a package with pip.
 
         Creates a temporary requirements.txt from requires_dist metadata.
         """
-        if not self.metadata.requires_dist:
+        if not hasattr(self.metadata, requires_attr):
             return
         requirements = [
             _requires_dist_to_pip_requirement(req_d)
-            for req_d  in self.metadata.requires_dist
+            for req_d in getattr(self.metadata, requires_attr)
         ]
         cmd = [sys.executable, '-m', 'pip', 'install']
         if self.user:
@@ -137,11 +137,15 @@ class Installer(object):
                                          delete=False) as tf:
             tf.file.write('\n'.join(requirements))
         cmd.extend(['-r', tf.name])
-        log.info("Installing requirements")
+        log.info("Installing '%s' requirements", requires_attr)
         try:
             check_call(cmd)
         finally:
             os.remove(tf.name)
+
+    def install_requirements(self):
+        self._install_requirements('requires_dist')
+        self._install_requirements('dev_requires')
 
     def install(self):
         """Install a module/package into site-packages, and create its scripts.

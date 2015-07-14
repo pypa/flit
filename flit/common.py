@@ -124,6 +124,10 @@ class Metadata:
 
     metadata_version="1.2"
 
+    # this is part of metadata spec 2, we are using it for installation but it
+    # doesn't actually get written to the metadata file
+    dev_requires = ()
+
     def __init__(self, data):
         self.name = data.pop('name')
         self.version = data.pop('version')
@@ -179,11 +183,10 @@ def make_metadata(module, ini_info):
     md_dict.update(ini_info['metadata'])
     return Metadata(md_dict)
 
-def metadata_and_module_from_ini_path(ini_path, develop=False):
+def metadata_and_module_from_ini_path(ini_path):
     from . import inifile
-    ini_info = inifile.read_pkg_ini(ini_path, develop=develop)
-    module = Module(ini_info['module'],
-                                ini_path.parent)
+    ini_info = inifile.read_pkg_ini(ini_path)
+    module = Module(ini_info['module'], ini_path.parent)
     metadata = make_metadata(module, ini_info)
     return metadata,module
 

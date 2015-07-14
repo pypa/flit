@@ -35,26 +35,13 @@ def main(argv=None):
     parser_install = subparsers.add_parser('install',
         help="Install the package",
     )
-    parser_install.add_argument('--symlink', action='store_true',
+    parser_install.add_argument('-s', '--symlink', action='store_true',
         help="Symlink the module/package into site packages instead of copying it"
     )
     parser_install.add_argument('--user', action='store_true', default=None,
         help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
     )
     parser_install.add_argument('--env', action='store_false', dest='user',
-        help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
-    )
-
-    parser_develop = subparsers.add_parser('develop',
-        help="Install the package directly for development",
-    )
-    parser_develop.add_argument('--no-symlink', action='store_false', dest='symlink',
-        help="Copy the module/package into site packages instead of symlinking it"
-    )
-    parser_develop.add_argument('--user', action='store_true', default=None,
-        help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
-    )
-    parser_develop.add_argument('--env', action='store_false', dest='user',
         help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
     )
 
@@ -80,12 +67,10 @@ def main(argv=None):
                      repo=args.repository).build()
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
-    elif args.subcmd in ('install', 'develop'):
+    elif args.subcmd == 'install':
         from .install import Installer
         try:
-            Installer(
-                args.ini_file, user=args.user, symlink=args.symlink,
-                develop=args.subcmd == 'develop').install()
+            Installer(args.ini_file, user=args.user, symlink=args.symlink).install()
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'register':

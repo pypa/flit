@@ -20,7 +20,7 @@ class ConfigError(ValueError):
 metadata_list_fields = {
     'classifiers',
     'requires',
-    'develop-requires'
+    'dev-requires'
 }
 
 metadata_allowed_fields = {
@@ -94,7 +94,7 @@ def verify_classifiers(classifiers):
     _verify_classifiers_cached(classifiers)
 
 
-def read_pkg_ini(path, develop=False):
+def read_pkg_ini(path):
     """Read and check the -pkg.ini file with data about the package.
     """
     cp = configparser.ConfigParser()
@@ -148,9 +148,6 @@ def read_pkg_ini(path, develop=False):
             entry_points_file = None
 
     for key, value in md_sect.items():
-        if key == 'develop-requires':
-            continue
-
         if key not in metadata_allowed_fields:
             closest = difflib.get_close_matches(key, metadata_allowed_fields,
                                                 n=1, cutoff=0.7)
@@ -167,11 +164,8 @@ def read_pkg_ini(path, develop=False):
 
     # What we call requires in the ini file is technically requires_dist in
     # the metadata.
-    md_dict['requires_dist'] = []
     if 'requires' in md_dict:
-        md_dict['requires_dist'].extend(md_dict.pop('requires'))
-    if 'develop-requires' in md_dict and develop:
-        md_dict['requires_dist'].exted(md_dict.pop('develop-requires'))
+        md_dict['requires_dist'] = md_dict.pop('requires')
 
     # And what we call dist-name is name in the metadata
     if 'dist_name' in md_dict:
