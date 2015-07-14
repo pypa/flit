@@ -123,12 +123,19 @@ class Installer(object):
 
         Creates a temporary requirements.txt from requires_dist metadata.
         """
-        if not self.metadata.requires_dist:
-            return
+        # construct the full list of requirements, including dev requirements
+        requires_dist = list(getattr(self.metadata, 'requires_dist', []))
+        dev_requires = list(getattr(self.metadata, 'dev_requires', []))
         requirements = [
             _requires_dist_to_pip_requirement(req_d)
-            for req_d  in self.metadata.requires_dist
+            for req_d in requires_dist + dev_requires
         ]
+
+        # there aren't any requirements, so return
+        if len(requirements) == 0:
+            return
+
+        # install the requirements with pip
         cmd = [sys.executable, '-m', 'pip', 'install']
         if self.user:
             cmd.append('--user')

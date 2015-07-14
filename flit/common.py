@@ -124,13 +124,17 @@ class Metadata:
 
     metadata_version="1.2"
 
+    # this is part of metadata spec 2, we are using it for installation but it
+    # doesn't actually get written to the metadata file
+    dev_requires = ()
+
     def __init__(self, data):
         self.name = data.pop('name')
         self.version = data.pop('version')
         self.author_email = data.pop('author_email')
         self.summary = data.pop('summary')
         for k, v in data.items():
-            assert hasattr(self, k)
+            assert hasattr(self, k), "data does not have attribute '{}'".format(k)
             setattr(self, k, v)
 
     def _normalise_name(self, n):
@@ -182,8 +186,7 @@ def make_metadata(module, ini_info):
 def metadata_and_module_from_ini_path(ini_path):
     from . import inifile
     ini_info = inifile.read_pkg_ini(ini_path)
-    module = Module(ini_info['module'],
-                                ini_path.parent)
+    module = Module(ini_info['module'], ini_path.parent)
     metadata = make_metadata(module, ini_info)
     return metadata,module
 

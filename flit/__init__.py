@@ -33,9 +33,9 @@ def main(argv=None):
     )
 
     parser_install = subparsers.add_parser('install',
-        help="Install the package directly for development",
+        help="Install the package",
     )
-    parser_install.add_argument('--symlink', action='store_true',
+    parser_install.add_argument('-s', '--symlink', action='store_true',
         help="Symlink the module/package into site packages instead of copying it"
     )
     parser_install.add_argument('--user', action='store_true', default=None,

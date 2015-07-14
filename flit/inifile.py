@@ -20,6 +20,7 @@ class ConfigError(ValueError):
 metadata_list_fields = {
     'classifiers',
     'requires',
+    'dev-requires'
 }
 
 metadata_allowed_fields = {
