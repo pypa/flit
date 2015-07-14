@@ -44,6 +44,8 @@ def main(argv=None):
     parser_install.add_argument('--env', action='store_false', dest='user',
         help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
     )
+    parser_install.add_argument('--deps', choices=['all', 'install', 'develop', 'none'], default='all',
+        help="Which set of dependencies to install")
 
     parser_init = subparsers.add_parser('init',
         help="Prepare flit.ini for a new package"
@@ -70,7 +72,7 @@ def main(argv=None):
     elif args.subcmd == 'install':
         from .install import Installer
         try:
-            Installer(args.ini_file, user=args.user, symlink=args.symlink).install()
+            Installer(args.ini_file, user=args.user, symlink=args.symlink, deps=args.deps).install()
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'register':
