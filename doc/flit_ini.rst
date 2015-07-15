@@ -41,6 +41,12 @@ requires
       requires = requests (>=2.6)
             configparser; python_version == '2.7'
 
+dev-requires
+  Packages that are required for development. This field is in the same format
+  as ``requires``.
+
+  These are not (yet) encoded in the wheel, but are used when doing
+  ``flit install``.
 description-file
   A path (relative to the .ini file) to a file containing a longer description
   of your package to show on PyPI. This should be written in `reStructuredText

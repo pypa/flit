@@ -1,6 +1,15 @@
 Release history
 ===============
 
+Version 0.7
+-----------
+
+- A new ``dev-requires`` field in the config file for development requirements,
+  used when doing ``flit install``.
+- Added a ``--deps`` option for ``flit install`` to control which dependencies
+  are installed.
+- Flit can now be invoked with ``python -m flit``.
+
 Version 0.6
 -----------
 
