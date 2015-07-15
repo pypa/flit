@@ -129,7 +129,7 @@ class Installer(object):
 
         if self.deps == 'none':
             return
-        if self.deps in ('all', 'install'):
+        if self.deps in ('all', 'production'):
             requirements.extend(list(getattr(self.metadata, 'requires_dist', [])))
         if self.deps in ('all', 'develop'):
             requirements.extend(list(getattr(self.metadata, 'dev_requires', [])))

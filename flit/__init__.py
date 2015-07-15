@@ -44,7 +44,7 @@ def main(argv=None):
     parser_install.add_argument('--env', action='store_false', dest='user',
         help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
     )
-    parser_install.add_argument('--deps', choices=['all', 'install', 'develop', 'none'], default='all',
+    parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
         help="Which set of dependencies to install")
 
     parser_init = subparsers.add_parser('init',
