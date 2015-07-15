@@ -77,7 +77,8 @@ class RootInstallError(Exception):
 class Installer(object):
     def __init__(self, ini_path, user=None, symlink=False, deps='all'):
         self.ini_info = inifile.read_pkg_ini(ini_path)
-        self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path)
+        self.module = common.Module(self.ini_info['module'], ini_path.parent)
+
         log.debug('%s, %s',user, site.ENABLE_USER_SITE)
         if user is None:
             self.user = site.ENABLE_USER_SITE
@@ -130,18 +131,18 @@ class Installer(object):
         if self.deps == 'none':
             return
         if self.deps in ('all', 'production'):
-            requirements.extend(list(getattr(self.metadata, 'requires_dist', [])))
+            requirements.extend(self.ini_info['metadata'].get('requires_dist', []))
         if self.deps in ('all', 'develop'):
-            requirements.extend(list(getattr(self.metadata, 'dev_requires', [])))
+            requirements.extend(self.ini_info['metadata'].get('dev_requires', []))
+
+        # there aren't any requirements, so return
+        if len(requirements) == 0:
+            return
 
         requirements = [
             _requires_dist_to_pip_requirement(req_d)
             for req_d in requirements
         ]
-
-        # there aren't any requirements, so return
-        if len(requirements) == 0:
-            return
 
         # install the requirements with pip
         cmd = [sys.executable, '-m', 'pip', 'install']
@@ -195,8 +196,10 @@ class Installer(object):
 
     def write_dist_info(self, site_pkgs):
         """Write dist-info folder, according to PEP 376"""
+        metadata = common.make_metadata(self.module, self.ini_info)
+
         dist_info = pathlib.Path(site_pkgs) / '{}-{}.dist-info'.format(
-                                       self.metadata.name, self.metadata.version)
+                                            metadata.name, metadata.version)
         try:
             dist_info.mkdir()
         except FileExistsError:
@@ -204,7 +207,7 @@ class Installer(object):
             dist_info.mkdir()
 
         with (dist_info / 'METADATA').open('w', encoding='utf-8') as f:
-            self.metadata.write_metadata_file(f)
+            metadata.write_metadata_file(f)
         self.installed_files.append(dist_info / 'METADATA')
 
         with (dist_info / 'INSTALLER').open('w') as f:
