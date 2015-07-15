@@ -75,7 +75,7 @@ class RootInstallError(Exception):
             "To allow this, set FLIT_ROOT_INSTALL=1 and try again.")
 
 class Installer(object):
-    def __init__(self, ini_path, user=None, symlink=False):
+    def __init__(self, ini_path, user=None, symlink=False, deps='all'):
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path)
         log.debug('%s, %s',user, site.ENABLE_USER_SITE)
@@ -87,6 +87,7 @@ class Installer(object):
             raise RootInstallError
 
         self.symlink = symlink
+        self.deps = deps
         self.installed_files = []
 
     def install_scripts(self, script_defs, scripts_dir):
@@ -124,11 +125,18 @@ class Installer(object):
         Creates a temporary requirements.txt from requires_dist metadata.
         """
         # construct the full list of requirements, including dev requirements
-        requires_dist = list(getattr(self.metadata, 'requires_dist', []))
-        dev_requires = list(getattr(self.metadata, 'dev_requires', []))
+        requirements = []
+
+        if self.deps == 'none':
+            return
+        if self.deps in ('all', 'production'):
+            requirements.extend(list(getattr(self.metadata, 'requires_dist', [])))
+        if self.deps in ('all', 'develop'):
+            requirements.extend(list(getattr(self.metadata, 'dev_requires', [])))
+
         requirements = [
             _requires_dist_to_pip_requirement(req_d)
-            for req_d in requires_dist + dev_requires
+            for req_d in requirements
         ]
 
         # there aren't any requirements, so return
