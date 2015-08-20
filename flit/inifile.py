@@ -85,11 +85,16 @@ def verify_classifiers(classifiers):
     classifiers = set(classifiers)
     try:
         _verify_classifiers_cached(classifiers)
-    except (FileNotFoundError, ConfigError):
+    except (FileNotFoundError, ConfigError) as e1:
         # FileNotFoundError: We haven't yet got the classifiers cached
         # ConfigError: At least one is invalid, but it may have been added since
         #   last time we fetched them.
-        _download_classifiers()
+        try:
+            _download_classifiers()
+        except requests.ConnectionError:
+            # The error you get on a train, going through Oregon, without wifi
+            if isinstance(e1, ConfigError):
+                raise e1
 
     _verify_classifiers_cached(classifiers)
 
