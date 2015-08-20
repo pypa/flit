@@ -9,20 +9,12 @@ import site
 import sys
 import tempfile
 from subprocess import check_call
+import sysconfig
 
 from . import common
 from . import inifile
 
 log = logging.getLogger(__name__)
-
-# For the directories where we'll install stuff
-_interpolation_vars = {
-    'userbase': site.USER_BASE,
-    'usersite': site.USER_SITE,
-    'py_major': sys.version_info[0],
-    'py_minor': sys.version_info[1],
-    'prefix'  : sys.prefix,
-}
 
 def _requires_dist_to_pip_requirement(requires_dist):
     """Parse "Foo (v); python_version == '2.x'" from Requires-Dist
@@ -49,25 +41,18 @@ def _requires_dist_to_pip_requirement(requires_dist):
 def get_dirs(user=True):
     """Get the 'scripts' and 'purelib' directories we'll install into.
 
-    This is an abbreviated version of distutils.command.install.INSTALL_SCHEMES
+    This is now a thin wrapper around sysconfig.get_paths(). It's not inlined,
+    because some tests mock it out to install to a different location.
     """
     if user:
-        purelib = site.USER_SITE
-        if sys.platform == 'win32':
-            scripts = "{userbase}/Python{py_major}{py_minor}/Scripts"
-        else:
-            scripts = "{userbase}/bin"
-    elif sys.platform == 'win32':
-        scripts = "{prefix}/Scripts",
-        purelib = "{prefix}/Lib/site-packages"
+        if (sys.platform == "darwin") and sysconfig.get_config_var('PYTHONFRAMEWORK'):
+            return sysconfig.get_paths('osx_framework_user')
+        return sysconfig.get_paths(os.name + '_user')
     else:
-        scripts = "{prefix}/bin"
-        purelib = "{prefix}/lib/python{py_major}.{py_minor}/site-packages"
+        # The default scheme is 'posix_prefix' or 'nt', and should work for e.g.
+        # installing into a virtualenv
+        return sysconfig.get_paths()
 
-    return {
-        'scripts': scripts.format_map(_interpolation_vars),
-        'purelib': purelib.format_map(_interpolation_vars),
-    }
 
 class RootInstallError(Exception):
     def __str__(self):
