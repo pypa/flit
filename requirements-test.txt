@@ -2,3 +2,4 @@ requests
 testpath
 responses
 docutils
+pytest>=2.7.3
