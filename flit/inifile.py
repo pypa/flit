@@ -95,8 +95,10 @@ def verify_classifiers(classifiers):
             # The error you get on a train, going through Oregon, without wifi
             if isinstance(e1, ConfigError):
                 raise e1
-
-    _verify_classifiers_cached(classifiers)
+            else:
+                log.warn("Couldn't get list of valid classifiers to check against")
+        else:
+            _verify_classifiers_cached(classifiers)
 
 
 def read_pkg_ini(path):
