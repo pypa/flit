@@ -1,6 +1,7 @@
 import configparser
 import logging
 import os
+import re
 import shutil
 import zipfile
 
@@ -133,7 +134,11 @@ class WheelBuilder:
             pass
 
         tag = ('py2.' if self.supports_py2 else '') + 'py3-none-any'
-        self.wheel_file = dist_dir / '{}-{}.whl'.format(self.dist_version, tag)
+        self.wheel_file = dist_dir / '{}-{}-{}.whl'.format(
+                re.sub("[^\w\d.]+", "_", self.metadata.name, re.UNICODE),
+                re.sub("[^\w\d.]+", "_", self.metadata.version, re.UNICODE),
+                tag)
+
         with zipfile.ZipFile(str(self.wheel_file), 'w',
                              compression=zipfile.ZIP_DEFLATED) as z:
             for dirpath, dirs, files in os.walk(str(self.build_dir)):
