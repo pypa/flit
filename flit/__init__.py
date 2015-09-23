@@ -67,7 +67,7 @@ def main(argv=None):
             WheelBuilder(args.ini_file, upload=args.upload,
                      verify_metadata=args.verify_metadata,
                      repo=args.repository).build()
-        except (common.NoDocstringError, common.NoVersionError) as e:
+        except common.ProblemInModule as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'install':
         from .install import Installer

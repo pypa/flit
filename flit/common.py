@@ -33,9 +33,10 @@ class Module(object):
         else:
             return self.path
 
-
-class NoDocstringError(ValueError): pass
-class NoVersionError(ValueError): pass
+class ProblemInModule(ValueError): pass
+class NoDocstringError(ProblemInModule): pass
+class NoVersionError(ProblemInModule): pass
+class InvalidVersion(ProblemInModule): pass
 
 @contextmanager
 def _module_load_ctx():
@@ -58,12 +59,18 @@ def get_info_from_module(target):
         m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
     if not docstring: 
-        raise NoDocstringError('Cannot build module without docstring. '
-                                'Please add a docstring to you module.')
+        raise NoDocstringError('Cannot package module without docstring. '
+                                'Please add a docstring to your module.')
     module_version = m.__dict__.get('__version__', None)
     if not module_version: 
-        raise NoVersionError('Cannot build module without a version string. '
-                             'Please define a `__version__="x.y.z"` in your module')
+        raise NoVersionError('Cannot package module without a version string. '
+                             'Please define a `__version__="x.y.z"` in your module.')
+    if not isinstance(module_version, str):
+        raise InvalidVersion('__version__ must be a string, not {}.'
+                                .format(type(module_version)))
+    if not module_version[0].isdigit():
+        raise InvalidVersion('__version__ must start with a number. It is {!r}.'
+                                .format(module_version))
 
     docstring_lines = docstring.lstrip().splitlines()
     return {'summary': docstring_lines[0],

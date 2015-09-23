@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from unittest import TestCase
 
-from flit.common import Module, get_info_from_module
+from flit.common import Module, get_info_from_module, InvalidVersion
 
 samples_dir = os.path.join(os.path.dirname(__file__), 'samples')
 
@@ -37,3 +37,6 @@ class ModuleTests(TestCase):
         self.assertEqual(info, {'summary': 'A sample package',
                                 'version': '0.1'}
                          )
+
+        with self.assertRaises(InvalidVersion):
+            get_info_from_module(Module('invalid_version1', samples_dir))
