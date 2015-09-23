@@ -30,7 +30,8 @@ class WheelBuilder:
         self.directory = ini_path.parent
         self.build_dir = self.directory / 'build' / 'flit'
         self.ini_info = inifile.read_pkg_ini(ini_path)
-        self.metadata, self.module = common.metadata_and_module_from_ini_path(ini_path)
+        self.module = common.Module(self.ini_info['module'], ini_path.parent)
+        self.metadata = common.make_metadata(self.module, self.ini_info)
         self.upload=upload
         self.verify_metadata=verify_metadata
         self.repo = repo
