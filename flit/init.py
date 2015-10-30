@@ -166,7 +166,7 @@ class TerminalIniter(IniterBase):
             home_page_default = None
         home_page = self.prompt_text('Home page', home_page_default,
                                      lambda s: s != '')
-        license = self.prompt_options('Choose a license',
+        license = self.prompt_options('Choose a license (see http://choosealicense.com/ for more info)',
                     license_choices, self.defaults.get('license'))
 
         self.update_defaults(author=author, author_email=author_email,
