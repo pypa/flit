@@ -58,8 +58,8 @@ def get_info_from_module(target):
     with _module_load_ctx():
         m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
-    if not docstring: 
-        raise NoDocstringError('Cannot package module without docstring. '
+    if not docstring.strip():
+        raise NoDocstringError('Cannot package module without docstring, or empty docstring. '
                                 'Please add a docstring to your module.')
     module_version = m.__dict__.get('__version__', None)
     if not module_version: 
