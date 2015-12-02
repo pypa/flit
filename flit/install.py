@@ -79,7 +79,7 @@ class Installer(object):
     def install_scripts(self, script_defs, scripts_dir):
         for name, (module, func) in script_defs.items():
             script_file = pathlib.Path(scripts_dir) / name
-            log.debug('Writing script to %s', script_file)
+            log.info('Writing script to %s', script_file)
             with script_file.open('w') as f:
                 f.write(common.script_template.format(
                     interpreter=sys.executable,
