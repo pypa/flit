@@ -6,6 +6,7 @@ import sys
 
 from . import common
 from .log import enable_colourful_output
+from .logo import clogo
 
 __version__ = '0.7.2'
 
@@ -20,6 +21,7 @@ def main(argv=None):
         help="Name of the repository to upload to (must be in ~/.pypirc)"
     )
     ap.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
+    ap.add_argument('--logo', action='store_true', help=argparse.SUPPRESS)
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 
     parser_wheel = subparsers.add_parser('wheel',
@@ -60,6 +62,10 @@ def main(argv=None):
     enable_colourful_output(logging.DEBUG if args.debug else logging.INFO)
 
     log.debug("Parsed arguments %r", args)
+
+    if args.logo:
+        print(clogo.format(version=__version__))
+        sys.exit(0)
 
     if args.subcmd == 'wheel':
         from .wheel import WheelBuilder
