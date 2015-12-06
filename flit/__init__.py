@@ -6,7 +6,6 @@ import sys
 
 from . import common
 from .log import enable_colourful_output
-from .logo import clogo
 
 __version__ = '0.7.2'
 
@@ -64,6 +63,7 @@ def main(argv=None):
     log.debug("Parsed arguments %r", args)
 
     if args.logo:
+        from .logo import clogo
         print(clogo.format(version=__version__))
         sys.exit(0)
 
