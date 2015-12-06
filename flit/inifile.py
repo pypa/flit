@@ -3,6 +3,7 @@ import difflib
 import logging
 import os
 from pathlib import Path
+from contextlib import contextmanager
 import sys
 
 import requests
@@ -104,10 +105,22 @@ def verify_classifiers(classifiers):
 def read_pkg_ini(path):
     """Read and check the -pkg.ini file with data about the package.
     """
+    cp = _read_pkg_ini(path)
+    return _validate_config(cp, path)
+
+def _read_pkg_ini(path):
     cp = configparser.ConfigParser()
     with path.open() as f:
         cp.read_file(f)
 
+    return cp
+
+
+def _validate_config(cp, path):
+    """
+    validate a config section and return a strip down version fro Metadata
+
+    """
     unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
     if unknown_sections:
         raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
@@ -120,14 +133,14 @@ def read_pkg_ini(path):
         missing = metadata_required_fields - set(md_sect)
         raise ConfigError("Required fields missing: " + '\n'.join(missing))
 
-    module = md_sect.pop('module')
+    module = md_sect.get('module')
     if not module.isidentifier():
         raise ConfigError("Module name %r is not a valid identifier" % module)
 
     md_dict = {}
 
     if 'description-file' in md_sect:
-        description_file = path.parent / md_sect.pop('description-file')
+        description_file = path.parent / md_sect.get('description-file')
         with description_file.open() as f:
             raw_desc =  f.read()
         if description_file.suffix == '.md':
@@ -146,7 +159,7 @@ def read_pkg_ini(path):
         md_dict['description'] =  raw_desc
 
     if 'entry-points-file' in md_sect:
-        entry_points_file = path.parent / md_sect.pop('entry-points-file')
+        entry_points_file = path.parent / md_sect.get('entry-points-file')
         if not entry_points_file.is_file():
             raise FileNotFoundError(entry_points_file)
     else:
@@ -155,6 +168,8 @@ def read_pkg_ini(path):
             entry_points_file = None
 
     for key, value in md_sect.items():
+        if key in {'description-file', 'module', 'entry-points-file'}:
+            continue
         if key not in metadata_allowed_fields:
             closest = difflib.get_close_matches(key, metadata_allowed_fields,
                                                 n=1, cutoff=0.7)
@@ -193,3 +208,25 @@ def read_pkg_ini(path):
         'scripts': scripts_dict,
         'entry_points_file': entry_points_file,
     }
+
+
+@contextmanager
+def modify_config(path):
+    """
+    Context manager to modify a flit config file.
+
+    Will read the config file, validate the config, yield the config object,
+    validate and write back the config to the file on exit
+    """
+    if isinstance(path, str):
+        path = Path(path)
+    config = _read_pkg_ini(path)
+    _validate_config(config, path)
+
+    # don't catch exception, we won't write the new config.
+    yield config
+
+    _validate_config(config, path)
+    with path.open('w') as f:
+        config.write(f)
+
