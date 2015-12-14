@@ -3,6 +3,7 @@ import hashlib
 from importlib.machinery import SourceFileLoader
 import logging
 from pathlib import Path
+from packaging.version import Version
 
 log = logging.getLogger(__name__)
 
@@ -62,19 +63,34 @@ def get_info_from_module(target):
         raise NoDocstringError('Cannot package module without docstring, or empty docstring. '
                                 'Please add a docstring to your module.')
     module_version = m.__dict__.get('__version__', None)
-    if not module_version: 
-        raise NoVersionError('Cannot package module without a version string. '
-                             'Please define a `__version__="x.y.z"` in your module.')
-    if not isinstance(module_version, str):
-        raise InvalidVersion('__version__ must be a string, not {}.'
-                                .format(type(module_version)))
-    if not module_version[0].isdigit():
-        raise InvalidVersion('__version__ must start with a number. It is {!r}.'
-                                .format(module_version))
+
+    check_version(module_version)
 
     docstring_lines = docstring.lstrip().splitlines()
     return {'summary': docstring_lines[0],
             'version': m.__version__}
+
+def check_version(version):
+    """
+    Check wether a given version string match Pep 440
+
+    Raise InvalidVersion/NoVersionError With relevant information if 
+    version is invalid
+    """
+    if not version: 
+        raise NoVersionError('Cannot package module without a version string. '
+                             'Please define a `__version__="x.y.z"` in your module.')
+    if not isinstance(version, str):
+        raise InvalidVersion('__version__ must be a string, not {}.'
+                                .format(type(version)))
+    if not version[0].isdigit():
+        raise InvalidVersion('__version__ must start with a number. It is {!r}.'
+                                .format(version))
+
+    normalized_version = str(Version(version))
+    if normalized_version != version:
+        raise InvalidVersion('Version string does not match Pep440. Is `%s`, Do you mean `%s` ?' %( version, normalized_version))
+
 
 script_template = """\
 #!{interpreter}
