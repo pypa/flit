@@ -92,7 +92,11 @@ def check_version(version):
     Check wether a given version string match Pep 440
 
     Raise InvalidVersion/NoVersionError With relevant information if 
-    version is invalid
+    version is invalid. 
+
+    Print a warning if the version is not canonical with respect to Pep440
+
+    Return wether the version is canonical with pep440
     """
     if not version: 
         raise NoVersionError('Cannot package module without a version string. '
@@ -103,8 +107,11 @@ def check_version(version):
     if not version[0].isdigit():
         raise InvalidVersion('__version__ must start with a number. It is {!r}.'
                                 .format(version))
-    if not _is_canonical(version):
+    canonical = _is_canonical(version)
+    if not canonical:
         log.warn('Version string (%s) does not match Pep440.' % version )
+
+    return canonical
 
 
 script_template = """\

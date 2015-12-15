@@ -44,8 +44,9 @@ class ModuleTests(TestCase):
 
     def test_version_raise(self):
         with pytest.raises(InvalidVersion):
-            check_version('4.1.0.beta0')
+            check_version('a.1.0.beta0')
 
-        check_version('4.1.0b1')
+        assert check_version('4.1.0b1') == True
+        assert check_version('4.1.0beta1') == False
 
 
