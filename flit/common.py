@@ -9,13 +9,14 @@ log = logging.getLogger(__name__)
 import re
 
 
-pep440re = re.compile('^([1-9]\d*!)?'        # [N!]
-                      '([1-9]\d*)'           # N
-                      '(.[1-9]\d*)*'         # (.N)*
-                      '((a|b|rc)[0-9]\d*)?' # [{a|b|rc}N]
-                      '(\.post[1-9]\d*)?'         # [.postN]
-                      '(\.dev[1-9]\d*)?$'         # [.devN]
-                      )
+pep440re = re.compile('^'
+                   '([1-9]\d*!)?'
+                 '(0|[1-9]\d*)'
+               '(.(0|[1-9]\d*))*'
+        '((a|b|rc)(0|[1-9]\d*))?'
+          '(\.post(0|[1-9]\d*))?'
+           '(\.dev(0|[1-9]\d*))?'
+        '$')
 
 def _is_canonical(version)->bool:
     """
