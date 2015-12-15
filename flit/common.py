@@ -6,6 +6,25 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
+import re
+
+
+pep440re = re.compile('^'
+                   '([1-9]\d*!)?'
+                 '(0|[1-9]\d*)'
+               '(.(0|[1-9]\d*))*'
+        '((a|b|rc)(0|[1-9]\d*))?'
+          '(\.post(0|[1-9]\d*))?'
+           '(\.dev(0|[1-9]\d*))?'
+        '$')
+
+def _is_canonical(version)->bool:
+    """
+    Return whether or not the version string is canonical according to Pep 440
+    """
+    return pep440re.match(version) is not None
+
+
 class Module(object):
     """This represents the module/package that we are going to distribute
     """
@@ -62,19 +81,39 @@ def get_info_from_module(target):
         raise NoDocstringError('Cannot package module without docstring, or empty docstring. '
                                 'Please add a docstring to your module.')
     module_version = m.__dict__.get('__version__', None)
-    if not module_version: 
-        raise NoVersionError('Cannot package module without a version string. '
-                             'Please define a `__version__="x.y.z"` in your module.')
-    if not isinstance(module_version, str):
-        raise InvalidVersion('__version__ must be a string, not {}.'
-                                .format(type(module_version)))
-    if not module_version[0].isdigit():
-        raise InvalidVersion('__version__ must start with a number. It is {!r}.'
-                                .format(module_version))
+
+    check_version(module_version)
 
     docstring_lines = docstring.lstrip().splitlines()
     return {'summary': docstring_lines[0],
             'version': m.__version__}
+
+def check_version(version):
+    """
+    Check wether a given version string match Pep 440
+
+    Raise InvalidVersion/NoVersionError With relevant information if 
+    version is invalid. 
+
+    Print a warning if the version is not canonical with respect to Pep440
+
+    Return wether the version is canonical with pep440
+    """
+    if not version: 
+        raise NoVersionError('Cannot package module without a version string. '
+                             'Please define a `__version__="x.y.z"` in your module.')
+    if not isinstance(version, str):
+        raise InvalidVersion('__version__ must be a string, not {}.'
+                                .format(type(version)))
+    if not version[0].isdigit():
+        raise InvalidVersion('__version__ must start with a number. It is {!r}.'
+                                .format(version))
+    canonical = _is_canonical(version)
+    if not canonical:
+        log.warn('Version string (%s) does not match Pep440.' % version )
+
+    return canonical
+
 
 script_template = """\
 #!{interpreter}
