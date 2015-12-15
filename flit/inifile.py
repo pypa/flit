@@ -102,7 +102,7 @@ def verify_classifiers(classifiers):
 
 
 def read_pkg_ini(path):
-    """Read and check the -pkg.ini file with data about the package.
+    """Read and check the `flit.ini` file with data about the package.
     """
     cp = _read_pkg_ini(path)
     return _validate_config(cp, path)
@@ -117,8 +117,7 @@ def _read_pkg_ini(path):
 
 def _validate_config(cp, path):
     """
-    validate a config section and return a strip down version fro Metadata
-
+    Validate a config and return a dict containing `module`,`metadata`,`script`,`entry_point` keys.
     """
     unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
     if unknown_sections:
