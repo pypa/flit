@@ -3,9 +3,26 @@ import hashlib
 from importlib.machinery import SourceFileLoader
 import logging
 from pathlib import Path
-from packaging.version import Version
 
 log = logging.getLogger(__name__)
+
+import re
+
+
+pep440re = re.compile('^([1-9]\d*!)?'        # [N!]
+                      '([1-9]\d*)'           # N
+                      '(.[1-9]\d*)*'         # (.N)*
+                      '((a|b|rc)[0-9]\d*)?' # [{a|b|rc}N]
+                      '(\.post[1-9]\d*)?'         # [.postN]
+                      '(\.dev[1-9]\d*)?$'         # [.devN]
+                      )
+
+def _is_canonical(version)->bool:
+    """
+    Retunr wether or not the version string is canonical according to Pep 440
+    """
+    return pep440re.match(version) is not None
+
 
 class Module(object):
     """This represents the module/package that we are going to distribute
@@ -86,10 +103,8 @@ def check_version(version):
     if not version[0].isdigit():
         raise InvalidVersion('__version__ must start with a number. It is {!r}.'
                                 .format(version))
-
-    normalized_version = str(Version(version))
-    if normalized_version != version:
-        raise InvalidVersion('Version string does not match Pep440. Is `%s`, Do you mean `%s` ?' %( version, normalized_version))
+    if _is_canonical(version):
+        raise InvalidVersion('Version string (%s) does not match Pep440.' % version )
 
 
 script_template = """\
