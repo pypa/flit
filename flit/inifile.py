@@ -102,12 +102,23 @@ def verify_classifiers(classifiers):
 
 
 def read_pkg_ini(path):
-    """Read and check the -pkg.ini file with data about the package.
+    """Read and check the `flit.ini` file with data about the package.
     """
+    cp = _read_pkg_ini(path)
+    return _validate_config(cp, path)
+
+def _read_pkg_ini(path):
     cp = configparser.ConfigParser()
     with path.open() as f:
         cp.read_file(f)
 
+    return cp
+
+
+def _validate_config(cp, path):
+    """
+    Validate a config and return a dict containing `module`,`metadata`,`script`,`entry_point` keys.
+    """
     unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
     if unknown_sections:
         raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
@@ -120,14 +131,14 @@ def read_pkg_ini(path):
         missing = metadata_required_fields - set(md_sect)
         raise ConfigError("Required fields missing: " + '\n'.join(missing))
 
-    module = md_sect.pop('module')
+    module = md_sect.get('module')
     if not module.isidentifier():
         raise ConfigError("Module name %r is not a valid identifier" % module)
 
     md_dict = {}
 
     if 'description-file' in md_sect:
-        description_file = path.parent / md_sect.pop('description-file')
+        description_file = path.parent / md_sect.get('description-file')
         with description_file.open() as f:
             raw_desc =  f.read()
         if description_file.suffix == '.md':
@@ -146,7 +157,7 @@ def read_pkg_ini(path):
         md_dict['description'] =  raw_desc
 
     if 'entry-points-file' in md_sect:
-        entry_points_file = path.parent / md_sect.pop('entry-points-file')
+        entry_points_file = path.parent / md_sect.get('entry-points-file')
         if not entry_points_file.is_file():
             raise FileNotFoundError(entry_points_file)
     else:
@@ -155,6 +166,8 @@ def read_pkg_ini(path):
             entry_points_file = None
 
     for key, value in md_sect.items():
+        if key in {'description-file', 'module', 'entry-points-file'}:
+            continue
         if key not in metadata_allowed_fields:
             closest = difflib.get_close_matches(key, metadata_allowed_fields,
                                                 n=1, cutoff=0.7)
