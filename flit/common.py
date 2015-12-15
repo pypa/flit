@@ -19,7 +19,7 @@ pep440re = re.compile('^([1-9]\d*!)?'        # [N!]
 
 def _is_canonical(version)->bool:
     """
-    Retunr wether or not the version string is canonical according to Pep 440
+    Return whether or not the version string is canonical according to Pep 440
     """
     return pep440re.match(version) is not None
 
@@ -103,8 +103,8 @@ def check_version(version):
     if not version[0].isdigit():
         raise InvalidVersion('__version__ must start with a number. It is {!r}.'
                                 .format(version))
-    if _is_canonical(version):
-        raise InvalidVersion('Version string (%s) does not match Pep440.' % version )
+    if not _is_canonical(version):
+        log.warn('Version string (%s) does not match Pep440.' % version )
 
 
 script_template = """\
