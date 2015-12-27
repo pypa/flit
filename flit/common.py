@@ -84,9 +84,11 @@ def get_info_from_module(target):
 
     check_version(module_version)
 
+
     docstring_lines = docstring.lstrip().splitlines()
     return {'summary': docstring_lines[0],
             'version': m.__version__}
+
 
 def check_version(version):
     """
@@ -223,6 +225,13 @@ class Metadata:
         if self.description is not None:
             fp.write('\n' + self.description + '\n')
 
+    def __repr__(self):
+        from io import StringIO
+        buf = StringIO()
+        self.write_metadata_file(buf)
+        buf.seek(0)
+        return buf.read()
+
 def make_metadata(module, ini_info):
     md_dict = {'name': module.name, 'provides': [module.name]}
     md_dict.update(get_info_from_module(module))
@@ -235,4 +244,5 @@ def metadata_and_module_from_ini_path(ini_path):
     module = Module(ini_info['module'], ini_path.parent)
     metadata = make_metadata(module, ini_info)
     return metadata,module
+
 
