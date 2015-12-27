@@ -17,6 +17,27 @@ Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
+
+def check_minimal_python_requirement(target):
+    import ast
+    with open(target, 'r') as f:
+        text = f.read()
+        
+    tree = ast.parse(text)
+    from flit.version_heuristics import use_yield_from
+    if use_yield_from(tree):
+        print('you are using yield from which is 3.3+ only')
+
+
+
+
+def heuristc(module, metadata):
+    current_min = getattr(metadata, 'requires_python', None)
+    print('got', current_min)
+    import glob
+    for mod in (f for f in glob.glob('**/*.py', recursive=True) if not f.startswith(('dist/','build/'))):
+        check_minimal_python_requirement(mod)
+
 class EntryPointsConflict(ValueError):
     def __str__(self):
         return ('Please specify console_scripts entry points or scripts in '
@@ -32,8 +53,8 @@ class WheelBuilder:
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
         self.metadata = common.make_metadata(self.module, self.ini_info)
-        self.upload=upload
-        self.verify_metadata=verify_metadata
+        self.upload = upload
+        self.verify_metadata = verify_metadata
         self.repo = repo
 
         self.dist_version = self.metadata.name + '-' + self.metadata.version
@@ -149,10 +170,14 @@ class WheelBuilder:
 
         log.info("Created %s", self.wheel_file)
 
+    def yf(self):
+        yield from range(10)
+
     def post_build(self):
         if self.verify_metadata:
             from .upload import verify
             verify(self.metadata, self.repo)
+            #import pdb; pdb.set_trace()
 
         if self.upload:
             from .upload import do_upload
@@ -160,6 +185,7 @@ class WheelBuilder:
 
     def build(self):
         self.clean_build_dir()
+        heuristc(self.module, self.metadata)
         self.copy_module()
         self.write_metadata()
         self.write_record()

@@ -48,7 +48,7 @@ def main(argv=None):
     parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
         help="Which set of dependencies to install")
 
-    parser_init = subparsers.add_parser('init',
+    subparsers.add_parser('init',
         help="Prepare flit.ini for a new package"
     )
 
