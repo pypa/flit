@@ -1,5 +1,6 @@
 import configparser
 import contextlib
+from datetime import datetime
 import hashlib
 import io
 import logging
@@ -45,6 +46,19 @@ class WheelBuilder:
 
         self.dist_version = self.metadata.name + '-' + self.metadata.version
         self.records = []
+        try:
+            # If SOURCE_DATE_EPOCH is set (e.g. by Debian), it's used for
+            # timestamps inside the zip file.
+            d = datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
+            log.info("Zip timestamps will be from SOURCE_DATE_EPOCH: %s", d)
+            # zipfile expects a 6-tuple, not a datetime object
+            self.source_time_stamp = (d.year, d.minute, d.day, d.hour, d.minute, d.second)
+        except (KeyError, ValueError):
+            # Otherwise, we'll use the mtime of files, and generated files will
+            # default to 2016-1-1 00:00:00
+            self.source_time_stamp = None
+
+        # Open the zip file ready to write
         self.wheel_zip = zipfile.ZipFile(str(self.wheel_path), 'w',
                              compression=zipfile.ZIP_DEFLATED)
 
@@ -65,7 +79,8 @@ class WheelBuilder:
     def _add_file(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)
         full_path, rel_path = str(full_path), str(rel_path)
-        hashsum = my_zip_write(self.wheel_zip, full_path, rel_path)
+        hashsum = my_zip_write(self.wheel_zip, full_path, rel_path,
+                               date_time=self.source_time_stamp)
         size = os.stat(full_path).st_size
         self.records.append((rel_path, hashsum.hexdigest(), size))
 
@@ -75,7 +90,8 @@ class WheelBuilder:
         yield sio
 
         log.debug("Writing data to %s in zip file", rel_path)
-        zi = zipfile.ZipInfo(rel_path)
+        date_time = self.source_time_stamp or (2016, 1, 1, 0, 0, 0)
+        zi = zipfile.ZipInfo(rel_path, date_time)
         b = sio.getvalue().encode('utf-8')
         hashsum = hashlib.sha256(b)
         self.wheel_zip.writestr(zi, b, compress_type=zipfile.ZIP_DEFLATED)
