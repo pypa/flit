@@ -170,6 +170,8 @@ class WheelBuilder:
         self.write_metadata()
         self.write_record()
 
+        self.wheel_zip.close()
+
         self.post_build()
 
 
