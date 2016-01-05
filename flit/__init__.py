@@ -11,6 +11,13 @@ __version__ = '0.7.2'
 
 log = logging.getLogger(__name__)
 
+def add_shared_install_options(parser):
+    parser.add_argument('--user', action='store_true', default=None,
+        help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
+    )
+    parser.add_argument('--env', action='store_false', dest='user',
+        help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
+    )
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
@@ -39,14 +46,17 @@ def main(argv=None):
     parser_install.add_argument('-s', '--symlink', action='store_true',
         help="Symlink the module/package into site packages instead of copying it"
     )
-    parser_install.add_argument('--user', action='store_true', default=None,
-        help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
-    )
-    parser_install.add_argument('--env', action='store_false', dest='user',
-        help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
-    )
+    add_shared_install_options(parser_install)
     parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
         help="Which set of dependencies to install")
+
+    parser_installfrom = subparsers.add_parser('install_from',
+       help="Download and install a package using flit from source"
+    )
+    parser_installfrom.add_argument('location',
+        help="A URL to download, or a shorthand like github:takluyver/flit"
+    )
+    add_shared_install_options(parser_installfrom)
 
     parser_init = subparsers.add_parser('init',
         help="Prepare flit.ini for a new package"
@@ -81,6 +91,9 @@ def main(argv=None):
             Installer(args.ini_file, user=args.user, symlink=args.symlink, deps=args.deps).install()
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
+    elif args.subcmd == 'installfrom':
+        from .installfrom import installfrom
+        sys.exit(installfrom(args.location, user=args.user))
     elif args.subcmd == 'register':
         from .upload import register
         meta, mod = common.metadata_and_module_from_ini_path(args.ini_file)
