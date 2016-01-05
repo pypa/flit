@@ -205,13 +205,16 @@ def my_zip_write(self, filename, arcname=None, compress_type=None,
         arcname += '/'
     zinfo = ZipInfo(arcname, date_time)
     zinfo.external_attr = (st[0] & 0xFFFF) << 16      # Unix attributes
-    if compress_type is None:
+    if isdir:
+        zinfo.compress_type = zipfile.ZIP_STORED
+    elif compress_type is None:
         zinfo.compress_type = self.compression
     else:
         zinfo.compress_type = compress_type
 
     zinfo.file_size = st.st_size
     zinfo.flag_bits = 0x00
+    self.fp.seek(getattr(self, 'start_dir', 0))
     zinfo.header_offset = self.fp.tell()    # Start of header bytes
     if zinfo.compress_type == ZIP_LZMA:
         # Compressed data includes an end-of-stream (EOS) marker
@@ -228,6 +231,7 @@ def my_zip_write(self, filename, arcname=None, compress_type=None,
         self.filelist.append(zinfo)
         self.NameToInfo[zinfo.filename] = zinfo
         self.fp.write(zinfo.FileHeader(False))
+        self.start_dir = self.fp.tell()
         return
 
     hashsum = hashlib.sha256()
@@ -268,10 +272,10 @@ def my_zip_write(self, filename, arcname=None, compress_type=None,
             raise RuntimeError('Compressed size larger than uncompressed size')
     # Seek backwards and write file header (which will now include
     # correct CRC and file sizes)
-    position = self.fp.tell()       # Preserve current position in file
+    self.start_dir = self.fp.tell()       # Preserve current position in file
     self.fp.seek(zinfo.header_offset, 0)
     self.fp.write(zinfo.FileHeader(zip64))
-    self.fp.seek(position, 0)
+    self.fp.seek(self.start_dir, 0)
     self.filelist.append(zinfo)
     self.NameToInfo[zinfo.filename] = zinfo
 
