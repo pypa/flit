@@ -81,6 +81,10 @@ def unpack(archive):
     else:
         raise RuntimeError('Unknown archive (not zip or tar): %s' % archive)
 
+    files = os.listdir(unpacked)
+    if len(files) == 1 and os.path.isdir(os.path.join(unpacked, files[0])):
+        return os.path.join(unpacked, files[0])
+
     return unpacked
 
 def download_unpack(url):
@@ -99,7 +103,7 @@ def fetch(address_type, location):
 
     if address_type == 'github':
         m = re.match(address_formats['github'][0], location)
-        user, project, committish = m.groups(1, 2, 4)
+        user, project, committish = m.group(1, 2, 4)
         if committish is None:
             committish = 'master'
         url = 'https://github.com/{}/{}/archive/{}.zip'.format(user, project, committish)
