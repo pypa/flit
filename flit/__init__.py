@@ -50,7 +50,7 @@ def main(argv=None):
     parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
         help="Which set of dependencies to install")
 
-    parser_installfrom = subparsers.add_parser('install_from',
+    parser_installfrom = subparsers.add_parser('installfrom',
        help="Download and install a package using flit from source"
     )
     parser_installfrom.add_argument('location',
