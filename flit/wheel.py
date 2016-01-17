@@ -204,7 +204,12 @@ def my_zip_write(self, filename, arcname=None, compress_type=None,
     if isdir:
         arcname += '/'
     zinfo = ZipInfo(arcname, date_time)
-    zinfo.external_attr = (st[0] & 0xFFFF) << 16      # Unix attributes
+    st_mode = st.st_mode
+    if st_mode & 0o100:
+        st_mode = (st_mode | 0o755) & ~0o22
+    else:
+        st_mode = (st_mode | 0o644) & ~0o133
+    zinfo.external_attr = (st_mode & 0xFFFF) << 16      # Unix attributes
     if isdir:
         zinfo.compress_type = zipfile.ZIP_STORED
     elif compress_type is None:
