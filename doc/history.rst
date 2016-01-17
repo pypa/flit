@@ -1,6 +1,17 @@
 Release history
 ===============
 
+Version Next
+------------
+
+- A new ``flit installfrom`` subcommand to install a project from a source
+  archive, such as from Github.
+- :doc:`Reproducible builds <reproducible>` - you can produce byte-for-byte
+  identical wheels.
+- A warning for non-canonical version numbers according to `PEP 440
+  <https://www.python.org/dev/peps/pep-0440/>`__.
+- Better error message when module docstring is only whitespace.
+
 Version 0.7
 -----------
 
