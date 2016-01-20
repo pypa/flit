@@ -38,9 +38,8 @@ def test_verify():
 def test_upload():
     responses.add(responses.POST, upload.PYPI, status=200)
 
-    wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini', upload='pypi')
     with patch('flit.upload.get_repository', return_value=repo_settings):
-        wb.build()
+        wheel.wheel_main(samples_dir / 'module1-pkg.ini', upload='pypi')
 
     assert len(responses.calls) == 1
 
@@ -54,9 +53,8 @@ def test_upload_registers():
         responses.add_callback(responses.POST, upload.PYPI,
                                callback=upload_callback)
 
-        wb = wheel.WheelBuilder(samples_dir / 'module1-pkg.ini', upload='pypi')
         with patch('flit.upload.get_repository', return_value=repo_settings):
-            wb.build()
+            wheel.wheel_main(samples_dir / 'module1-pkg.ini', upload='pypi')
 
     assert len(responses.calls) == 2
     assert register_mock.call_count == 1
