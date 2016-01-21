@@ -69,7 +69,8 @@ class Installer(object):
             self.user = site.ENABLE_USER_SITE
         else:
             self.user = user
-        if (os.getuid() == 0) and (not os.environ.get('FLIT_ROOT_INSTALL')):
+        if (hasattr(os, 'getuid') and (os.getuid() == 0) and
+                (not os.environ.get('FLIT_ROOT_INSTALL'))):
             raise RootInstallError
 
         self.symlink = symlink
