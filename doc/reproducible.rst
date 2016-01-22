@@ -21,3 +21,8 @@ time by running::
 
     date +%s
 
+Zip files also record the permission bits on a file. Checking out a repository
+on computers with different umasks can result in different permissions - a file
+that has mode ``644`` on Ubuntu may have ``664`` on Fedora. If you're concerned
+about this, normalise the permissions before using flit. Normalisation might
+be added in a future version.
