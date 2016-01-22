@@ -78,11 +78,11 @@ def main(argv=None):
         sys.exit(0)
 
     if args.subcmd == 'wheel':
-        from .wheel import WheelBuilder
+        from .wheel import wheel_main
         try:
-            WheelBuilder(args.ini_file, upload=args.upload,
+            wheel_main(args.ini_file, upload=args.upload,
                      verify_metadata=args.verify_metadata,
-                     repo=args.repository).build()
+                     repo=args.repository)
         except common.ProblemInModule as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'install':

@@ -7,7 +7,7 @@ import zipfile
 import pytest
 from testpath import assert_isfile
 
-from flit.wheel import WheelBuilder, EntryPointsConflict
+from flit.wheel import wheel_main, WheelBuilder, EntryPointsConflict
 
 samples_dir = Path(__file__).parent / 'samples'
 
@@ -25,22 +25,22 @@ def unpack(path):
 
 def test_wheel_module():
     clear_samples_dist()
-    WheelBuilder(samples_dir / 'module1-pkg.ini').build()
+    wheel_main(samples_dir / 'module1-pkg.ini')
     assert_isfile(samples_dir / 'dist/module1-0.1-py2.py3-none-any.whl')
 
 def test_wheel_package():
     clear_samples_dist()
-    WheelBuilder(samples_dir / 'package1-pkg.ini').build()
+    wheel_main(samples_dir / 'package1-pkg.ini')
     assert_isfile(samples_dir / 'dist/package1-0.1-py2.py3-none-any.whl')
 
 def test_dist_name():
     clear_samples_dist()
-    WheelBuilder(samples_dir / 'altdistname.ini').build()
+    wheel_main(samples_dir / 'altdistname.ini')
     assert_isfile(samples_dir / 'dist/packagedist1-0.1-py2.py3-none-any.whl')
 
 def test_entry_points():
     clear_samples_dist()
-    WheelBuilder(samples_dir / 'entrypoints_valid.ini').build()
+    wheel_main(samples_dir / 'entrypoints_valid.ini')
     assert_isfile(samples_dir / 'dist/package1-0.1-py2.py3-none-any.whl')
     with unpack(samples_dir / 'dist/package1-0.1-py2.py3-none-any.whl') as td:
         entry_points = Path(td, 'package1-0.1.dist-info', 'entry_points.txt')
@@ -52,6 +52,16 @@ def test_entry_points():
 
 def test_entry_points_conflict():
     clear_samples_dist()
-    wb = WheelBuilder(samples_dir / 'entrypoints_conflict.ini')
     with pytest.raises(EntryPointsConflict):
-        wb.build()
+        wheel_main(samples_dir / 'entrypoints_conflict.ini')
+
+def test_wheel_builder():
+    # Slightly lower level interface
+    with tempfile.TemporaryDirectory() as td:
+        target = Path(td, 'sample.whl')
+        with target.open('wb') as f:
+            wb = WheelBuilder(samples_dir / 'package1-pkg.ini', f)
+            wb.build()
+
+        assert zipfile.is_zipfile(str(target))
+        assert wb.wheel_filename == 'package1-0.1-py2.py3-none-any.whl'
