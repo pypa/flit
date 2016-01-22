@@ -54,3 +54,14 @@ def test_entry_points_conflict():
     clear_samples_dist()
     with pytest.raises(EntryPointsConflict):
         wheel_main(samples_dir / 'entrypoints_conflict.ini')
+
+def test_wheel_builder():
+    # Slightly lower level interface
+    with tempfile.TemporaryDirectory() as td:
+        target = Path(td, 'sample.whl')
+        with target.open('wb') as f:
+            wb = WheelBuilder(samples_dir / 'package1-pkg.ini', f)
+            wb.build()
+
+        assert zipfile.is_zipfile(str(target))
+        assert wb.wheel_filename == 'package1-0.1-py2.py3-none-any.whl'
