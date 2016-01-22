@@ -10,6 +10,7 @@ Version Next
   identical wheels.
 - A warning for non-canonical version numbers according to `PEP 440
   <https://www.python.org/dev/peps/pep-0440/>`__.
+- Fix for installing projects on Windows.
 - Better error message when module docstring is only whitespace.
 
 Version 0.7
