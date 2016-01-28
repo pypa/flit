@@ -1,7 +1,7 @@
 Reproducible builds
 ===================
 
-.. versionadded:: next
+.. versionadded:: 0.8
 
 Wheels built by flit are reproducible: if you build from the same source code,
 you should be able to make wheels that are exactly identical, byte for byte.

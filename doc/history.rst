@@ -1,8 +1,8 @@
 Release history
 ===============
 
-Version Next
-------------
+Version 0.8
+-----------
 
 - A new ``flit installfrom`` subcommand to install a project from a source
   archive, such as from Github.
