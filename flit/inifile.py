@@ -120,6 +120,7 @@ def _validate_config(cp, path):
     Validate a config and return a dict containing `module`,`metadata`,`script`,`entry_point` keys.
     """
     unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
+    unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
         raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
 
@@ -205,4 +206,5 @@ def _validate_config(cp, path):
         'metadata': md_dict,
         'scripts': scripts_dict,
         'entry_points_file': entry_points_file,
+        'raw_config': cp,
     }
