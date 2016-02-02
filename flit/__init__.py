@@ -18,6 +18,9 @@ def add_shared_install_options(parser):
     parser.add_argument('--env', action='store_false', dest='user',
         help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
     )
+    parser.add_argument('--python', default=sys.executable,
+        help="Target Python executable, if different from the one running flit"
+    )
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
@@ -88,12 +91,13 @@ def main(argv=None):
     elif args.subcmd == 'install':
         from .install import Installer
         try:
-            Installer(args.ini_file, user=args.user, symlink=args.symlink, deps=args.deps).install()
+            Installer(args.ini_file, user=args.user, python=args.python,
+                      symlink=args.symlink, deps=args.deps).install()
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'installfrom':
         from .installfrom import installfrom
-        sys.exit(installfrom(args.location, user=args.user))
+        sys.exit(installfrom(args.location, user=args.user, python=args.python))
     elif args.subcmd == 'register':
         from .upload import register
         meta, mod = common.metadata_and_module_from_ini_path(args.ini_file)

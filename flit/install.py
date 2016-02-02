@@ -61,7 +61,8 @@ class RootInstallError(Exception):
             "To allow this, set FLIT_ROOT_INSTALL=1 and try again.")
 
 class Installer(object):
-    def __init__(self, ini_path, user=None, symlink=False, deps='all'):
+    def __init__(self, ini_path, user=None, python=sys.executable,
+                 symlink=False, deps='all'):
         self.ini_path = ini_path
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
@@ -75,6 +76,7 @@ class Installer(object):
                 (not os.environ.get('FLIT_ROOT_INSTALL'))):
             raise RootInstallError
 
+        self.python = python
         self.symlink = symlink
         self.deps = deps
         self.installed_files = []
@@ -133,6 +135,8 @@ class Installer(object):
         ]
 
         # install the requirements with pip
+        # This *doesn't* use self.python, because we're doing this to make the
+        # module importable in our current Python to get docstring & __version__.
         cmd = [sys.executable, '-m', 'pip', 'install']
         if self.user:
             cmd.append('--user')
@@ -194,7 +198,7 @@ class Installer(object):
             renamed_whl = os.path.join(td, wb.wheel_filename)
             os.rename(temp_whl, renamed_whl)
 
-            cmd = [sys.executable, '-m', 'pip', 'install', renamed_whl]
+            cmd = [self.python, '-m', 'pip', 'install', renamed_whl]
             if self.user:
                 cmd.append('--user')
             check_call(cmd)

@@ -4,7 +4,7 @@ import tempfile
 from unittest import TestCase
 from unittest.mock import patch
 
-from testpath import assert_isfile, assert_isdir, assert_islink
+from testpath import assert_isfile, assert_isdir, assert_islink, MockCommand
 
 from flit.install import Installer
 
@@ -49,3 +49,15 @@ class InstallTests(TestCase):
     def test_entry_points(self):
         Installer(samples_dir / 'entrypoints_valid.ini').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info' / 'entry_points.txt')
+
+    def test_pip_install(self):
+        ins = Installer(samples_dir / 'package1-pkg.ini', python='mock_python')
+
+        with MockCommand('mock_python') as mock_py:
+            ins.install()
+
+        calls = mock_py.get_calls()
+        assert len(calls) == 1
+        cmd = calls[0]['argv']
+        assert cmd[1:4] == ['-m', 'pip', 'install']
+        assert cmd[4].endswith('package1-0.1-py2.py3-none-any.whl')
