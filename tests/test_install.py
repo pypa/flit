@@ -51,7 +51,8 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info' / 'entry_points.txt')
 
     def test_pip_install(self):
-        ins = Installer(samples_dir / 'package1-pkg.ini', python='mock_python')
+        ins = Installer(samples_dir / 'package1-pkg.ini', python='mock_python',
+                        user=False)
 
         with MockCommand('mock_python') as mock_py:
             ins.install()

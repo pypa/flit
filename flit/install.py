@@ -8,7 +8,7 @@ import shutil
 import site
 import sys
 import tempfile
-from subprocess import check_call
+from subprocess import check_call, check_output
 import sysconfig
 
 from . import common
@@ -67,19 +67,57 @@ class Installer(object):
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
 
-        log.debug('%s, %s',user, site.ENABLE_USER_SITE)
-        if user is None:
-            self.user = site.ENABLE_USER_SITE
-        else:
-            self.user = user
         if (hasattr(os, 'getuid') and (os.getuid() == 0) and
                 (not os.environ.get('FLIT_ROOT_INSTALL'))):
             raise RootInstallError
+
+        if user is None:
+            self.user = self._auto_user(python)
+        else:
+            self.user = user
+        log.debug('User install? %s', self.user)
 
         self.python = python
         self.symlink = symlink
         self.deps = deps
         self.installed_files = []
+
+    def _auto_user(self, python):
+        """Default guess for whether to do user-level install.
+
+        This should be True for system Python, and False in an env.
+        """
+        if python == sys.executable:
+            user_site = site.ENABLE_USER_SITE
+            lib_dir = sysconfig.get_path('purelib')
+        else:
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            out = check_output([python, '-c',
+                ("import sysconfig, site; "
+                 "print(site.ENABLE_USER_SITE); "
+                 "print(sysconfig.get_path('purelib'))")], env=env)
+            user_site, lib_dir = out.decode('utf-8').split('\n', 1)
+            user_site = (user_site.strip() == 'True')
+            lib_dir = lib_dir.strip()
+
+        if not user_site:
+            # No user site packages - probably a virtualenv
+            log.debug('User site packages not available - env install')
+            return False
+
+        log.debug('Checking access to %s', lib_dir)
+        if os.name == 'posix':
+            return not os.access(lib_dir, os.W_OK)
+        else:
+            # os.access isn't reliable on Windows, so try creating a file.
+            # TODO: What error does Windows raise if this fails?
+            try:
+                with tempfile.NamedTemporaryFile(dir=lib_dir):
+                    pass
+                return False
+            except OSError:
+                return True
 
     def install_scripts(self, script_defs, scripts_dir):
         for name, (module, func) in script_defs.items():
