@@ -1,3 +1,4 @@
+from base64 import urlsafe_b64encode
 import configparser
 import contextlib
 import tempfile
@@ -75,7 +76,8 @@ class WheelBuilder:
         hashsum = my_zip_write(self.wheel_zip, full_path, rel_path,
                                date_time=self.source_time_stamp)
         size = os.stat(full_path).st_size
-        self.records.append((rel_path, hashsum.hexdigest(), size))
+        hash_digest = urlsafe_b64encode(hashsum.digest()).decode('ascii').rstrip('=')
+        self.records.append((rel_path, hash_digest, size))
 
     @contextlib.contextmanager
     def _write_to_zip(self, rel_path):
@@ -87,8 +89,9 @@ class WheelBuilder:
         zi = zipfile.ZipInfo(rel_path, date_time)
         b = sio.getvalue().encode('utf-8')
         hashsum = hashlib.sha256(b)
+        hash_digest = urlsafe_b64encode(hashsum.digest()).decode('ascii').rstrip('=')
         self.wheel_zip.writestr(zi, b, compress_type=zipfile.ZIP_DEFLATED)
-        self.records.append((rel_path, hashsum.hexdigest(), len(b)))
+        self.records.append((rel_path, hash_digest, len(b)))
 
     def copy_module(self):
         log.info('Copying package file(s) from %s', self.module.path)
