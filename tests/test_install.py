@@ -25,12 +25,12 @@ class InstallTests(TestCase):
         self.get_dirs_patch.stop()
 
     def test_install_module(self):
-        Installer(samples_dir / 'module1-pkg.ini').install()
+        Installer(samples_dir / 'module1-pkg.ini').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
         assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
 
     def test_install_package(self):
-        Installer(samples_dir / 'package1-pkg.ini').install()
+        Installer(samples_dir / 'package1-pkg.ini').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
         assert_isdir(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
@@ -42,10 +42,10 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
 
     def test_dist_name(self):
-        Installer(samples_dir / 'altdistname.ini').install()
+        Installer(samples_dir / 'altdistname.ini').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
         assert_isdir(self.tmpdir / 'site-packages' / 'packagedist1-0.1.dist-info')
 
     def test_entry_points(self):
-        Installer(samples_dir / 'entrypoints_valid.ini').install()
+        Installer(samples_dir / 'entrypoints_valid.ini').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info' / 'entry_points.txt')

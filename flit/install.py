@@ -13,6 +13,7 @@ import sysconfig
 
 from . import common
 from . import inifile
+from .wheel import WheelBuilder
 
 log = logging.getLogger(__name__)
 
@@ -61,6 +62,7 @@ class RootInstallError(Exception):
 
 class Installer(object):
     def __init__(self, ini_path, user=None, symlink=False, deps='all'):
+        self.ini_path = ini_path
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
 
@@ -145,7 +147,7 @@ class Installer(object):
         finally:
             os.remove(tf.name)
 
-    def install(self):
+    def install_directly(self):
         """Install a module/package into site-packages, and create its scripts.
         """
         dirs = get_dirs(user=self.user)
@@ -179,6 +181,23 @@ class Installer(object):
         self.install_scripts(scripts, dirs['scripts'])
 
         self.write_dist_info(dirs['purelib'])
+
+    def install_with_pip(self):
+        self.install_requirements()
+
+        with tempfile.TemporaryDirectory() as td:
+            temp_whl = os.path.join(td, 'temp.whl')
+            with open(temp_whl, 'w+b') as fp:
+                wb = WheelBuilder(self.ini_path, fp)
+                wb.build()
+
+            renamed_whl = os.path.join(td, wb.wheel_filename)
+            os.rename(temp_whl, renamed_whl)
+
+            cmd = [sys.executable, '-m', 'pip', 'install', renamed_whl]
+            if self.user:
+                cmd.append('--user')
+            check_call(cmd)
 
     def write_dist_info(self, site_pkgs):
         """Write dist-info folder, according to PEP 376"""
@@ -226,3 +245,9 @@ class Installer(object):
                 cf.writerow((path, hash, size))
 
             cf.writerow(((dist_info / 'RECORD').relative_to(site_pkgs), '', ''))
+
+    def install(self):
+        if self.symlink:
+            self.install_directly()
+        else:
+            self.install_with_pip()
