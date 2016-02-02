@@ -14,6 +14,7 @@ import sysconfig
 from . import common
 from . import inifile
 from .wheel import WheelBuilder
+from ._get_dirs import get_dirs
 
 log = logging.getLogger(__name__)
 
@@ -38,21 +39,6 @@ def _requires_dist_to_pip_requirement(requires_dist):
         name_version = name + version
     # re-add environment marker
     return ';'.join([name_version, env_mark])
-
-def get_dirs(user=True):
-    """Get the 'scripts' and 'purelib' directories we'll install into.
-
-    This is now a thin wrapper around sysconfig.get_paths(). It's not inlined,
-    because some tests mock it out to install to a different location.
-    """
-    if user:
-        if (sys.platform == "darwin") and sysconfig.get_config_var('PYTHONFRAMEWORK'):
-            return sysconfig.get_paths('osx_framework_user')
-        return sysconfig.get_paths(os.name + '_user')
-    else:
-        # The default scheme is 'posix_prefix' or 'nt', and should work for e.g.
-        # installing into a virtualenv
-        return sysconfig.get_paths()
 
 
 class RootInstallError(Exception):
@@ -189,10 +175,21 @@ class Installer(object):
         finally:
             os.remove(tf.name)
 
+    def _get_dirs(self, user):
+        if self.python == sys.executable:
+            return get_dirs()
+        else:
+            import json
+            path = os.path.join(os.path.dirname(__file__), '_get_dirs.py')
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            out = check_output([self.python, path], env=env)
+            return json.loads(out.decode('utf-8'))
+
     def install_directly(self):
         """Install a module/package into site-packages, and create its scripts.
         """
-        dirs = get_dirs(user=self.user)
+        dirs = self._get_dirs(user=self.user)
         os.makedirs(dirs['purelib'], exist_ok=True)
         os.makedirs(dirs['scripts'], exist_ok=True)
 

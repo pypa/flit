@@ -1,5 +1,6 @@
 import os
 import pathlib
+import sys
 import tempfile
 from unittest import TestCase
 from unittest.mock import patch
@@ -62,3 +63,31 @@ class InstallTests(TestCase):
         cmd = calls[0]['argv']
         assert cmd[1:4] == ['-m', 'pip', 'install']
         assert cmd[4].endswith('package1-0.1-py2.py3-none-any.whl')
+
+    def test_symlink_other_python(self):
+        # Called by Installer._auto_user() :
+        script1 = ("#!{python}\n"
+                   "import sysconfig\n"
+                   "print(True)\n"   # site.ENABLE_USER_SITE
+                   "print({purelib!r})"  # sysconfig.get_path('purelib')
+                  ).format(python=sys.executable,
+                           purelib=str(self.tmpdir / 'site-packages2'))
+
+        # Called by Installer._get_dirs() :
+        script2 = ("#!{python}\n"
+                   "import json, sys\n"
+                   "json.dump({{'purelib': {purelib!r}, 'scripts': {scripts!r} }}, "
+                   "sys.stdout)"
+                  ).format(python=sys.executable,
+                           purelib=str(self.tmpdir / 'site-packages2'),
+                           scripts=str(self.tmpdir / 'scripts2'))
+
+        with MockCommand('mock_python', content=script1):
+            ins = Installer(samples_dir / 'package1-pkg.ini', python='mock_python',
+                      symlink=True)
+        with MockCommand('mock_python', content=script2):
+            ins.install()
+
+        assert_islink(self.tmpdir / 'site-packages2' / 'package1',
+                      to=str(samples_dir / 'package1'))
+        assert_isfile(self.tmpdir / 'scripts2' / 'pkg_script')
