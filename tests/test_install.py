@@ -65,6 +65,9 @@ class InstallTests(TestCase):
         assert cmd[4].endswith('package1-0.1-py2.py3-none-any.whl')
 
     def test_symlink_other_python(self):
+        (self.tmpdir / 'site-packages2').mkdir()
+        (self.tmpdir / 'scripts2').mkdir()
+
         # Called by Installer._auto_user() :
         script1 = ("#!{python}\n"
                    "import sysconfig\n"
