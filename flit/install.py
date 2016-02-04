@@ -4,6 +4,7 @@ import logging
 import os
 import csv
 import pathlib
+import random
 import shutil
 import site
 import sys
@@ -40,6 +41,39 @@ def _requires_dist_to_pip_requirement(requires_dist):
     # re-add environment marker
     return ';'.join([name_version, env_mark])
 
+def test_writable_dir(path):
+    """Check if a directory is writable.
+
+    Uses os.access() on POSIX, tries creating files on Windows.
+    """
+    if os.name == 'posix':
+        return os.access(path, os.W_OK)
+
+    # os.access doesn't work on Windows: http://bugs.python.org/issue2528
+    # and we can't use tempfile: http://bugs.python.org/issue22107
+    basename = 'accesstest_deleteme_fishfingers_custard_'
+    alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    for i in range(10):
+        name = basename + ''.join(random.choice(alphabet) for _ in range(6))
+        file = os.path.join(path, name)
+        try:
+            with open(file, mode='xb'):
+                pass
+        except FileExistsError:
+            continue
+        except PermissionError:
+            # This could be because there's a directory with the same name.
+            # But it's highly unlikely there's a directory called that,
+            # so we'll assume it's because the parent directory is not writable.
+            return False
+        else:
+            os.unlink(file)
+            return True
+
+    # This should never be reached
+    msg = ('Unexpected condition testing for writable directory {!r}. '
+           'Please open an issue on flit to debug why this occurred.')
+    raise EnvironmentError(msg.format(path))
 
 class RootInstallError(Exception):
     def __str__(self):
@@ -93,17 +127,7 @@ class Installer(object):
             return False
 
         log.debug('Checking access to %s', lib_dir)
-        if os.name == 'posix':
-            return not os.access(lib_dir, os.W_OK)
-        else:
-            # os.access isn't reliable on Windows, so try creating a file.
-            # TODO: What error does Windows raise if this fails?
-            try:
-                with tempfile.NamedTemporaryFile(dir=lib_dir):
-                    pass
-                return False
-            except OSError:
-                return True
+        return not test_writable_dir(lib_dir)
 
     def install_scripts(self, script_defs, scripts_dir):
         for name, (module, func) in script_defs.items():
