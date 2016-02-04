@@ -84,6 +84,9 @@ class Installer(object):
     def __init__(self, ini_path, user=None, python=sys.executable,
                  symlink=False, deps='all'):
         self.ini_path = ini_path
+        self.python = python
+        self.symlink = symlink
+        self.deps = deps
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
 
@@ -97,10 +100,24 @@ class Installer(object):
             self.user = user
         log.debug('User install? %s', self.user)
 
-        self.python = python
-        self.symlink = symlink
-        self.deps = deps
         self.installed_files = []
+
+    def _run_python(self, code=None, file=None):
+        if code and file:
+            raise ValueError('Specify code or file, not both')
+        if not (code or file):
+            raise ValueError('Specify code or file')
+
+        if code:
+            args = [self.python, '-c', code]
+        else:
+            args = [self.python, file]
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        # On Windows, shell needs to be True to pick up our local PATH
+        # when finding the Python command.
+        shell = (os.name == 'nt')
+        return check_output(args, shell=shell, env=env).decode('utf-8')
 
     def _auto_user(self, python):
         """Default guess for whether to do user-level install.
@@ -111,13 +128,11 @@ class Installer(object):
             user_site = site.ENABLE_USER_SITE
             lib_dir = sysconfig.get_path('purelib')
         else:
-            env = os.environ.copy()
-            env['PYTHONIOENCODING'] = 'utf-8'
-            out = check_output([python, '-c',
+            out = self._run_python(code=
                 ("import sysconfig, site; "
                  "print(site.ENABLE_USER_SITE); "
-                 "print(sysconfig.get_path('purelib'))")], env=env)
-            user_site, lib_dir = out.decode('utf-8').split('\n', 1)
+                 "print(sysconfig.get_path('purelib'))"))
+            user_site, lib_dir = out.split('\n', 1)
             user_site = (user_site.strip() == 'True')
             lib_dir = lib_dir.strip()
 
@@ -205,10 +220,7 @@ class Installer(object):
         else:
             import json
             path = os.path.join(os.path.dirname(__file__), '_get_dirs.py')
-            env = os.environ.copy()
-            env['PYTHONIOENCODING'] = 'utf-8'
-            out = check_output([self.python, path], env=env)
-            return json.loads(out.decode('utf-8'))
+            return json.loads(self._run_python(file=path))
 
     def install_directly(self):
         """Install a module/package into site-packages, and create its scripts.
@@ -260,7 +272,8 @@ class Installer(object):
             cmd = [self.python, '-m', 'pip', 'install', renamed_whl]
             if self.user:
                 cmd.append('--user')
-            check_call(cmd)
+            shell = (os.name == 'nt')
+            check_call(cmd, shell=shell)
 
     def write_dist_info(self, site_pkgs):
         """Write dist-info folder, according to PEP 376"""
