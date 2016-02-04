@@ -2,7 +2,7 @@ import os
 import pathlib
 import sys
 import tempfile
-from unittest import TestCase
+from unittest import TestCase, SkipTest
 from unittest.mock import patch
 
 from testpath import assert_isfile, assert_isdir, assert_islink, MockCommand
@@ -37,6 +37,8 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
 
     def test_symlink_package(self):
+        if os.name == 'nt':
+            raise SkipTest("symlink")
         Installer(samples_dir / 'package1-pkg.ini', symlink=True).install()
         assert_islink(self.tmpdir / 'site-packages' / 'package1',
                       to=str(samples_dir / 'package1'))
@@ -65,6 +67,8 @@ class InstallTests(TestCase):
         assert cmd[4].endswith('package1-0.1-py2.py3-none-any.whl')
 
     def test_symlink_other_python(self):
+        if os.name == 'nt':
+            raise SkipTest('symlink')
         (self.tmpdir / 'site-packages2').mkdir()
         (self.tmpdir / 'scripts2').mkdir()
 
