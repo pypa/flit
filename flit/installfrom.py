@@ -110,17 +110,19 @@ def fetch(address_type, location):
         return download_unpack(url)
 
 
-def install_local(path, user=False):
+def install_local(path, user=False, python=sys.executable):
     p = pathlib.Path(path)
-    Installer(p / 'flit.ini', user=user, deps='production').install()
+    Installer(p / 'flit.ini', user=user, python=sys.executable,
+              deps='production').install()
 
 
-def installfrom(address, user=None):
+def installfrom(address, user=None, python=sys.executable):
     if user is None:
-        user = site.ENABLE_USER_SITE and not os.access(sysconfig.get_path('purelib'), os.W_OK)
+        user = site.ENABLE_USER_SITE \
+               and not os.access(sysconfig.get_path('purelib'), os.W_OK)
 
     try:
-        return install_local(fetch(*parse_address(address)), user=user)
+        return install_local(fetch(*parse_address(address)), user=user, python=python)
     except BadInput as e:
         print(e, file=sys.stderr)
         return 2
