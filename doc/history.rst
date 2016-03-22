@@ -1,6 +1,15 @@
 Release history
 ===============
 
+Version 0.9
+-----------
+
+- ``flit install`` and ``flit installfrom`` now take an optional ``--python`` argument,
+  with the path to the Python executable you want to install it for.
+  Using this, you can install modules to Python 2.
+- Installing a module normally (without ``--symlink``) builds a wheel and uses
+  pip to install it, which should work better in some corner cases.
+
 Version 0.8
 -----------
 
