@@ -48,7 +48,7 @@ you during the upload step.
 
 To install a package locally for development, run::
 
-    flit install [--symlink]
+    flit install [--symlink] [--python path/to/python]
 
 .. note::
 
