@@ -307,10 +307,9 @@ class Installer(object):
         with (dist_info / 'REQUESTED').open('w'): pass
         self.installed_files.append(dist_info / 'REQUESTED')
 
-        if self.ini_info['entry_points_file'] is not None:
-            shutil.copy(str(self.ini_info['entry_points_file']),
-                            str(dist_info / 'entry_points.txt')
-                       )
+        if self.ini_info['entrypoints']:
+            with (dist_info / 'entry_points.txt').open('w') as f:
+                common.write_entry_points(self.ini_info['entrypoints'], f)
             self.installed_files.append(dist_info / 'entry_points.txt')
 
         with (dist_info / 'RECORD').open('w', encoding='utf-8') as f:

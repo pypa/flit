@@ -2,7 +2,7 @@ import pathlib
 
 import pytest
 
-from flit.inifile import read_pkg_ini, ConfigError
+from flit.inifile import read_pkg_ini, ConfigError, flatten_entrypoints
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 
@@ -13,3 +13,7 @@ def test_invalid_classifier():
 def test_missing_entrypoints():
     with pytest.raises(FileNotFoundError):
         read_pkg_ini(samples_dir / 'entrypoints_missing.ini')
+
+def test_flatten_entrypoints():
+    r = flatten_entrypoints({'a': {'b': {'c':'d'}, 'e': {'f': {'g':'h'}}, 'i':'j'}})
+    assert r == {'a': {'i': 'j'}, 'a.b': {'c': 'd'}, 'a.e.f': {'g': 'h'}}

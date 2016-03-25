@@ -7,7 +7,8 @@ import zipfile
 import pytest
 from testpath import assert_isfile
 
-from flit.wheel import wheel_main, WheelBuilder, EntryPointsConflict
+from flit.wheel import wheel_main, WheelBuilder
+from flit.inifile import EntryPointsConflict
 
 samples_dir = Path(__file__).parent / 'samples'
 

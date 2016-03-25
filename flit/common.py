@@ -148,6 +148,19 @@ def parse_entry_point(ep: str):
 
     return mod, func
 
+def write_entry_points(d, fp):
+    """Write entry_points.txt from a two-level dict
+
+    Sorts on keys to ensure results are reproducible.
+    """
+    for group_name in sorted(d):
+        fp.write('[{}]\n'.format(group_name))
+        group = d[group_name]
+        for name in sorted(group):
+            val = group[name]
+            fp.write('{}={}\n'.format(name, val))
+        fp.write('\n')
+
 def hash_file(path, algorithm='sha256'):
     with Path(path).open('rb') as f:
         h = hashlib.new(algorithm, f.read())
