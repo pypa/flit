@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 
 import requests
+import toml
 
 from .vendorized.readme.rst import render
 import io
@@ -111,8 +112,9 @@ def read_pkg_ini(path: Path):
     """Read and check the `flit.toml` or `flit.ini` file with data about the package.
     """
     if path.suffix == '.toml':
-        # TODO: load toml
-        return prep_toml_config()
+        with path.open() as f:
+            d = toml.load(f)
+        return prep_toml_config(d, path)
     else:
         # Treat all other extensions as the older flit.ini format
         cp = _read_pkg_ini(path)
@@ -123,9 +125,7 @@ class EntryPointsConflict(ValueError):
         return ('Please specify console_scripts entry points, or [scripts] in '
             'flit config, not both.')
 
-def prep_toml_config():
-    d = {} # XXX
-    path = Path('flit.toml')
+def prep_toml_config(d, path):
     unknown_sections = set(d) - {'metadata', 'scripts', 'entrypoints'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
@@ -137,7 +137,7 @@ def prep_toml_config():
     md_dict, module = _prep_metadata(d['metadata'], path)
 
     if 'scripts' in d:
-        scripts_dict = {k: common.parse_entry_point(v) for k, v in cp['scripts'].items()}
+        scripts_dict = {k: common.parse_entry_point(v) for k, v in d['scripts'].items()}
     else:
         scripts_dict = {}
 
