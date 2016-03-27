@@ -150,7 +150,8 @@ class Installer(object):
         return not test_writable_dir(lib_dir)
 
     def install_scripts(self, script_defs, scripts_dir):
-        for name, (module, func) in script_defs.items():
+        for name, ep in script_defs.items():
+            module, func = common.parse_entry_point(ep)
             script_file = pathlib.Path(scripts_dir) / name
             log.info('Writing script to %s', script_file)
             with script_file.open('w') as f:

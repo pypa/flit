@@ -137,7 +137,7 @@ def prep_toml_config(d, path):
     md_dict, module = _prep_metadata(d['metadata'], path)
 
     if 'scripts' in d:
-        scripts_dict = {k: common.parse_entry_point(v) for k, v in d['scripts'].items()}
+        scripts_dict = dict(d['scripts'])
     else:
         scripts_dict = {}
 
@@ -146,6 +146,7 @@ def prep_toml_config(d, path):
     else:
         entrypoints = {}
     _add_scripts_to_entrypoints(entrypoints, scripts_dict)
+    _validate_entrypoints(entrypoints)
 
     return {
         'module': module,
@@ -193,6 +194,22 @@ def _add_scripts_to_entrypoints(entrypoints, scripts_dict):
             raise EntryPointsConflict
         else:
             entrypoints['console_scripts'] = scripts_dict
+
+def _validate_entrypoints(entrypoints):
+    def _is_identifier_attr(s):
+        return all(n.isidentifier() for n in s.split('.'))
+
+    for groupname, group in entrypoints.items():
+        for k, v in group.items():
+            if ':' in v:
+                mod, obj = v.split(':', 1)
+                valid = _is_identifier_attr(mod) and _is_identifier_attr(obj)
+            else:
+                valid = _is_identifier_attr(v)
+
+            if not valid:
+                raise ConfigError('Invalid entry point in group {}:\n'
+                                  '{} = {}'.format(groupname, k, v))
 
 
 def _read_pkg_ini(path):
@@ -313,11 +330,12 @@ def _validate_config(cp, path):
 
     # Scripts ---------------
     if cp.has_section('scripts'):
-        scripts_dict = {k: common.parse_entry_point(v) for k, v in cp['scripts'].items()}
+        scripts_dict = dict(cp['scripts'])
     else:
         scripts_dict = {}
 
     _add_scripts_to_entrypoints(entrypoints, scripts_dict)
+    _validate_entrypoints(entrypoints)
 
     return {
         'module': module,
