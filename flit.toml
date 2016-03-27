@@ -6,6 +6,7 @@ home-page="https://github.com/takluyver/flit"
 requires=["requests",
     "docutils",
     "requests_download",
+    "toml",
 ]
 requires-python="3"
 description-file="README.rst"

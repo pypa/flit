@@ -3,5 +3,6 @@ testpath
 responses
 docutils
 zipfile36
+toml
 pytest>=2.7.3
 pytest-warnings
