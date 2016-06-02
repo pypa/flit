@@ -32,7 +32,7 @@ or as a directory—and you want to distribute it.
    package.
 
    Besides the details shown above, there are other fields you can add—see the
-   `flit.ini page <http://flit.readthedocs.org/en/latest/flit_ini.html>`_
+   `flit.ini page <https://flit.readthedocs.io/en/latest/flit_ini.html>`_
    of the docs.
 
 3. Install flit if you don't already have it::
