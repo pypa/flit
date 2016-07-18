@@ -90,14 +90,14 @@ def get_info_from_module(target):
 
 def check_version(version):
     """
-    Check wether a given version string match Pep 440
+    Check whether a given version string match Pep 440
 
     Raise InvalidVersion/NoVersionError With relevant information if 
     version is invalid. 
 
     Print a warning if the version is not canonical with respect to Pep440
 
-    Return wether the version is canonical with pep440
+    Return whether the version is canonical with pep440
     """
     if not version: 
         raise NoVersionError('Cannot package module without a version string. '
