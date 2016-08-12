@@ -272,6 +272,8 @@ class Installer(object):
             cmd = [self.python, '-m', 'pip', 'install', renamed_whl]
             if self.user:
                 cmd.append('--user')
+            if self.deps == 'none':
+                cmd.append('--no-deps')
             shell = (os.name == 'nt')
             check_call(cmd, shell=shell)
 
