@@ -1,4 +1,7 @@
-[metadata]
+[build-system]
+requires = ["flit"]
+
+[tool.flit.metadata]
 module="flit"
 author="Thomas Kluyver"
 author-email="thomas@kluyver.me.uk"
@@ -16,5 +19,5 @@ classifiers=["Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-[scripts]
+[tool.flit.scripts]
 flit = "flit:main"
