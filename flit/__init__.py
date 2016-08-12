@@ -24,7 +24,7 @@ def add_shared_install_options(parser):
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='flit.toml')
+    ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='pyproject.toml')
     ap.add_argument('--version', action='version', version='Flit '+__version__)
     ap.add_argument('--repository', default='pypi',
         help="Name of the repository to upload to (must be in ~/.pypirc)"
@@ -76,12 +76,12 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     cf = args.ini_file
-    if cf == pathlib.Path('flit.toml') and not cf.is_file():
+    if cf == pathlib.Path('pyproject.toml') and not cf.is_file():
         cf_ini = pathlib.Path('flit.ini')
         if cf_ini.is_file():
             args.ini_file = cf_ini
         else:
-            sys.exit('Neither flit.toml nor flit.ini found, '
+            sys.exit('Neither pyproject.toml nor flit.ini found, '
                      'and no other config file path specified')
 
     enable_colourful_output(logging.DEBUG if args.debug else logging.INFO)

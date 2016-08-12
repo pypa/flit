@@ -109,7 +109,7 @@ def verify_classifiers(classifiers):
 
 
 def read_pkg_ini(path: Path):
-    """Read and check the `flit.toml` or `flit.ini` file with data about the package.
+    """Read and check the `pyproject.toml` or `flit.ini` file with data about the package.
     """
     if path.suffix == '.toml':
         with path.open() as f:
@@ -126,6 +126,11 @@ class EntryPointsConflict(ValueError):
             'flit config, not both.')
 
 def prep_toml_config(d, path):
+    if ('tool' not in d) or ('flit' not in d['tool']) \
+            or (not isinstance(d['tool']['flit'], dict)):
+        raise ConfigError("TOML file missing [tool.flit] table.")
+
+    d = d['tool']['flit']
     unknown_sections = set(d) - {'metadata', 'scripts', 'entrypoints'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
@@ -170,7 +175,7 @@ def flatten_entrypoints(ep):
 
     But since there isn't a need for arbitrarily nested mappings in entrypoints,
     flit allows you to use the former. This flattens the nested dictionaries
-    from loading flit.toml.
+    from loading pyproject.toml.
     """
     def _flatten(d, prefix):
         d1 = {}
