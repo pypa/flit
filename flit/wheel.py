@@ -112,7 +112,7 @@ class WheelBuilder:
     @property
     def supports_py2(self):
         return not (self.metadata.requires_python or '')\
-                                    .startswith(('3', '>3', '>=3'))
+                                    .startswith(('3', '>3', '>=3', '~=3'))
 
     def write_metadata(self):
         log.info('Writing metadata files')
