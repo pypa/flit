@@ -61,8 +61,12 @@ def main(argv=None):
     )
     add_shared_install_options(parser_installfrom)
 
-    parser_init = subparsers.add_parser('init',
+    subparsers.add_parser('init',
         help="Prepare flit.ini for a new package"
+    )
+
+    subparsers.add_parser('gensetup',
+        help="Generate a setup.py file"
     )
 
     subparsers.add_parser('register',
@@ -105,6 +109,10 @@ def main(argv=None):
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()
+    elif args.subcmd == 'gensetup':
+        from .gensetup import generate_setup_py
+        with open('setup.py','w') as f:
+            f.write(generate_setup_py(args.ini_file))
     else:
         ap.print_help()
         sys.exit(1)
