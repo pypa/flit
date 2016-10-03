@@ -19,6 +19,15 @@ Contents:
 Environment variables
 ---------------------
 
+.. envvar:: FLIT_NO_NETWORK
+
+   .. versionadded:: 0.10
+
+   Setting this to any non-empty value will stop flit from making network
+   connections (unless you explicitly ask to upload or register a package). This
+   is intended for downstream packagers, so if you use this, it's up to you to
+   ensure any necessary dependencies are installed.
+
 .. envvar:: FLIT_ROOT_INSTALL
 
    By default, ``flit install`` will fail when run as root on POSIX systems,

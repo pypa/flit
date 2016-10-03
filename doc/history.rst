@@ -1,6 +1,12 @@
 Release history
 ===============
 
+Version 0.10
+------------
+
+- Downstream packagers can use the :envvar:`FLIT_NO_NETWORK` environment
+  variable to stop flit downloading data from the network.
+
 Version 0.9
 -----------
 

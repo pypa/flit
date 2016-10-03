@@ -89,6 +89,12 @@ def verify_classifiers(classifiers):
         # FileNotFoundError: We haven't yet got the classifiers cached
         # ConfigError: At least one is invalid, but it may have been added since
         #   last time we fetched them.
+
+        if os.environ.get('FLIT_NO_NETWORK', ''):
+            log.warn("Not checking classifiers, because FLIT_NO_NETWORK is set")
+            return
+
+        # Try to download up-to-date list of classifiers
         try:
             _download_classifiers()
         except requests.ConnectionError:
