@@ -87,6 +87,10 @@ class Installer(object):
         self.python = python
         self.symlink = symlink
         self.deps = deps
+        if deps != 'none' and os.environ.get('FLIT_NO_NETWORK', ''):
+            self.deps = 'none'
+            log.warn('Not installing dependencies, because FLIT_NO_NETWORK is set')
+
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
 
