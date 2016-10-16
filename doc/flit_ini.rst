@@ -80,7 +80,7 @@ Here's the full example from flit itself:
     author-email=thomas@kluyver.me.uk
     home-page=https://github.com/takluyver/flit
     requires=requests
-    requires-python=3
+    requires-python= >=3
     description-file=README.rst
     classifiers=Intended Audience :: Developers
         License :: OSI Approved :: BSD License
