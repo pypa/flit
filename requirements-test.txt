@@ -2,4 +2,5 @@ requests
 testpath
 responses
 docutils
+zipfile36
 pytest>=2.7.3
