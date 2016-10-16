@@ -8,7 +8,12 @@ import io
 import logging
 import os
 import re
-import zipfile
+import sys
+
+if sys.version_info >= (3, 6):
+    import zipfile
+else:
+    import zipfile36 as zipfile
 
 from flit import __version__
 from . import common
@@ -73,8 +78,22 @@ class WheelBuilder:
     def _add_file(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)
         full_path, rel_path = str(full_path), str(rel_path)
-        hashsum = my_zip_write(self.wheel_zip, full_path, rel_path,
-                               date_time=self.source_time_stamp)
+
+        if self.source_time_stamp is None:
+            zinfo = zipfile.ZipInfo.from_file(full_path, rel_path)
+        else:
+            # Set timestamps in zipfile for reproducible build
+            zinfo = zipfile.ZipInfo(full_path, self.source_time_stamp)
+
+        hashsum = hashlib.sha256()
+        with open(full_path, 'rb') as src, self.wheel_zip.open(zinfo, 'w') as dst:
+            while True:
+                buf = src.read(1024 * 8)
+                if not buf:
+                    break
+                hashsum.update(buf)
+                dst.write(buf)
+
         size = os.stat(full_path).st_size
         hash_digest = urlsafe_b64encode(hashsum.digest()).decode('ascii').rstrip('=')
         self.records.append((rel_path, hash_digest, size))
@@ -189,110 +208,3 @@ def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
     if upload:
         from .upload import do_upload
         do_upload(wheel_path, wb.metadata, repo)
-
-
-import stat, time
-from zipfile import ZipInfo, ZIP_LZMA, _get_compressor, ZIP64_LIMIT, crc32
-
-def my_zip_write(self, filename, arcname=None, compress_type=None,
-                 date_time=None):
-    """Copy of zipfile.ZipFile.write() with some modifications
-
-    - Allow overriding the timestamp for reproducible builds
-    - Calculate a SHA256 hash of the file as we write it and return the hash
-      object.
-    """
-    if not self.fp:
-        raise RuntimeError(
-            "Attempt to write to ZIP archive that was already closed")
-
-    st = os.stat(filename)
-    isdir = stat.S_ISDIR(st.st_mode)
-    if date_time is None:
-        mtime = time.localtime(st.st_mtime)
-        date_time = mtime[0:6]
-    # Create ZipInfo instance to store file information
-    if arcname is None:
-        arcname = filename
-    arcname = os.path.normpath(os.path.splitdrive(arcname)[1])
-    while arcname[0] in (os.sep, os.altsep):
-        arcname = arcname[1:]
-    if isdir:
-        arcname += '/'
-    zinfo = ZipInfo(arcname, date_time)
-    zinfo.external_attr = (st[0] & 0xFFFF) << 16      # Unix attributes
-    if isdir:
-        zinfo.compress_type = zipfile.ZIP_STORED
-    elif compress_type is None:
-        zinfo.compress_type = self.compression
-    else:
-        zinfo.compress_type = compress_type
-
-    zinfo.file_size = st.st_size
-    zinfo.flag_bits = 0x00
-    self.fp.seek(getattr(self, 'start_dir', 0))
-    zinfo.header_offset = self.fp.tell()    # Start of header bytes
-    if zinfo.compress_type == ZIP_LZMA:
-        # Compressed data includes an end-of-stream (EOS) marker
-        zinfo.flag_bits |= 0x02
-
-    self._writecheck(zinfo)
-    self._didModify = True
-
-    if isdir:
-        zinfo.file_size = 0
-        zinfo.compress_size = 0
-        zinfo.CRC = 0
-        zinfo.external_attr |= 0x10  # MS-DOS directory flag
-        self.filelist.append(zinfo)
-        self.NameToInfo[zinfo.filename] = zinfo
-        self.fp.write(zinfo.FileHeader(False))
-        self.start_dir = self.fp.tell()
-        return
-
-    hashsum = hashlib.sha256()
-    cmpr = _get_compressor(zinfo.compress_type)
-    with open(filename, "rb") as fp:
-        # Must overwrite CRC and sizes with correct data later
-        zinfo.CRC = CRC = 0
-        zinfo.compress_size = compress_size = 0
-        # Compressed size can be larger than uncompressed size
-        zip64 = self._allowZip64 and \
-            zinfo.file_size * 1.05 > ZIP64_LIMIT
-        self.fp.write(zinfo.FileHeader(zip64))
-        file_size = 0
-        while 1:
-            buf = fp.read(1024 * 8)
-            if not buf:
-                break
-            file_size = file_size + len(buf)
-            CRC = crc32(buf, CRC) & 0xffffffff
-            hashsum.update(buf)
-            if cmpr:
-                buf = cmpr.compress(buf)
-                compress_size = compress_size + len(buf)
-            self.fp.write(buf)
-    if cmpr:
-        buf = cmpr.flush()
-        compress_size = compress_size + len(buf)
-        self.fp.write(buf)
-        zinfo.compress_size = compress_size
-    else:
-        zinfo.compress_size = file_size
-    zinfo.CRC = CRC
-    zinfo.file_size = file_size
-    if not zip64 and self._allowZip64:
-        if file_size > ZIP64_LIMIT:
-            raise RuntimeError('File size has increased during compressing')
-        if compress_size > ZIP64_LIMIT:
-            raise RuntimeError('Compressed size larger than uncompressed size')
-    # Seek backwards and write file header (which will now include
-    # correct CRC and file sizes)
-    self.start_dir = self.fp.tell()       # Preserve current position in file
-    self.fp.seek(zinfo.header_offset, 0)
-    self.fp.write(zinfo.FileHeader(zip64))
-    self.fp.seek(self.start_dir, 0)
-    self.filelist.append(zinfo)
-    self.NameToInfo[zinfo.filename] = zinfo
-
-    return hashsum
