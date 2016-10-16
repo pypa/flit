@@ -65,7 +65,7 @@ dist-name
 keywords
   Space separated list of words to help with searching for your package.
 license
-  The name of a license, if you're using one for which they're isn't a Trove
+  The name of a license, if you're using one for which there isn't a Trove
   classifier. It's recommended to use Trove classifiers instead of this in
   most cases.
 maintainer, maintainer-email
