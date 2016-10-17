@@ -175,11 +175,12 @@ class WheelBuilder:
             f.write(self.dist_version + '.dist-info/RECORD,,\n')
 
     def build(self):
-        self.copy_module()
-        self.write_metadata()
-        self.write_record()
-
-        self.wheel_zip.close()
+        try:
+            self.copy_module()
+            self.write_metadata()
+            self.write_record()
+        finally:
+            self.wheel_zip.close()
 
 def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
     """Build a wheel in the dist/ directory, and optionally upload it.
