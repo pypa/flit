@@ -142,6 +142,9 @@ def register(metadata:Metadata, repo):
     resp = requests.post(repo['url'], data=data,
                          auth=(repo['username'], repo['password'])
                         )
+    if resp.status_code == 410:
+        log.info('Response status 410. Registering packages is an unnecessary step. Skipping.')
+        return
     resp.raise_for_status()
     log.info('Registered %s with PyPI', metadata.name)
 
