@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 
 import requests
-import toml
+import pytoml as toml
 
 from .vendorized.readme.rst import render
 import io

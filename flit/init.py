@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import re
 import sys
-import toml
+import pytoml as toml
 
 def get_data_dir():
     """Get the directory path for flit user data files.
@@ -191,7 +191,7 @@ class TerminalIniter(IniterBase):
         ])
 
         with (self.directory / 'pyproject.toml').open('w') as f:
-            toml.dump(d, f)
+            toml.dump(f, d)
         print()
         print("Written pyproject.toml; edit that file to add optional extra info.")
 
