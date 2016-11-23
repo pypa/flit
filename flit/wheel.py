@@ -28,6 +28,12 @@ Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
+def _write_wheel_file(f, supports_py2=False):
+    f.write(wheel_file_template)
+    if supports_py2:
+        f.write("Tag: py2-none-any\n")
+    f.write("Tag: py3-none-any\n")
+
 
 class WheelBuilder:
     def __init__(self, ini_path, target_fp):
@@ -147,10 +153,7 @@ class WheelBuilder:
                 self._add_file(path, '%s/%s' % (dist_info, path.name))
 
         with self._write_to_zip(dist_info + '/WHEEL') as f:
-            f.write(wheel_file_template)
-            if self.supports_py2:
-                f.write("Tag: py2-none-any\n")
-            f.write("Tag: py3-none-any\n")
+            _write_wheel_file(f, self.supports_py2)
 
         with self._write_to_zip(dist_info + '/METADATA') as f:
             self.metadata.write_metadata_file(f)
@@ -172,6 +175,19 @@ class WheelBuilder:
         finally:
             self.wheel_zip.close()
 
+def make_wheel_in(ini_path, wheel_directory):
+    # We don't know the final filename until metadata is loaded, so write to
+    # a temporary_file, and rename it afterwards.
+    (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
+    with open(fd, 'w+b') as fp:
+        wb = WheelBuilder(ini_path, fp)
+        wb.build()
+
+    wheel_path = wheel_directory / wb.wheel_filename
+    os.replace(temp_path, str(wheel_path))
+    log.info("Wheel built: %s", wheel_path)
+    return wb, wheel_path
+
 def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
     """Build a wheel in the dist/ directory, and optionally upload it.
     """
@@ -181,16 +197,7 @@ def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
     except FileExistsError:
         pass
 
-    # We don't know the final filename until metadata is loaded, so write to
-    # a temporary_file, and rename it afterwards.
-    (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(dist_dir))
-    with open(fd, 'w+b') as fp:
-        wb = WheelBuilder(ini_path, fp)
-        wb.build()
-
-    wheel_path = dist_dir / wb.wheel_filename
-    os.replace(temp_path, str(wheel_path))
-    log.info("Wheel built: %s", wheel_path)
+    wb, wheel_path = make_wheel_in(ini_path, dist_dir)
 
     if verify_metadata:
         from .upload import verify
