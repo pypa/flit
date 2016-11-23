@@ -1,5 +1,6 @@
 [build-system]
 requires = ["flit"]
+build_backend = "flit.buildapi"
 
 [tool.flit.metadata]
 module="flit"
