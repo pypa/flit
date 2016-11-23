@@ -1,10 +1,11 @@
-import configparser
+from collections import OrderedDict
 from datetime import date
 import json
 import os
 from pathlib import Path
 import re
 import sys
+import toml
 
 def get_data_dir():
     """Get the directory path for flit user data files.
@@ -148,8 +149,8 @@ class TerminalIniter(IniterBase):
             print("Try again.")
 
     def initialise(self):
-        if (self.directory / 'flit.ini').exists():
-            resp = input("flit.ini exists - overwrite it? [y/N]: ")
+        if (self.directory / 'pyproject.toml').exists():
+            resp = input("pyproject.toml exists - overwrite it? [y/N]: ")
             if (not resp) or resp[0].lower() != 'y':
                 return
 
@@ -172,21 +173,27 @@ class TerminalIniter(IniterBase):
         self.update_defaults(author=author, author_email=author_email,
                              home_page=home_page, module=module, license=license)
 
-        cp = configparser.ConfigParser()
-        cp['metadata'] = {}
-        cp['metadata'].update([
+        metadata = OrderedDict([
             ('module', module),
             ('author', author),
             ('author-email', author_email),
             ('home-page', home_page),
         ])
         if license != 'skip':
-            cp['metadata']['classifiers'] = license_names_to_classifiers[license]
+            metadata['classifiers'] = [license_names_to_classifiers[license]]
             self.write_license(license, author)
-        with (self.directory / 'flit.ini').open('w') as f:
-            cp.write(f)
+        d = OrderedDict([
+            ('build-system', OrderedDict([
+                ('requires', ['flit']),
+                ('build_backend', 'flit.buildapi')
+            ])),
+            ('tool', {'flit': {'metadata': metadata}})
+        ])
+
+        with (self.directory / 'pyproject.toml').open('w') as f:
+            toml.dump(d, f)
         print()
-        print("Written flit.ini; edit that file to add optional extra info.")
+        print("Written pyproject.toml; edit that file to add optional extra info.")
 
 if __name__ == '__main__':
     TerminalIniter().initialise()
