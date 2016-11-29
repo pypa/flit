@@ -185,7 +185,7 @@ class TerminalIniter(IniterBase):
         d = OrderedDict([
             ('build-system', OrderedDict([
                 ('requires', ['flit']),
-                ('build_backend', 'flit.buildapi')
+                ('build-backend', 'flit.buildapi')
             ])),
             ('tool', {'flit': {'metadata': metadata}})
         ])
