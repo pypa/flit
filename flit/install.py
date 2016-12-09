@@ -106,7 +106,7 @@ class Installer(object):
 
         self.installed_files = []
 
-    def _run_python(self, code=None, file=None):
+    def _run_python(self, code=None, file=None, extra_args=()):
         if code and file:
             raise ValueError('Specify code or file, not both')
         if not (code or file):
@@ -116,6 +116,7 @@ class Installer(object):
             args = [self.python, '-c', code]
         else:
             args = [self.python, file]
+        args.extend(extra_args)
         env = os.environ.copy()
         env['PYTHONIOENCODING'] = 'utf-8'
         # On Windows, shell needs to be True to pick up our local PATH
@@ -220,11 +221,12 @@ class Installer(object):
 
     def _get_dirs(self, user):
         if self.python == sys.executable:
-            return get_dirs()
+            return get_dirs(user=user)
         else:
             import json
             path = os.path.join(os.path.dirname(__file__), '_get_dirs.py')
-            return json.loads(self._run_python(file=path))
+            args = ['--user'] if user else []
+            return json.loads(self._run_python(file=path, extra_args=args))
 
     def install_directly(self):
         """Install a module/package into site-packages, and create its scripts.
