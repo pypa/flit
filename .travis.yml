@@ -1,7 +1,11 @@
 language: python
 python:
+  - "nightly"
   - "3.5"
   - "3.4"
 install: pip install -r requirements-test.txt
 script: py.test
 sudo: false
+matrix:
+    allow_failures:
+        - python: "nightly"
