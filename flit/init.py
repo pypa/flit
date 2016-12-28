@@ -57,6 +57,62 @@ license_names_to_classifiers = {
 
 license_templates_dir = Path(__file__).parent / 'license_templates'
 
+
+class LicenseFinder:
+
+    def __init__(self):
+        self._uptodate = False
+        self._templates = {}
+
+    def _update(self, force=False):
+        """
+        Update the know list of licences and classifiers
+        """
+        if self._uptodate and not force:
+            return
+        from entrypoints import get_group_all
+        entrypoints = get_group_all('flitlicenses')
+        for entrypoint in entrypoints:
+            name, classifier, summary, template = entrypoint.load()
+            license_choices.insert(-1, (name, summary))
+            license_names_to_classifiers[name] = classifier
+            self._templates[name] = template
+        self._uptodate = True
+
+    @property
+    def choices(self):
+        """
+        list of (name, summary) tupple
+        """
+        self._update()
+        return license_choices
+
+    @property
+    def classifiers(self):
+        """
+        Mapping from licence name to PyPI classifiers
+        """
+        self._update()
+        return license_names_to_classifiers
+
+    def get(self, name):
+        """
+        Get a license template from its name
+
+        """
+        self._update()
+        if name in license_names_to_classifiers:
+            tpl = self._templates.get(name)
+            if tpl:
+                return tpl
+            with (license_templates_dir / name).open() as f:
+                return f.read()
+        else:
+            raise ValueError("Unknown licence type: %r. Did you mean on of %r" % (
+                name, license_choices))
+
+licensesfinder = LicenseFinder()
+
 class IniterBase:
     def __init__(self, directory='.'):
         self.directory = Path(directory)
@@ -102,9 +158,7 @@ class IniterBase:
         if (self.directory / 'LICENSE').exists():
             return
         year = date.today().year
-        with (license_templates_dir / name).open() as f:
-            license_text = f.read()
-
+        license_text = licensesfinder.get(name)
         with (self.directory / 'LICENSE').open('w') as f:
             f.write(license_text.format(year=year, author=author))
 
@@ -167,7 +221,7 @@ class TerminalIniter(IniterBase):
         home_page = self.prompt_text('Home page', home_page_default,
                                      lambda s: s != '')
         license = self.prompt_options('Choose a license (see http://choosealicense.com/ for more info)',
-                    license_choices, self.defaults.get('license'))
+                                      licensesfinder.choices, self.defaults.get('license'))
 
         self.update_defaults(author=author, author_email=author_email,
                              home_page=home_page, module=module, license=license)
@@ -181,7 +235,7 @@ class TerminalIniter(IniterBase):
             ('home-page', home_page),
         ])
         if license != 'skip':
-            cp['metadata']['classifiers'] = license_names_to_classifiers[license]
+            cp['metadata']['classifiers'] = licensesfinder.classifiers[license]
             self.write_license(license, author)
         with (self.directory / 'flit.ini').open('w') as f:
             cp.write(f)
