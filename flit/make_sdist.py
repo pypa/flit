@@ -160,7 +160,10 @@ def make_sdist(ini_path=Path('flit.ini')):
         before.append("extras_require = \\\n%s\n" % pformat(extra_reqs))
         extra.append("extras_require=extras_require,")
 
-    # TODO: scripts, requires_python
+    # TODO: scripts
+
+    if metadata.requires_python:
+        extra.append('python_requires=%r' % metadata.requires_python)
 
     setup_py = SETUP.format(
         before='\n'.join(before),
