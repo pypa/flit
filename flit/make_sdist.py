@@ -1,3 +1,4 @@
+from configparser import ConfigParser
 from collections import defaultdict
 import io
 import os
@@ -8,6 +9,7 @@ import re
 import tarfile
 
 from flit import common, inifile
+from flit.wheel import EntryPointsConflict
 
 SETUP = """\
 #!/usr/bin/env python
@@ -115,6 +117,27 @@ def convert_requires(metadata):
 
     return install_reqs, dict(extra_reqs)
 
+def prep_entry_points(ini_info):
+    # Write entry points
+    cp = ConfigParser()
+
+    if ini_info['scripts']:
+        cp['console_scripts'] = {k: '%s:%s' % v
+                                 for (k, v) in ini_info['scripts'].items()}
+
+    if ini_info['entry_points_file'] is not None:
+        cp.read(str(ini_info['entry_points_file']))
+        if 'console_scripts' in cp:
+            raise EntryPointsConflict
+
+    res = defaultdict(list)
+    for group in cp.sections():
+        sect = cp[group]
+        for name in sorted(sect):
+            res[group].append('{} = {}'.format(name, sect[name]))
+
+    return dict(res)
+
 def make_sdist(ini_path=Path('flit.ini')):
     ini_info = inifile.read_pkg_ini(ini_path)
     module = common.Module(ini_info['module'], ini_path.parent)
@@ -160,10 +183,13 @@ def make_sdist(ini_path=Path('flit.ini')):
         before.append("extras_require = \\\n%s\n" % pformat(extra_reqs))
         extra.append("extras_require=extras_require,")
 
-    # TODO: scripts
+    entrypoints = prep_entry_points(ini_info)
+    if entrypoints:
+        before.append("entry_points = \\\n%s\n" % pformat(entrypoints))
+        extra.append("entry_points=entry_points,")
 
     if metadata.requires_python:
-        extra.append('python_requires=%r' % metadata.requires_python)
+        extra.append('python_requires=%r,' % metadata.requires_python)
 
     setup_py = SETUP.format(
         before='\n'.join(before),
