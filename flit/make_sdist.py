@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
+import re
 import tarfile
 
 from flit import common, inifile
@@ -79,6 +80,40 @@ def auto_packages(pkgdir: str):
 
     return packages, dict(pkg_data)
 
+def _parse_req(requires_dist):
+    """Parse "Foo (v); python_version == '2.x'" from Requires-Dist
+
+    Returns pip-style appropriate for requirements.txt.
+    """
+    if ';' in requires_dist:
+        name_version, env_mark = requires_dist.split(';', 1)
+        env_mark = env_mark.strip()
+    else:
+        name_version, env_mark = requires_dist, None
+
+    if '(' in name_version:
+        # turn 'name (X)' and 'name (<X.Y)'
+        # into 'name == X' and 'name < X.Y'
+        name, version = name_version.split('(', 1)
+        name = name.strip()
+        version = version.replace(')', '').strip()
+        if not any(c in version for c in '=<>'):
+            version = '==' + version
+        name_version = name + version
+
+    return name_version, env_mark
+
+def convert_requires(metadata):
+    install_reqs = []
+    extra_reqs = defaultdict(list)
+    for req in metadata.requires_dist:
+        name_version, env_mark = _parse_req(req)
+        if env_mark is None:
+            install_reqs.append(name_version)
+        else:
+            extra_reqs[':'+env_mark].append(name_version)
+
+    return install_reqs, dict(extra_reqs)
 
 def make_sdist(ini_path=Path('flit.ini')):
     ini_info = inifile.read_pkg_ini(ini_path)
@@ -110,13 +145,22 @@ def make_sdist(ini_path=Path('flit.ini')):
     before, extra = [], []
     if module.is_package:
         packages, package_data = auto_packages(str(module.path))
-        before.append("packages=\\\n%s\n" % pformat(packages))
-        before.append("package_data=\\\n%s\n" % pformat(package_data))
+        before.append("packages = \\\n%s\n" % pformat(sorted(packages)))
+        before.append("package_data = \\\n%s\n" % pformat(package_data))
         extra.append("packages=packages,".format([module.name]))
         extra.append("package_data=package_data,".format([module.name]))
     else:
         extra.append("py_modules={!r},".format([module.name]))
-    # TODO: Dependencies, scripts
+
+    install_reqs, extra_reqs = convert_requires(metadata)
+    if install_reqs:
+        before.append("install_requires = \\\n%s\n" % pformat(install_reqs))
+        extra.append("install_requires=install_requires,")
+    if extra_reqs:
+        before.append("extras_require = \\\n%s\n" % pformat(extra_reqs))
+        extra.append("extras_require=extras_require,")
+
+    # TODO: scripts, requires_python
 
     setup_py = SETUP.format(
         before='\n'.join(before),
