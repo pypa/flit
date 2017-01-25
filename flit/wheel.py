@@ -156,8 +156,8 @@ class WheelBuilder:
         elif self.ini_info['entry_points_file'] is not None:
             self._add_file(self.ini_info['entry_points_file'],
                            dist_info + '/entry_points.txt')
-        for name in ('LICENSE', 'COPYING'):
-            for fname in glob.glob(name + '*'):
+        for base in ('COPYING', 'LICENSE'):
+            for fname in sorted(self.directory.glob(base + '*')):
                 self._add_file(fname, '%s/%s' % (dist_info, fname))
 
         with self._write_to_zip(dist_info + '/WHEEL') as f:
