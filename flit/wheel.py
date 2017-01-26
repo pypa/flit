@@ -1,14 +1,15 @@
 from base64 import urlsafe_b64encode
 import configparser
 import contextlib
-import tempfile
 from datetime import datetime
+import glob
 import hashlib
 import io
 import logging
 import os
 import re
 import sys
+import tempfile
 
 if sys.version_info >= (3, 6):
     import zipfile
@@ -155,6 +156,9 @@ class WheelBuilder:
         elif self.ini_info['entry_points_file'] is not None:
             self._add_file(self.ini_info['entry_points_file'],
                            dist_info + '/entry_points.txt')
+        for base in ('COPYING', 'LICENSE'):
+            for path in sorted(self.directory.glob(base + '*')):
+                self._add_file(path, '%s/%s' % (dist_info, path.name))
 
         with self._write_to_zip(dist_info + '/WHEEL') as f:
             f.write(wheel_file_template)
