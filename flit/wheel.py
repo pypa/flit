@@ -157,8 +157,8 @@ class WheelBuilder:
             self._add_file(self.ini_info['entry_points_file'],
                            dist_info + '/entry_points.txt')
         for base in ('COPYING', 'LICENSE'):
-            for fname in sorted(self.directory.glob(base + '*')):
-                self._add_file(fname, '%s/%s' % (dist_info, fname))
+            for path in sorted(self.directory.glob(base + '*')):
+                self._add_file(path, '%s/%s' % (dist_info, path.name))
 
         with self._write_to_zip(dist_info + '/WHEEL') as f:
             f.write(wheel_file_template)
