@@ -211,7 +211,7 @@ class Installer(object):
         with tempfile.NamedTemporaryFile(mode='w',
                                          suffix='requirements.txt',
                                          delete=False) as tf:
-            tf.file.write('\n'.join(requirements))
+            tf.file.write('\n'.join(requirements) + '\n')
         cmd.extend(['-r', tf.name])
         log.info("Installing requirements")
         try:
