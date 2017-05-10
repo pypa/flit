@@ -9,6 +9,7 @@ import re
 import tarfile
 
 from flit import common, inifile
+from flit.vcs import identify_vcs
 from flit.wheel import EntryPointsConflict
 
 SETUP = """\
@@ -148,22 +149,12 @@ def make_sdist(ini_path=Path('flit.ini')):
     tf = tarfile.open(str(target), mode='w:gz')
     tf_dir = '{}-{}'.format(metadata.name, metadata.version)
 
-    srcdir = str(ini_path.parent)
+    srcdir = ini_path.parent
 
-    def add_if_exists(name):
-        src_path = pjoin(srcdir, name)
-        dst_path = pjoin(tf_dir, name)
-        if os.path.isdir(src_path):
-            tf.add(src_path, arcname=dst_path, filter=exclude_pycache)
-        elif os.path.isfile(src_path):
-            tf.add(src_path, arcname=dst_path)
-
-    tf.add(str(module.path), arcname=pjoin(tf_dir, module.path.name), filter=exclude_pycache)
-    tf.add(str(ini_path), arcname=pjoin(tf_dir, 'flit.ini'))
-    add_if_exists('docs')
-    add_if_exists('tests')
-    add_if_exists('LICENSE')
-    add_if_exists('README.rst')
+    vcs_mod = identify_vcs(srcdir)
+    for relpath in sorted(vcs_mod.list_tracked_files(srcdir)):
+        path = srcdir / relpath
+        tf.add(str(path), arcname=pjoin(tf_dir, relpath))
 
     before, extra = [], []
     if module.is_package:
