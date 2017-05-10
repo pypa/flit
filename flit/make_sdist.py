@@ -6,9 +6,11 @@ from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
 import re
+import sys
 import tarfile
 
 from flit import common, inifile
+from flit.errors import VCSError
 from flit.vcs import identify_vcs
 from flit.wheel import EntryPointsConflict
 
@@ -146,12 +148,19 @@ def make_sdist(ini_path=Path('flit.ini')):
 
     target = ini_path.parent / 'dist' / '{}-{}.tar.gz'.format(metadata.name,
                                                               metadata.version)
+    if not target.parent.exists():
+        target.parent.mkdir(parents=True)
     tf = tarfile.open(str(target), mode='w:gz')
     tf_dir = '{}-{}'.format(metadata.name, metadata.version)
 
     srcdir = ini_path.parent
 
     vcs_mod = identify_vcs(srcdir)
+    if vcs_mod.list_untracked_deleted_files(srcdir):
+        raise VCSError("Untracked or deleted files in the source directory. "
+                       "Commit, undo or ignore these files in your VCS.",
+                       srcdir)
+
     for relpath in sorted(vcs_mod.list_tracked_files(srcdir)):
         path = srcdir / relpath
         tf.add(str(path), arcname=pjoin(tf_dir, relpath))
@@ -213,4 +222,7 @@ def make_sdist(ini_path=Path('flit.ini')):
     print("Built", target)
 
 if __name__ == '__main__':
-    make_sdist()
+    try:
+        make_sdist()
+    except VCSError as e:
+        sys.exit(str(e))

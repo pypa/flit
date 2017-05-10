@@ -1,4 +1,6 @@
 from pathlib import Path
+
+from flit.errors import VCSError
 from . import hg
 from . import git
 
@@ -9,4 +11,4 @@ def identify_vcs(directory: Path):
         if (p / '.hg').is_dir():
             return hg
 
-    raise EnvironmentError("Directory does not appear to be in a VCS")
+    raise VCSError("Directory does not appear to be in a VCS", directory)
