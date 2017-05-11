@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from collections import defaultdict
 import io
+import logging
 import os
 from pathlib import Path
 from posixpath import join as pjoin
@@ -13,6 +14,8 @@ from flit import common, inifile
 from flit.common import VCSError
 from flit.vcs import identify_vcs
 from flit.wheel import EntryPointsConflict
+
+log = logging.getLogger(__name__)
 
 SETUP = """\
 #!/usr/bin/env python
@@ -141,30 +144,17 @@ def prep_entry_points(ini_info):
 
     return dict(res)
 
-def make_sdist(ini_path=Path('flit.ini')):
-    ini_info = inifile.read_pkg_ini(ini_path)
-    module = common.Module(ini_info['module'], ini_path.parent)
-    metadata = common.make_metadata(module, ini_info)
-
-    target = ini_path.parent / 'dist' / '{}-{}.tar.gz'.format(metadata.name,
-                                                              metadata.version)
-    if not target.parent.exists():
-        target.parent.mkdir(parents=True)
-    tf = tarfile.open(str(target), mode='w:gz')
-    tf_dir = '{}-{}'.format(metadata.name, metadata.version)
-
-    srcdir = ini_path.parent
-
+def find_tracked_files(srcdir: Path):
     vcs_mod = identify_vcs(srcdir)
     if vcs_mod.list_untracked_deleted_files(srcdir):
         raise VCSError("Untracked or deleted files in the source directory. "
                        "Commit, undo or ignore these files in your VCS.",
                        srcdir)
 
-    for relpath in sorted(vcs_mod.list_tracked_files(srcdir)):
-        path = srcdir / relpath
-        tf.add(str(path), arcname=pjoin(tf_dir, relpath))
+    files = sorted(vcs_mod.list_tracked_files(srcdir))
+    return files
 
+def make_setup_py(module, metadata):
     before, extra = [], []
     if module.is_package:
         packages, package_data = auto_packages(str(module.path))
@@ -191,7 +181,7 @@ def make_sdist(ini_path=Path('flit.ini')):
     if metadata.requires_python:
         extra.append('python_requires=%r,' % metadata.requires_python)
 
-    setup_py = SETUP.format(
+    return SETUP.format(
         before='\n'.join(before),
         name=metadata.name,
         version=metadata.version,
@@ -201,9 +191,33 @@ def make_sdist(ini_path=Path('flit.ini')):
         url=metadata.home_page,
         extra='\n      '.join(extra),
     ).encode('utf-8')
-    ti = tarfile.TarInfo(pjoin(tf_dir, 'setup.py'))
-    ti.size = len(setup_py)
-    tf.addfile(ti, io.BytesIO(setup_py))
+
+def make_sdist(ini_path=Path('flit.ini')):
+    ini_info = inifile.read_pkg_ini(ini_path)
+    module = common.Module(ini_info['module'], ini_path.parent)
+    metadata = common.make_metadata(module, ini_info)
+
+    target = ini_path.parent / 'dist' / '{}-{}.tar.gz'.format(metadata.name,
+                                                              metadata.version)
+    if not target.parent.exists():
+        target.parent.mkdir(parents=True)
+    tf = tarfile.open(str(target), mode='w:gz')
+    tf_dir = '{}-{}'.format(metadata.name, metadata.version)
+
+    srcdir = ini_path.parent
+    files_to_add = find_tracked_files(srcdir)
+
+    for relpath in files_to_add:
+        path = srcdir / relpath
+        tf.add(str(path), arcname=pjoin(tf_dir, relpath))
+
+    if 'setup.py' in files_to_add:
+        log.warning("Using setup.py from repository, not generating setup.py")
+    else:
+        setup_py = make_setup_py(module, metadata)
+        ti = tarfile.TarInfo(pjoin(tf_dir, 'setup.py'))
+        ti.size = len(setup_py)
+        tf.addfile(ti, io.BytesIO(setup_py))
 
     pkg_info = PKG_INFO.format(
         name=metadata.name,
@@ -219,7 +233,7 @@ def make_sdist(ini_path=Path('flit.ini')):
 
     tf.close()
 
-    print("Built", target)
+    log.info("Built %s", target)
 
 if __name__ == '__main__':
     try:
