@@ -1,4 +1,8 @@
 from pathlib import Path
+import pytest
+from shutil import which
+from tempfile import TemporaryDirectory
+from testpath import assert_isfile
 
 from flit import sdist
 
@@ -11,3 +15,13 @@ def test_auto_packages():
                         'package1': ['data_dir/*'],
                         'package1.subpkg': ['sp_data_dir/*'],
                        }
+
+def test_make_sdist():
+    # Smoke test of making a complete sdist
+    if not which('git'):
+        pytest.skip("requires git")
+    builder = sdist.SdistBuilder(samples_dir / 'package1-pkg.ini')
+    with TemporaryDirectory() as td:
+        td = Path(td)
+        builder.build(td)
+        assert_isfile(td / 'package1-0.1.tar.gz')

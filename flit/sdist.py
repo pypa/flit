@@ -202,12 +202,13 @@ class SdistBuilder:
             extra='\n      '.join(extra),
         ).encode('utf-8')
 
-    def build(self, target:Path =None):
-        if target is None:
-            target = self.ini_path.parent / 'dist' / '{}-{}.tar.gz'.format(
+    def build(self, target_dir:Path =None):
+        if target_dir is None:
+            target_dir = self.ini_path.parent / 'dist'
+        if not target_dir.exists():
+            target_dir.mkdir(parents=True)
+        target = target_dir / '{}-{}.tar.gz'.format(
                         self.metadata.name, self.metadata.version)
-        if not target.parent.exists():
-            target.parent.mkdir(parents=True)
         tf = tarfile.open(str(target), mode='w:gz')
         tf_dir = '{}-{}'.format(self.metadata.name, self.metadata.version)
 
