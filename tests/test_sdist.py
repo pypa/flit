@@ -1,3 +1,4 @@
+import ast
 from os.path import join as pjoin
 from pathlib import Path
 import pytest
@@ -72,3 +73,16 @@ def test_get_files_list_hg():
         assert set(files) == {
             'bar', pjoin('subdir', 'qux')
         }
+
+def test_make_setup_py():
+    builder = sdist.SdistBuilder(samples_dir / 'package1-pkg.ini')
+    setup = builder.make_setup_py()
+    setup_ast = ast.parse(setup)
+    # Select only assignment statements
+    setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
+    ns = {}
+    exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
+    assert ns['packages'] == ['package1', 'package1.subpkg', 'package1.subpkg2']
+    assert 'install_requires' not in ns
+    assert ns['entry_points'] == \
+           {'console_scripts': ['pkg_script = package1:main']}
