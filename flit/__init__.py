@@ -93,9 +93,9 @@ def main(argv=None):
         except common.ProblemInModule as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'sdist':
-        from .sdist import make_sdist
+        from .sdist import SdistBuilder
         try:
-            make_sdist(args.ini_file)
+            SdistBuilder(args.ini_file).build()
         except common.VCSError as e:
             sys.exit(str(e))
     elif args.subcmd == 'install':
