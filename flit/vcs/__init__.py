@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from flit.errors import VCSError
+from flit.common import VCSError
 from . import hg
 from . import git
 

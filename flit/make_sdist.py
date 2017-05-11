@@ -10,7 +10,7 @@ import sys
 import tarfile
 
 from flit import common, inifile
-from flit.errors import VCSError
+from flit.common import VCSError
 from flit.vcs import identify_vcs
 from flit.wheel import EntryPointsConflict
 
