@@ -43,10 +43,6 @@ Author: {author}
 Author-email: {author_email}
 """
 
-def exclude_pycache(tarinfo):
-    if ('/__pycache__' in tarinfo.name) or tarinfo.name.endswith('.pyc'):
-        return None
-    return tarinfo
 
 def auto_packages(pkgdir: str):
     """Discover subpackages and package_data"""
@@ -144,17 +140,23 @@ def prep_entry_points(ini_info):
 
     return dict(res)
 
+def include_path(p):
+    return not (p.startswith('dist/')
+                or ('/__pycache__' in p)
+                or p.endswith('.pyc'))
+
 def find_tracked_files(srcdir: Path):
     vcs_mod = identify_vcs(srcdir)
-    if vcs_mod.list_untracked_deleted_files(srcdir):
+    untracked_deleted = vcs_mod.list_untracked_deleted_files(srcdir)
+    if list(filter(include_path, untracked_deleted)):
         raise VCSError("Untracked or deleted files in the source directory. "
                        "Commit, undo or ignore these files in your VCS.",
                        srcdir)
 
-    files = sorted(vcs_mod.list_tracked_files(srcdir))
-    return files
+    files = vcs_mod.list_tracked_files(srcdir)
+    return sorted(filter(include_path, files))
 
-def make_setup_py(module, metadata):
+def make_setup_py(module, metadata, ini_info):
     before, extra = [], []
     if module.is_package:
         packages, package_data = auto_packages(str(module.path))
@@ -214,7 +216,8 @@ def make_sdist(ini_path=Path('flit.ini')):
     if 'setup.py' in files_to_add:
         log.warning("Using setup.py from repository, not generating setup.py")
     else:
-        setup_py = make_setup_py(module, metadata)
+        setup_py = make_setup_py(module, metadata, ini_info)
+        log.info("Writing generated setup.py")
         ti = tarfile.TarInfo(pjoin(tf_dir, 'setup.py'))
         ti.size = len(setup_py)
         tf.addfile(ti, io.BytesIO(setup_py))
