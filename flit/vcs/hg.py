@@ -10,8 +10,9 @@ def _repo_paths_to_directory_paths(paths, directory):
     # 'hg status' gives paths from repo root, which may not be our directory.
     repo = find_repo_root(directory)
     if directory != repo:
-        directory_in_repo = str(directory.relative_to(repo))
-        paths = [p for p in paths
+        directory_in_repo = str(directory.relative_to(repo)) + os.sep
+        ix = len(directory_in_repo)
+        paths = [p[ix:] for p in paths
                  if os.path.normpath(p).startswith(directory_in_repo)]
     return paths
 

@@ -1,8 +1,10 @@
+from os.path import join as pjoin
 from pathlib import Path
 import pytest
-from shutil import which
+from shutil import which, copy
+import sys
 from tempfile import TemporaryDirectory
-from testpath import assert_isfile
+from testpath import assert_isfile, MockCommand
 
 from flit import sdist
 
@@ -25,3 +27,48 @@ def test_make_sdist():
         td = Path(td)
         builder.build(td)
         assert_isfile(td / 'package1-0.1.tar.gz')
+
+
+LIST_FILES = """\
+#!{python}
+import sys
+from os.path import join
+if '--deleted' not in sys.argv:
+    print('foo')
+    print(join('dir1', 'bar'))
+    print(join('dir1', 'subdir', 'qux'))
+    print(join('dir2', 'abc'))
+    print(join('dist', 'def'))
+""".format(python=sys.executable)
+
+
+def test_get_files_list_git():
+    with TemporaryDirectory() as td:
+        copy(str(samples_dir / 'module1.py'), td)
+        copy(str(samples_dir / 'module1-pkg.ini'), td)
+        td = Path(td)
+        (td / '.git').mkdir()
+        builder = sdist.SdistBuilder(td / 'module1-pkg.ini')
+        with MockCommand('git', LIST_FILES):
+            files = builder.find_tracked_files()
+
+        assert set(files) == {
+            'foo', pjoin('dir1', 'bar'), pjoin('dir1', 'subdir', 'qux'),
+            pjoin('dir2', 'abc')
+        }
+
+def test_get_files_list_hg():
+    with TemporaryDirectory() as td:
+        dir1 = Path(td, 'dir1')
+        dir1.mkdir()
+        copy(str(samples_dir / 'module1.py'), str(dir1))
+        copy(str(samples_dir / 'module1-pkg.ini'), str(dir1))
+        td = Path(td)
+        (td / '.hg').mkdir()
+        builder = sdist.SdistBuilder(dir1 / 'module1-pkg.ini')
+        with MockCommand('hg', LIST_FILES):
+            files = builder.find_tracked_files()
+
+        assert set(files) == {
+            'bar', pjoin('subdir', 'qux')
+        }
