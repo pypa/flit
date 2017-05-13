@@ -144,10 +144,6 @@ class WheelBuilder:
             with self._write_to_zip(dist_info + '/entry_points.txt') as f:
                 common.write_entry_points(self.ini_info['entrypoints'], f)
 
-        elif self.ini_info['entry_points_file'] is not None:
-            self._add_file(self.ini_info['entry_points_file'],
-                           dist_info + '/entry_points.txt')
-
         for base in ('COPYING', 'LICENSE'):
             for path in sorted(self.directory.glob(base + '*')):
                 self._add_file(path, '%s/%s' % (dist_info, path.name))
