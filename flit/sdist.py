@@ -121,8 +121,8 @@ def convert_requires(metadata):
     return install_reqs, dict(extra_reqs)
 
 def include_path(p):
-    return not (p.startswith('dist/')
-                or ('/__pycache__' in p)
+    return not (p.startswith('dist' + os.sep)
+                or (os.sep+'__pycache__' in p)
                 or p.endswith('.pyc'))
 
 class SdistBuilder:
