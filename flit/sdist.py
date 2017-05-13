@@ -1,4 +1,3 @@
-from configparser import ConfigParser
 from collections import defaultdict
 import io
 import logging
@@ -6,14 +5,12 @@ import os
 from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
-import re
 import sys
 import tarfile
 
 from flit import common, inifile
 from flit.common import VCSError
 from flit.vcs import identify_vcs
-from flit.inifile import EntryPointsConflict
 
 log = logging.getLogger(__name__)
 

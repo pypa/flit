@@ -11,8 +11,6 @@ import pytoml as toml
 from .vendorized.readme.rst import render
 import io
 
-from . import common
-
 log = logging.getLogger(__name__)
 
 class ConfigError(ValueError):
@@ -45,7 +43,11 @@ metadata_required_fields = {
     'home-page',
 }
 
-def get_cache_dir():
+def get_cache_dir() -> Path:
+    """Locate a platform-appropriate cache directory for flit to use
+    
+    Does not ensure that the cache directory exists.
+    """
     if os.name == 'posix' and sys.platform != 'darwin':
         # Linux, Unix, AIX, etc.
         # use ~/.cache if empty OR not set
@@ -61,6 +63,7 @@ def get_cache_dir():
         return Path(local, 'flit')
 
 def _verify_classifiers_cached(classifiers):
+    """Check classifiers against the downloaded list of known classifiers"""
     with (get_cache_dir() / 'classifiers.lst').open() as f:
         valid_classifiers = set(l.strip() for l in f)
 
@@ -70,6 +73,7 @@ def _verify_classifiers_cached(classifiers):
                           "\n".join(invalid))
 
 def _download_classifiers():
+    """Get the list of valid trove classifiers from PyPI"""
     log.info('Fetching list of valid trove classifiers')
     resp = requests.get('https://pypi.python.org/pypi?%3Aaction=list_classifiers')
     resp.raise_for_status()
@@ -83,6 +87,12 @@ def _download_classifiers():
         f.write(resp.content)
 
 def verify_classifiers(classifiers):
+    """Verify trove classifiers from config file.
+    
+    Fetches and caches a list of known classifiers from PyPI. Setting the
+    environment variable FLIT_NO_NETWORK=1 will skip this if the classifiers
+    are not already cached.
+    """
     classifiers = set(classifiers)
     try:
         _verify_classifiers_cached(classifiers)
@@ -92,7 +102,7 @@ def verify_classifiers(classifiers):
         #   last time we fetched them.
 
         if os.environ.get('FLIT_NO_NETWORK', ''):
-            log.warn("Not checking classifiers, because FLIT_NO_NETWORK is set")
+            log.warning("Not checking classifiers, because FLIT_NO_NETWORK is set")
             return
 
         # Try to download up-to-date list of classifiers
@@ -103,7 +113,7 @@ def verify_classifiers(classifiers):
             if isinstance(e1, ConfigError):
                 raise e1
             else:
-                log.warn("Couldn't get list of valid classifiers to check against")
+                log.warning("Couldn't get list of valid classifiers to check against")
         else:
             _verify_classifiers_cached(classifiers)
 
@@ -126,6 +136,11 @@ class EntryPointsConflict(ValueError):
             'flit config, not both.')
 
 def prep_toml_config(d, path):
+    """Validate config loaded from pyproject.toml and prepare common metadata
+    
+    Returns a dictionary with keys: module, metadata, scripts, entrypoints,
+    raw_config.
+    """
     if ('tool' not in d) or ('flit' not in d['tool']) \
             or (not isinstance(d['tool']['flit'], dict)):
         raise ConfigError("TOML file missing [tool.flit] table.")
@@ -224,6 +239,8 @@ def _validate_entrypoints(entrypoints):
 
 
 def _read_pkg_ini(path):
+    """Reads old-style flit.ini
+    """
     cp = configparser.ConfigParser()
     with path.open() as f:
         cp.read_file(f)
@@ -231,6 +248,13 @@ def _read_pkg_ini(path):
     return cp
 
 def _prep_metadata(md_sect, path):
+    """Process & verify the metadata from a config file
+    
+    - Pull out the module name we're packaging.
+    - Read description-file and check that it's valid rst
+    - Convert dashes in key names to underscores
+      (e.g. home-page in config -> home_page in metadata) 
+    """
     if not set(md_sect).issuperset(metadata_required_fields):
         missing = metadata_required_fields - set(md_sect)
         raise ConfigError("Required fields missing: " + '\n'.join(missing))
@@ -241,6 +265,7 @@ def _prep_metadata(md_sect, path):
 
     md_dict = {}
 
+    # Description file
     if 'description-file' in md_sect:
         description_file = path.parent / md_sect.get('description-file')
         with description_file.open() as f:
@@ -251,13 +276,17 @@ def _prep_metadata(md_sect, path):
                 log.debug('will convert %s to rst', description_file)
                 raw_desc = pypandoc.convert(raw_desc, 'rst', format='markdown')
             except Exception:
-                log.warn('Unable to convert markdown to rst. Please install `pypandoc` and `pandoc` to use markdown long description.')
+                log.warning('Unable to convert markdown to rst. '
+                            'Please install `pypandoc` and `pandoc` to use '
+                            'markdown long description.')
+
+        # rst check
         stream = io.StringIO()
         _, ok = render(raw_desc, stream)
         if not ok:
-            log.warn("The file description seems not to be valid rst for PyPI;"
+            log.warning("The file description seems not to be valid rst for PyPI;"
                     " it will be interpreted as plain text")
-            log.warn(stream.getvalue())
+            log.warning(stream.getvalue())
         md_dict['description'] =  raw_desc
 
     for key, value in md_sect.items():
@@ -288,8 +317,9 @@ def _prep_metadata(md_sect, path):
     return md_dict, module
 
 def _validate_config(cp, path):
-    """
-    Validate a config and return a dict containing `module`,`metadata`,`script`,`entry_point` keys.
+    """Validate and process config loaded from a flit.ini file.
+    
+    Returns a dict with keys: module, metadata, scripts, entrypoints, raw_config
     """
     unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
