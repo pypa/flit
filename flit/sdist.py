@@ -13,7 +13,7 @@ import tarfile
 from flit import common, inifile
 from flit.common import VCSError
 from flit.vcs import identify_vcs
-from flit.wheel import EntryPointsConflict
+from flit.inifile import EntryPointsConflict
 
 log = logging.getLogger(__name__)
 
