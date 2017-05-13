@@ -134,23 +134,11 @@ class SdistBuilder:
         self.srcdir = ini_path.parent
 
     def prep_entry_points(self):
-        # Write entry points
-        cp = ConfigParser()
-
-        if self.ini_info['scripts']:
-            cp['console_scripts'] = {k: '%s:%s' % v
-                                 for (k, v) in self.ini_info['scripts'].items()}
-
-        if self.ini_info['entry_points_file'] is not None:
-            cp.read(str(self.ini_info['entry_points_file']))
-            if 'console_scripts' in cp:
-                raise EntryPointsConflict
-
+        # Reformat entry points from dict-of-dicts to dict-of-lists
         res = defaultdict(list)
-        for group in cp.sections():
-            sect = cp[group]
-            for name in sorted(sect):
-                res[group].append('{} = {}'.format(name, sect[name]))
+        for groupname, group in self.ini_info['entrypoints'].items():
+            for name, ep in sorted(group.items()):
+                res[groupname].append('{} = {}'.format(name, ep))
 
         return dict(res)
 

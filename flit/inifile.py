@@ -201,6 +201,12 @@ def _add_scripts_to_entrypoints(entrypoints, scripts_dict):
             entrypoints['console_scripts'] = scripts_dict
 
 def _validate_entrypoints(entrypoints):
+    """Check that the loaded entrypoints are valid.
+    
+    Expects a dict of dicts, e.g.::
+    
+        {'console_scripts': {'flit': 'flit:main'}}
+    """
     def _is_identifier_attr(s):
         return all(n.isidentifier() for n in s.split('.'))
 
