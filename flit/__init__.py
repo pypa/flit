@@ -43,6 +43,10 @@ def main(argv=None):
           help="Verify the package metadata with the PyPI server"
     )
 
+    parser_sdist = subparsers.add_parser('sdist',
+         help="Build a source distribution (.tar.gz)",
+    )
+
     parser_install = subparsers.add_parser('install',
         help="Install the package",
     )
@@ -88,6 +92,12 @@ def main(argv=None):
                      repo=args.repository)
         except common.ProblemInModule as e:
             sys.exit(e.args[0])
+    elif args.subcmd == 'sdist':
+        from .sdist import SdistBuilder
+        try:
+            SdistBuilder(args.ini_file).build()
+        except common.VCSError as e:
+            sys.exit(str(e))
     elif args.subcmd == 'install':
         from .install import Installer
         try:
