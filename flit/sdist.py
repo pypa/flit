@@ -83,7 +83,10 @@ def auto_packages(pkgdir: str):
             pkg, from_nearest_pkg = find_nearest_pkg(from_top_level)
             pkg_data[pkg].append(os.path.join(from_nearest_pkg, '*'))
 
-    return packages, dict(pkg_data)
+    # Sort values in pkg_data
+    pkg_data = {k: sorted(v) for (k, v) in pkg_data.items()}
+
+    return sorted(packages), pkg_data
 
 def _parse_req(requires_dist):
     """Parse "Foo (v); python_version == '2.x'" from Requires-Dist
