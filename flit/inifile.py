@@ -128,7 +128,7 @@ def _validate_config(cp, path):
     unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
-        raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
+        log.info('Extra config sections: ' + ', '.join(unknown_sections))
 
     if not cp.has_section('metadata'):
         raise ConfigError('[metadata] section is required')
