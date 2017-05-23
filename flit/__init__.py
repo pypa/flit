@@ -51,6 +51,10 @@ def main(argv=None):
         help="Build wheel and sdist",
     )
 
+    parser_upload = subparsers.add_parser('upload',
+        help="Upload wheel and sdist",
+    )
+
     parser_install = subparsers.add_parser('install',
         help="Install the package",
     )
@@ -106,6 +110,9 @@ def main(argv=None):
     elif args.subcmd == 'build':
         from .build import main
         main(args.ini_file)
+    elif args.subcmd == 'upload':
+        from .upload import main
+        main(args.ini_file, args.repository)
 
     elif args.subcmd == 'install':
         from .install import Installer
