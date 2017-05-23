@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import tempfile
+from types import SimpleNamespace
 
 if sys.version_info >= (3, 6):
     import zipfile
@@ -204,7 +205,7 @@ def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
 
     wheel_path = dist_dir / wb.wheel_filename
     os.replace(temp_path, str(wheel_path))
-    log.info("Wheel built: %s", wheel_path)
+    log.info("Built wheel: %s", wheel_path)
 
     if verify_metadata:
         from .upload import verify
@@ -213,3 +214,5 @@ def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
     if upload:
         from .upload import do_upload
         do_upload(wheel_path, wb.metadata, repo)
+
+    return SimpleNamespace(builder=wb, file=wheel_path)

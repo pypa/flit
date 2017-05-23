@@ -47,6 +47,10 @@ def main(argv=None):
          help="Build a source distribution (.tar.gz)",
     )
 
+    parser_build = subparsers.add_parser('build',
+        help="Build wheel and sdist",
+    )
+
     parser_install = subparsers.add_parser('install',
         help="Install the package",
     )
@@ -98,6 +102,11 @@ def main(argv=None):
             SdistBuilder(args.ini_file).build()
         except common.VCSError as e:
             sys.exit(str(e))
+
+    elif args.subcmd == 'build':
+        from .build import main
+        main(args.ini_file)
+
     elif args.subcmd == 'install':
         from .install import Installer
         try:
