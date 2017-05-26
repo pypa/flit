@@ -51,7 +51,7 @@ def main(argv=None):
         help="Build wheel and sdist",
     )
 
-    parser_upload = subparsers.add_parser('upload',
+    parser_publish = subparsers.add_parser('publish',
         help="Upload wheel and sdist",
     )
 
@@ -110,7 +110,7 @@ def main(argv=None):
     elif args.subcmd == 'build':
         from .build import main
         main(args.ini_file)
-    elif args.subcmd == 'upload':
+    elif args.subcmd == 'publish':
         from .upload import main
         main(args.ini_file, args.repository)
 
