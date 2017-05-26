@@ -109,15 +109,18 @@ def build_post_data(action, metadata:Metadata):
 
     return {k:v for k,v in d.items() if v}
 
-def upload_wheel(file:Path, metadata:Metadata, repo):
-    """Upload a .whl file to the PyPI server.
+def upload_file(file:Path, metadata:Metadata, repo):
+    """Upload a file to the PyPI server.
     """
     data = build_post_data('file_upload', metadata)
     data['protocol_version'] = '1'
-    data['filetype'] = 'bdist_wheel'
-    py2_support = not (metadata.requires_python or '')\
-                                .startswith(('3', '>3', '>=3'))
-    data['pyversion'] = ('py2.' if py2_support else '') + 'py3'
+    if file.suffix == '.whl':
+        data['filetype'] = 'bdist_wheel'
+        py2_support = not (metadata.requires_python or '')\
+                                    .startswith(('3', '>3', '>=3'))
+        data['pyversion'] = ('py2.' if py2_support else '') + 'py3'
+    else:
+        data['filetype'] = 'sdist'
 
     with file.open('rb') as f:
         content = f.read()
@@ -157,19 +160,30 @@ def verify(metadata:Metadata, repo_name):
     log.info('Verification succeeded')
 
 def do_upload(file:Path, metadata:Metadata, repo_name='pypi'):
-    """Upload a wheel, registering a new package if necessary.
+    """Upload a file, registering a new package if necessary.
     """
     repo = get_repository(repo_name)
     try:
-        upload_wheel(file, metadata, repo)
+        upload_file(file, metadata, repo)
     except requests.HTTPError as e:
         if e.response.status_code == 403:
             # 403 can happens if the package is not already on PyPI - try
             # registering it and uploading again.
             log.warning('Uploading forbidden; trying to register and upload again')
             register(metadata, repo)
-            upload_wheel(file, metadata, repo)
+            upload_file(file, metadata, repo)
         else:
             raise
 
     log.info("Package is at %s/%s", repo['url'], metadata.name)
+
+
+def main(ini_path, repo_name, formats=None):
+    """Build and upload wheel and sdist."""
+    from . import build
+    built = build.main(ini_path, formats=formats)
+
+    if built.wheel is not None:
+        do_upload(built.wheel.file, built.wheel.builder.metadata, repo_name)
+    if built.sdist is not None:
+        do_upload(built.sdist.file, built.sdist.builder.metadata, repo_name)

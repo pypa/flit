@@ -1,6 +1,8 @@
 import os
 from subprocess import check_output
 
+name = 'hg'
+
 def find_repo_root(directory):
     for p in [directory] + list(directory.parents):
         if (p / '.hg').is_dir():

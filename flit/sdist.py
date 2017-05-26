@@ -163,6 +163,7 @@ class SdistBuilder:
                            self.srcdir)
 
         files = vcs_mod.list_tracked_files(self.srcdir)
+        log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
         return sorted(filter(include_path, files))
 
     def make_setup_py(self):
@@ -242,7 +243,8 @@ class SdistBuilder:
 
         tf.close()
 
-        log.info("Built %s", target)
+        log.info("Built sdist: %s", target)
+        return target
 
 if __name__ == '__main__':
     try:
