@@ -8,12 +8,25 @@ from .wheel import wheel_main
 
 log = logging.getLogger(__name__)
 
-def main(ini_file):
+ALL_FORMATS = {'wheel', 'sdist'}
+
+def main(ini_file, formats=None):
     """Build wheel and sdist"""
-    wheel_info = wheel_main(ini_file)
+    if not formats:
+        formats = ALL_FORMATS
+    elif not formats.issubset(ALL_FORMATS):
+        raise ValueError("Unknown package formats: {}".format(formats - ALL_FORMATS))
 
-    sb = SdistBuilder(ini_file)
-    sdist_file = sb.build()
+    if 'wheel' in formats:
+        wheel_info = wheel_main(ini_file)
+    else:
+        wheel_info = None
 
-    return SimpleNamespace(wheel=wheel_info,
-                           sdist=SimpleNamespace(builder=sb, file=sdist_file))
+    if 'sdist' in formats:
+        sb = SdistBuilder(ini_file)
+        sdist_file = sb.build()
+        sdist_info = SimpleNamespace(builder=sb, file=sdist_file)
+    else:
+        sdist_info = None
+
+    return SimpleNamespace(wheel=wheel_info, sdist=sdist_info)

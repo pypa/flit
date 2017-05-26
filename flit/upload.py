@@ -178,9 +178,12 @@ def do_upload(file:Path, metadata:Metadata, repo_name='pypi'):
     log.info("Package is at %s/%s", repo['url'], metadata.name)
 
 
-def main(ini_path, repo_name):
+def main(ini_path, repo_name, formats=None):
     """Build and upload wheel and sdist."""
     from . import build
-    built = build.main(ini_path)
-    do_upload(built.wheel.file, built.wheel.builder.metadata, repo_name)
-    do_upload(built.sdist.file, built.sdist.builder.metadata, repo_name)
+    built = build.main(ini_path, formats=formats)
+
+    if built.wheel is not None:
+        do_upload(built.wheel.file, built.wheel.builder.metadata, repo_name)
+    if built.sdist is not None:
+        do_upload(built.sdist.file, built.sdist.builder.metadata, repo_name)

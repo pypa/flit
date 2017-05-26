@@ -51,8 +51,16 @@ def main(argv=None):
         help="Build wheel and sdist",
     )
 
+    parser_build.add_argument('--format', action='append',
+        help="Select a format to build. Options: 'wheel', 'sdist'"
+    )
+
     parser_publish = subparsers.add_parser('publish',
         help="Upload wheel and sdist",
+    )
+
+    parser_publish.add_argument('--format', action='append',
+        help="Select a format to publish. Options: 'wheel', 'sdist'"
     )
 
     parser_install = subparsers.add_parser('install',
@@ -109,10 +117,10 @@ def main(argv=None):
 
     elif args.subcmd == 'build':
         from .build import main
-        main(args.ini_file)
+        main(args.ini_file, formats=set(args.format or []))
     elif args.subcmd == 'publish':
         from .upload import main
-        main(args.ini_file, args.repository)
+        main(args.ini_file, args.repository, formats=set(args.format or []))
 
     elif args.subcmd == 'install':
         from .install import Installer
