@@ -10,12 +10,20 @@ import logging
 import os
 from pathlib import Path
 import requests
+import sys
 
 from .common import Metadata
 
 log = logging.getLogger(__name__)
 
-PYPI = "https://pypi.python.org/pypi"
+PYPI = "https://upload.pypi.org/legacy/"
+
+SWITCH_TO_HTTPS = (
+    "http://pypi.python.org/",
+    "http://testpypi.python.org/",
+    "http://upload.pypi.org/",
+    "http://upload.pypi.io/",
+)
 
 def get_repositories(file="~/.pypirc"):
     """Get the known repositories from a pypirc file.
@@ -46,29 +54,110 @@ def get_repositories(file="~/.pypirc"):
 
     return repos
 
-def get_repository(name, cfg_file="~/.pypirc"):
+
+def get_repository(name=None, cfg_file="~/.pypirc"):
     """Get the url, username and password for one repository.
-
-    If username or password are not specified in the config file, the user
-    will be prompted to enter them at the terminal.
-
+    
     Returns a dict with keys 'url', 'username', 'password'.
-    """
-    repos = get_repositories(cfg_file)
 
-    repo = repos[name]
-    if repo['url'] in {'http://pypi.python.org/pypi',
-                       'http://testpypi.python.org/pypi'}:
+    There is a hierarchy of possible sources of information:
+     
+    Index URL:
+    1. Command line arg --repository (looked up in .pypirc)
+    2. $FLIT_INDEX_URL
+    3. Repository called 'pypi' from .pypirc
+    4. Default PyPI (hardcoded)
+
+    Username:
+    1. Command line arg --repository (looked up in .pypirc)
+    2. $FLIT_USERNAME
+    3. Repository called 'pypi' from .pypirc
+    4. Terminal prompt (write to .pypirc if it doesn't exist yet)
+
+    Password:
+    1. Command line arg --repository (looked up in .pypirc)
+    2. $FLIT_PASSWORD
+    3. Repository called 'pypi' from .pypirc
+    3. keyring
+    4. Terminal prompt (store to keyring if available)
+    """
+    repos_cfg = get_repositories(cfg_file)
+
+    if name is not None:
+        repo = repos_cfg[name]
+    elif 'FLIT_INDEX_URL' in os.environ:
+        repo = {'url': os.environ['FLIT_INDEX_URL'],
+                'username': None, 'password': None}
+    elif 'pypi' in repos_cfg:
+        repo = repos_cfg['pypi']
+
+        if 'FLIT_PASSWORD' in os.environ:
+            repo['password'] = os.environ['FLIT_PASSWORD']
+    else:
+        repo = {'url': PYPI, 'username': None, 'password': None}
+
+    if repo['url'].startswith(SWITCH_TO_HTTPS):
         # Use https for PyPI, even if an http URL was given
         repo['url'] = 'https' + repo['url'][4:]
+    elif repo['url'].startswith('http://'):
+        log.warning("Unencrypted connection - credentials may be visible on "
+                    "the network.")
     log.info("Using repository at %s", repo['url'])
 
-    while not repo['username']:
-        repo['username'] = input("Username: ")
-    while not repo['password']:
-        repo['password'] = getpass.getpass()
+    if ('FLIT_USERNAME' in os.environ) and ((name is None) or (not repo['username'])):
+        repo['username'] = os.environ['FLIT_USERNAME']
+    if sys.stdin.isatty():
+        while not repo['username']:
+            repo['username'] = input("Username: ")
+        if repo['url'] == PYPI:
+            write_pypirc(repo)
+    else:
+        raise Exception("Could not find username for upload.")
+
+    repo['password'] = get_password(repo, prefer_env=(name is None))
 
     return repo
+
+def write_pypirc(repo, file="~/.pypirc"):
+    """Write .pypirc if it doesn't already exist
+    """
+    file = os.path.expanduser(file)
+    if os.path.isfile(file):
+        return
+
+    with open(file, 'w', encoding='utf-8') as f:
+        f.write("[pypi]\n"
+                "username = %s\n" % repo['username'])
+
+def get_password(repo, prefer_env):
+    if ('FLIT_PASSWORD' in os.environ) and (prefer_env or not repo['password']):
+        return os.environ['FLIT_PASSWORD']
+
+    if repo['password']:
+        return repo['password']
+
+    try:
+        import keyring
+    except ImportError:
+        log.warning("Install keyring to store passwords securely")
+        keyring = None
+    else:
+        stored_pw = keyring.get_password(repo['url'], repo['username'])
+        if stored_pw is not None:
+            return stored_pw
+
+    if sys.stdin.isatty():
+        pw = None
+        while not pw:
+            print('Server  :', repo['url'])
+            print('Username:', repo['username'])
+            pw = getpass.getpass('Password: ')
+    else:
+        raise Exception("Could not find password for upload.")
+
+    if keyring is not None:
+        keyring.set_password(repo['url'], repo['username'], pw)
+        log.info("Stored password with keyring")
 
 def build_post_data(action, metadata:Metadata):
     """Prepare the metadata needed for requests to PyPI.
@@ -139,7 +228,7 @@ def register(metadata:Metadata, repo):
     """Register a new release with the PyPI server.
     """
 
-    if(type(repo) == str):
+    if not isinstance(repo, dict):
         repo = get_repository(repo)
     data = build_post_data('submit', metadata)
     resp = requests.post(repo['url'], data=data,
@@ -159,7 +248,7 @@ def verify(metadata:Metadata, repo_name):
     resp.raise_for_status()
     log.info('Verification succeeded')
 
-def do_upload(file:Path, metadata:Metadata, repo_name='pypi'):
+def do_upload(file:Path, metadata:Metadata, repo_name=None):
     """Upload a file, registering a new package if necessary.
     """
     repo = get_repository(repo_name)

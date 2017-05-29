@@ -26,7 +26,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='flit.ini')
     ap.add_argument('--version', action='version', version='Flit '+__version__)
-    ap.add_argument('--repository', default='pypi',
+    ap.add_argument('--repository',
         help="Name of the repository to upload to (must be in ~/.pypirc)"
     )
     ap.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
