@@ -41,7 +41,7 @@ or as a directory—and you want to distribute it.
 
 4. Run this command to upload your code to PyPI::
 
-       flit wheel --upload
+       flit publish
 
 If your package is not registered on PyPI yet, flit will try to register it for
 you during the upload step. 
@@ -49,13 +49,6 @@ you during the upload step.
 To install a package locally for development, run::
 
     flit install [--symlink] [--python path/to/python]
-
-.. note::
-
-   Flit only creates packages in the new 'wheel' format. People using older
-   versions of pip (<1.5) or easy_install will not be able to install them.
-   People may also want a traditional sdist for other reasons, such as Linux
-   distro packaging. I hope that these problems will diminish over time.
 
 Flit packages a single importable module or package at a time, using the import
 name as the name on PyPI. All subpackages and data files within a package are

@@ -1,6 +1,30 @@
 Release history
 ===============
 
+Version 0.11
+------------
+
+- Flit can now build sdists (tarballs) and upload them to PyPI, if your code is
+  in a git or mercurial repository. There are new commands:
+
+  - ``flit build`` builds both a wheel and an sdist.
+  - ``flit publish`` builds and uploads a wheel and an sdist.
+
+- Smarter ways of getting the information needed for upload:
+
+  - If you have the `keyring <https://github.com/jaraco/keyring>`_ package
+    installed, flit can use it to store your password, rather than keeping it
+    in plain text in ``~/.pypirc``.
+  - If ``~/.pypirc`` does not already exist, and you are prompted for your
+    username, flit will write it into that file.
+  - You can provide the information as environment variables:
+    :envvar:`FLIT_USERNAME`, :envvar:`FLIT_PASSWORD` and :envvar:`FLIT_INDEX_URL`.
+    Use this to upload packages from a CI service, for instance.
+
+- Include 'LICENSE' or 'COPYING' files in wheels.
+- Fix for ``flit install --symlink`` inside a virtualenv.
+
+
 Version 0.10
 ------------
 

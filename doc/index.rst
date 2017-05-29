@@ -19,6 +19,16 @@ Contents:
 Environment variables
 ---------------------
 
+.. envvar:: FLIT_USERNAME
+            FLIT_PASSWORD
+            FLIT_INDEX_URL
+
+   .. versionadded:: 0.11
+
+   Use these to set the username, password and URL for package uploads, such as
+   when uploading from a CI server. For interactive use, it's normally more
+   convenient to use ``.pypirc``.
+
 .. envvar:: FLIT_NO_NETWORK
 
    .. versionadded:: 0.10
