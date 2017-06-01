@@ -91,7 +91,7 @@ def verify_classifiers(classifiers):
         #   last time we fetched them.
 
         if os.environ.get('FLIT_NO_NETWORK', ''):
-            log.warn("Not checking classifiers, because FLIT_NO_NETWORK is set")
+            log.warning("Not checking classifiers, because FLIT_NO_NETWORK is set")
             return
 
         # Try to download up-to-date list of classifiers
@@ -102,7 +102,7 @@ def verify_classifiers(classifiers):
             if isinstance(e1, ConfigError):
                 raise e1
             else:
-                log.warn("Couldn't get list of valid classifiers to check against")
+                log.warning("Couldn't get list of valid classifiers to check against")
         else:
             _verify_classifiers_cached(classifiers)
 
@@ -154,13 +154,14 @@ def _validate_config(cp, path):
                 log.debug('will convert %s to rst', description_file)
                 raw_desc = pypandoc.convert(raw_desc, 'rst', format='markdown')
             except Exception:
-                log.warn('Unable to convert markdown to rst. Please install `pypandoc` and `pandoc` to use markdown long description.')
+                log.warning('Unable to convert markdown to rst. Please install '
+                         '`pypandoc` and `pandoc` to use markdown long description.')
         stream = io.StringIO()
         res = render(raw_desc, stream)
         if not res:
-            log.warn("The file description seems not to be valid rst for PyPI;"
+            log.warning("The file description seems not to be valid rst for PyPI;"
                     " it will be interpreted as plain text")
-            log.warn(stream.getvalue())
+            log.warning(stream.getvalue())
         md_dict['description'] =  raw_desc
 
     if 'entry-points-file' in md_sect:
