@@ -1,6 +1,14 @@
 Release history
 ===============
 
+Version 0.11.1
+--------------
+
+- Fixed a bug when you use flit to build an sdist from a subdirectory inside a
+  VCS checkout. The VCS is now correctly detected.
+- Fix the rst checker for newer versions of docutils, by upgrading the bundled
+  copy of readme_renderer.
+
 Version 0.11
 ------------
 
