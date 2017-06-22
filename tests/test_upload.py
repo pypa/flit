@@ -11,7 +11,8 @@ samples_dir = pathlib.Path(__file__).parent / 'samples'
 
 repo_settings = {'url': upload.PYPI,
                  'username': 'user',
-                 'password': 'pw'
+                 'password': 'pw',
+                 'is_warehouse': True,
                 }
 
 @responses.activate
@@ -50,10 +51,15 @@ def test_upload_registers():
             status = 200 if register_mock.called else 403
             return (status, {}, '')
 
-        responses.add_callback(responses.POST, upload.PYPI,
+        old_pypi = "https://pypi.python.org/pypi"
+        responses.add_callback(responses.POST, old_pypi,
                                callback=upload_callback)
 
-        with patch('flit.upload.get_repository', return_value=repo_settings):
+        repo = repo_settings.copy()
+        repo['url'] = old_pypi
+        repo['is_warehouse'] = False
+
+        with patch('flit.upload.get_repository', return_value=repo):
             wheel.wheel_main(samples_dir / 'module1-pkg.ini', upload='pypi')
 
     assert len(responses.calls) == 2

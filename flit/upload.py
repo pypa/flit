@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import requests
 import sys
+from urllib.parse import urlparse
 
 from .common import Metadata
 
@@ -115,6 +116,8 @@ def get_repository(name=None, cfg_file="~/.pypirc"):
         raise Exception("Could not find username for upload.")
 
     repo['password'] = get_password(repo, prefer_env=(name is None))
+
+    repo['is_warehouse'] = repo['url'].rstrip('/').endswith('/legacy')
 
     return repo
 
@@ -255,16 +258,23 @@ def do_upload(file:Path, metadata:Metadata, repo_name=None):
     try:
         upload_file(file, metadata, repo)
     except requests.HTTPError as e:
-        if e.response.status_code == 403:
-            # 403 can happens if the package is not already on PyPI - try
-            # registering it and uploading again.
+        if (not repo['is_warehouse']) and e.response.status_code == 403:
+            # 403 can happen if the package is not already on PyPI - try
+            # registering it and uploading again. This only applies to legacy
+            # PyPI: Warehouse has no separate registration step.
             log.warning('Uploading forbidden; trying to register and upload again')
             register(metadata, repo)
             upload_file(file, metadata, repo)
         else:
             raise
 
-    log.info("Package is at %s/%s", repo['url'], metadata.name)
+    if repo['is_warehouse']:
+        domain = urlparse(repo['url']).netloc
+        if domain.startswith('upload.'):
+            domain = domain[7:]
+        log.info("Package is at https://%s/project/%s/", domain, metadata.name)
+    else:
+        log.info("Package is at %s/%s", repo['url'], metadata.name)
 
 
 def main(ini_path, repo_name, formats=None):
