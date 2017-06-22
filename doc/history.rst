@@ -1,6 +1,12 @@
 Release history
 ===============
 
+Version 0.11.3
+--------------
+
+- Fixed a bug causing failed uploads when the password is entered in the
+  terminal.
+
 Version 0.11.2
 --------------
 
