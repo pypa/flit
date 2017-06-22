@@ -162,6 +162,8 @@ def get_password(repo, prefer_env):
         keyring.set_password(repo['url'], repo['username'], pw)
         log.info("Stored password with keyring")
 
+    return pw
+
 def build_post_data(action, metadata:Metadata):
     """Prepare the metadata needed for requests to PyPI.
     """
