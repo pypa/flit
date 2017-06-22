@@ -1,6 +1,11 @@
 Release history
 ===============
 
+Version 0.11.2
+--------------
+
+- A couple of behaviour changes when uploading to warehouse.
+
 Version 0.11.1
 --------------
 
