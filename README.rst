@@ -56,3 +56,6 @@ included automatically.
 
 Flit requires Python 3, but you can use it to distribute modules for Python 2,
 so long as they can be imported on Python 3.
+
+`See Flit's documentation <https://flit.readthedocs.io/en/latest/>`_ for more
+information.
