@@ -32,15 +32,18 @@ def get_repositories(file="~/.pypirc"):
     This returns a dict keyed by name, of dicts with keys 'url', 'username',
     'password'. Username and password may be None.
     """
-    file = os.path.expanduser(file)
-
-    if not os.path.isfile(file):
-        return {'pypi': {
-            'url': PYPI, 'username': None, 'password': None,
-        }}
-
     cp = configparser.ConfigParser()
-    cp.read(file)
+    if isinstance(file, str):
+        file = os.path.expanduser(file)
+
+        if not os.path.isfile(file):
+            return {'pypi': {
+                'url': PYPI, 'username': None, 'password': None,
+            }}
+
+        cp.read(file)
+    else:
+        cp.read_file(file)
 
     names = cp.get('distutils', 'index-servers', fallback='pypi').split()
 
@@ -112,7 +115,7 @@ def get_repository(name=None, cfg_file="~/.pypirc"):
             repo['username'] = input("Username: ")
         if repo['url'] == PYPI:
             write_pypirc(repo)
-    else:
+    elif not repo['username']:
         raise Exception("Could not find username for upload.")
 
     repo['password'] = get_password(repo, prefer_env=(name is None))

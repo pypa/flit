@@ -1,7 +1,6 @@
+import io
 import pathlib
 
-import pytest
-import requests
 import responses
 from unittest.mock import patch
 
@@ -64,3 +63,20 @@ def test_upload_registers():
 
     assert len(responses.calls) == 2
     assert register_mock.call_count == 1
+
+pypirc1 = """
+[distutils]
+index-servers =
+    pypi
+
+[pypi]
+username: fred
+password: s3cret
+"""
+# That's not a real password. Well, hopefully not.
+
+def test_get_repository():
+    repo = upload.get_repository(cfg_file=io.StringIO(pypirc1))
+    assert repo['url'] == upload.PYPI
+    assert repo['username'] == 'fred'
+    assert repo['password'] == 's3cret'
