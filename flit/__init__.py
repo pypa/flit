@@ -142,6 +142,3 @@ def main(argv=None):
     else:
         ap.print_help()
         sys.exit(1)
-
-if __name__ == '__main__':
-    main()
