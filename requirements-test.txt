@@ -1,4 +1,5 @@
 requests
+requests_download
 testpath
 responses
 docutils
