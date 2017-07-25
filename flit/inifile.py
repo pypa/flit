@@ -60,7 +60,7 @@ def get_cache_dir():
         return Path(local, 'flit')
 
 def _verify_classifiers_cached(classifiers):
-    with (get_cache_dir() / 'classifiers.lst').open('utf-8') as f:
+    with (get_cache_dir() / 'classifiers.lst').open(encoding='utf-8') as f:
         valid_classifiers = set(l.strip() for l in f)
 
     invalid = classifiers - valid_classifiers
