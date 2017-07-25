@@ -144,7 +144,7 @@ def get_password(repo, prefer_env):
 
     try:
         import keyring
-    except ImportError:
+    except ImportError:  # pragma: no cover
         log.warning("Install keyring to store passwords securely")
         keyring = None
     else:

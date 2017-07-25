@@ -24,14 +24,14 @@ class InvalidAddress(BadInput):
     def __init__(self, address):
         self.address = address
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return "Invalid address: {!r}".format(self.address)
 
 class UnknownAddressType(BadInput):
     def __init__(self, address_type):
         self.address_type = address_type
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return "Unknown address type: {}".format(self.address_type)
 
 class InvalidAddressLocation(BadInput):
@@ -40,7 +40,7 @@ class InvalidAddressLocation(BadInput):
         self.location = location
         self.expected_pattern = expected_pattern
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return "Invalid location: {!r}\n{}: addresses should look like {}".format(
             self.location, self.address_type, self.expected_pattern
         )
