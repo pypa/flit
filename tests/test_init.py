@@ -7,13 +7,18 @@ from unittest.mock import patch
 
 from flit import init
 
-def test_store_defaults():
+@contextmanager
+def patch_data_dir():
     with TemporaryDirectory() as td:
-        with patch.object(init, 'get_data_dir', lambda : Path(td)):
-            assert init.get_defaults() == {}
-            d = {'author': 'Test'}
-            init.store_defaults(d)
-            assert init.get_defaults() == d
+        with patch.object(init, 'get_data_dir', lambda: Path(td)):
+            yield td
+
+def test_store_defaults():
+    with patch_data_dir():
+        assert init.get_defaults() == {}
+        d = {'author': 'Test'}
+        init.store_defaults(d)
+        assert init.get_defaults() == d
 
 def fake_input(entries):
     it = iter(entries)
@@ -68,3 +73,18 @@ def test_write_license():
         ib = init.IniterBase(td)
         ib.write_license('mit', 'Thomas Kluyver')
         assert_isfile(Path(td, 'LICENSE'))
+
+def test_init():
+    responses = ['foo', # Module name
+                 'Thomas Kluyver',      # Author
+                 'thomas@example.com',  # Author email
+                 'http://example.com/', # Home page
+                 '1'    # License (1 -> MIT)
+                ]
+    with TemporaryDirectory() as td, \
+          patch_data_dir(), \
+          faking_input(responses):
+        ti = init.TerminalIniter(td)
+        ti.initialise()
+        assert_isfile('flit.ini')
+        assert_isfile('LICENSE')
