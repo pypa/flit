@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from testpath import assert_isfile, assert_isdir, assert_islink, MockCommand
 
-from flit.install import Installer
+from flit.install import Installer, _requires_dist_to_pip_requirement
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 
@@ -98,3 +98,8 @@ class InstallTests(TestCase):
         assert_islink(self.tmpdir / 'site-packages2' / 'package1',
                       to=str(samples_dir / 'package1'))
         assert_isfile(self.tmpdir / 'scripts2' / 'pkg_script')
+
+def test_requires_dist_to_pip_requirement():
+    rd = 'pathlib2 (>=2.3); python_version == "2.7"'
+    assert _requires_dist_to_pip_requirement(rd) == \
+        'pathlib2>=2.3; python_version == "2.7"'
