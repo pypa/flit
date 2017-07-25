@@ -109,6 +109,12 @@ def test_test_writable_dir_win():
     with tempfile.TemporaryDirectory() as td:
         assert install._test_writable_dir_win(td) is True
 
+        # Ironically, I don't know how to make a non-writable dir on Windows,
+        # so although the functionality is for Windows, the test is for Posix
+        if os.name != 'posix':
+            return
+
+        # Remove write permissions from the directory
         os.chmod(td, 0o444)
         try:
             assert install._test_writable_dir_win(td) is False
