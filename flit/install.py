@@ -49,6 +49,9 @@ def test_writable_dir(path):
     if os.name == 'posix':
         return os.access(path, os.W_OK)
 
+    return _test_writable_dir_win(path)
+
+def _test_writable_dir_win(path):
     # os.access doesn't work on Windows: http://bugs.python.org/issue2528
     # and we can't use tempfile: http://bugs.python.org/issue22107
     basename = 'accesstest_deleteme_fishfingers_custard_'
@@ -72,8 +75,8 @@ def test_writable_dir(path):
 
     # This should never be reached
     msg = ('Unexpected condition testing for writable directory {!r}. '
-           'Please open an issue on flit to debug why this occurred.')
-    raise EnvironmentError(msg.format(path))
+           'Please open an issue on flit to debug why this occurred.') # pragma: no cover
+    raise EnvironmentError(msg.format(path))  # pragma: no cover
 
 class RootInstallError(Exception):
     def __str__(self):

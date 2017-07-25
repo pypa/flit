@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from testpath import assert_isfile, assert_isdir, assert_islink, MockCommand
 
+from flit import install
 from flit.install import Installer, _requires_dist_to_pip_requirement
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
@@ -103,3 +104,13 @@ def test_requires_dist_to_pip_requirement():
     rd = 'pathlib2 (>=2.3); python_version == "2.7"'
     assert _requires_dist_to_pip_requirement(rd) == \
         'pathlib2>=2.3; python_version == "2.7"'
+
+def test_test_writable_dir_win():
+    with tempfile.TemporaryDirectory() as td:
+        assert install._test_writable_dir_win(td) is True
+
+        os.chmod(td, 0o444)
+        try:
+            assert install._test_writable_dir_win(td) is False
+        finally:
+            os.chmod(td, 0o644)
