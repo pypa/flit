@@ -13,3 +13,8 @@ def test_invalid_classifier():
 def test_missing_entrypoints():
     with pytest.raises(FileNotFoundError):
         read_pkg_ini(samples_dir / 'entrypoints_missing.ini')
+
+def test_description_file():
+    info = read_pkg_ini(samples_dir / 'package1-pkg.ini')
+    assert info['metadata']['description'] == \
+        "Sample description for test.\n"
