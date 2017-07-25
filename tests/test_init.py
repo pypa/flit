@@ -1,4 +1,5 @@
 import builtins
+from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -37,3 +38,26 @@ def test_prompt_options():
         res = ti.prompt_options('Pick one', [('A', 'Apple'), ('B', 'Banana')],
                                 default='B')
     assert res == 'B'
+
+@contextmanager
+def make_dir(files=(), dirs=()):
+    with TemporaryDirectory() as td:
+        tdp = Path(td)
+        for d in dirs:
+            (tdp / d).mkdir()
+        for f in files:
+            (tdp / f).touch()
+        yield td
+
+def test_guess_module_name():
+    with make_dir(['foo.py', 'foo-bar.py', 'test_foo.py', 'setup.py']) as td:
+        ib = init.IniterBase(td)
+        assert ib.guess_module_name() == 'foo'
+
+    with make_dir(['baz/__init__.py', 'tests/__init__.py'], ['baz', 'tests']) as td:
+        ib = init.IniterBase(td)
+        assert ib.guess_module_name() == 'baz'
+
+    with make_dir(['foo.py', 'bar.py']) as td:
+        ib = init.IniterBase(td)
+        assert ib.guess_module_name() is None
