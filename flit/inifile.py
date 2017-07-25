@@ -60,7 +60,7 @@ def get_cache_dir():
         return Path(local, 'flit')
 
 def _verify_classifiers_cached(classifiers):
-    with (get_cache_dir() / 'classifiers.lst').open() as f:
+    with (get_cache_dir() / 'classifiers.lst').open('utf-8') as f:
         valid_classifiers = set(l.strip() for l in f)
 
     invalid = classifiers - valid_classifiers
@@ -115,7 +115,7 @@ def read_pkg_ini(path):
 
 def _read_pkg_ini(path):
     cp = configparser.ConfigParser()
-    with path.open() as f:
+    with path.open(encoding='utf-8') as f:
         cp.read_file(f)
 
     return cp
@@ -146,7 +146,7 @@ def _validate_config(cp, path):
 
     if 'description-file' in md_sect:
         description_file = path.parent / md_sect.get('description-file')
-        with description_file.open() as f:
+        with description_file.open(encoding='utf-8') as f:
             raw_desc =  f.read()
         if description_file.suffix == '.md':
             try:

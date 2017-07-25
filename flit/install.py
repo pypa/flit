@@ -153,7 +153,7 @@ class Installer(object):
         for name, (module, func) in script_defs.items():
             script_file = pathlib.Path(scripts_dir) / name
             log.info('Writing script to %s', script_file)
-            with script_file.open('w') as f:
+            with script_file.open('w', encoding='utf-8') as f:
                 f.write(common.script_template.format(
                     interpreter=sys.executable,
                     module=module,
@@ -299,12 +299,12 @@ class Installer(object):
             metadata.write_metadata_file(f)
         self.installed_files.append(dist_info / 'METADATA')
 
-        with (dist_info / 'INSTALLER').open('w') as f:
+        with (dist_info / 'INSTALLER').open('w', encoding='utf-8') as f:
             f.write('flit')
         self.installed_files.append(dist_info / 'INSTALLER')
 
         # We only handle explicitly requested installations
-        with (dist_info / 'REQUESTED').open('w'): pass
+        with (dist_info / 'REQUESTED').open('wb'): pass
         self.installed_files.append(dist_info / 'REQUESTED')
 
         if self.ini_info['entry_points_file'] is not None:
