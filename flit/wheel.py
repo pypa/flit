@@ -2,7 +2,6 @@ from base64 import urlsafe_b64encode
 import configparser
 import contextlib
 from datetime import datetime
-import glob
 import hashlib
 import io
 import logging

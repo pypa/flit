@@ -6,8 +6,6 @@ import os
 from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
-import re
-import sys
 import tarfile
 
 from flit import common, inifile
@@ -245,9 +243,3 @@ class SdistBuilder:
 
         log.info("Built sdist: %s", target)
         return target
-
-if __name__ == '__main__':
-    try:
-        SdistBuilder().build()
-    except VCSError as e:
-        sys.exit(str(e))
