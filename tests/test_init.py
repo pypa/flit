@@ -2,6 +2,7 @@ import builtins
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from testpath import assert_isfile
 from unittest.mock import patch
 
 from flit import init
@@ -61,3 +62,9 @@ def test_guess_module_name():
     with make_dir(['foo.py', 'bar.py']) as td:
         ib = init.IniterBase(td)
         assert ib.guess_module_name() is None
+
+def test_write_license():
+    with TemporaryDirectory() as td:
+        ib = init.IniterBase(td)
+        ib.write_license('mit', 'Thomas Kluyver')
+        assert_isfile(Path(td, 'LICENSE'))
