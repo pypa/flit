@@ -14,6 +14,7 @@ Contents:
 
    flit_ini
    entrypoints
+   testpypi
    history
 
 Environment variables
