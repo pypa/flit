@@ -57,5 +57,28 @@ included automatically.
 Flit requires Python 3, but you can use it to distribute modules for Python 2,
 so long as they can be imported on Python 3.
 
+To publish a package to TestPyPI:
+
+1. Edit your ``~/.pypirc`` file as follows::
+
+       [distutils]
+       index-servers =
+           pypi
+           testpypi
+
+       [testpypi]
+       repository = https://test.pypi.org/legacy/
+       username:<your_testPyPI_username>
+       password:<your_testPyPI_password>
+
+       [pypi]
+       username:<your_PyPI_username>
+       password:<your_PyPI_password>
+
+2. Run this command to upload your code to TestPyPI::
+
+       flit --repository testpypi publish
+
+
 `See Flit's documentation <https://flit.readthedocs.io/>`_ for more
 information.
