@@ -52,7 +52,7 @@ class WheelBuilder:
             d = datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
             log.info("Zip timestamps will be from SOURCE_DATE_EPOCH: %s", d)
             # zipfile expects a 6-tuple, not a datetime object
-            self.source_time_stamp = (d.year, d.minute, d.day, d.hour, d.minute, d.second)
+            self.source_time_stamp = (d.year, d.month, d.day, d.hour, d.minute, d.second)
         except (KeyError, ValueError):
             # Otherwise, we'll use the mtime of files, and generated files will
             # default to 2016-1-1 00:00:00
