@@ -84,7 +84,7 @@ class WheelBuilder:
             zinfo = zipfile.ZipInfo.from_file(full_path, rel_path)
         else:
             # Set timestamps in zipfile for reproducible build
-            zinfo = zipfile.ZipInfo(full_path, self.source_time_stamp)
+            zinfo = zipfile.ZipInfo(rel_path, self.source_time_stamp)
 
         hashsum = hashlib.sha256()
         with open(full_path, 'rb') as src, self.wheel_zip.open(zinfo, 'w') as dst:
