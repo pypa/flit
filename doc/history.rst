@@ -1,6 +1,14 @@
 Release history
 ===============
 
+Version 0.11.4
+--------------
+
+- Explicitly open various files as UTF-8, rather than relying on locale
+  encoding.
+- Link to docs from README.
+- Better test coverage, and a few minor fixes for problems revealed by tests.
+
 Version 0.11.3
 --------------
 
