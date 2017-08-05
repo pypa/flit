@@ -109,6 +109,9 @@ class WheelBuilder:
         yield sio
 
         log.debug("Writing data to %s in zip file", rel_path)
+        # The default is a fixed timestamp rather than the current time, so
+        # that building a wheel twice on the same computer can automatically
+        # give you the exact same result.
         date_time = self.source_time_stamp or (2016, 1, 1, 0, 0, 0)
         zi = zipfile.ZipInfo(rel_path, date_time)
         b = sio.getvalue().encode('utf-8')
