@@ -79,6 +79,10 @@ class WheelBuilder:
     def _add_file(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)
         full_path, rel_path = str(full_path), str(rel_path)
+        if os.sep != '/':
+            # We always want to have /-separated paths in the zip file and in
+            # RECORD
+            rel_path = rel_path.replace(os.sep, '/')
 
         if self.source_time_stamp is None:
             zinfo = zipfile.ZipInfo.from_file(full_path, rel_path)
