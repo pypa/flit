@@ -60,9 +60,6 @@ or as a directory — and you want to distribute it.
 
        flit publish
 
-If your package is not registered on PyPI yet, flit will try to register it for
-you during the upload step. 
-
 To install a package locally for development, run::
 
     flit install [--symlink] [--python path/to/python]
