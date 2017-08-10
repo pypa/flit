@@ -201,6 +201,7 @@ def _validate_config(cp, path):
         md_dict['name'] = md_dict.pop('dist_name')
 
     if 'classifiers' in md_dict:
+        md_dict['classifiers'] = [c for c in md_dict['classifiers'] if c.strip()]
         verify_classifiers(md_dict['classifiers'])
 
     # Scripts ---------------
