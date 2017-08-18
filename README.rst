@@ -11,8 +11,13 @@ Install
 
     $ pip install flit
 
-Flit requires Python 3, but you can use it to distribute modules for Python 2,
-so long as they can be imported on Python 3.
+Flit requires Python 3 and therefor needs to be installed using the Python 3
+version of PIP. On some platforms (including Debian, Ubuntu and Fedora) this
+means that you'll have to use the ``pip3`` command instead to get the correct
+interpreter version.
+
+Python 2 modules can be distributed using Flit, but need to be importable on
+Python 3 without errors.
 
 Usage
 -----
