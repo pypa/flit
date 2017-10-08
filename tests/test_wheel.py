@@ -76,7 +76,7 @@ def test_permissions_normed():
 
         whl = Path(td, 'dist', 'module1-0.1-py2.py3-none-any.whl')
         assert_isfile(whl)
-        with zipfile.ZipFile(whl) as zf:
+        with zipfile.ZipFile(str(whl)) as zf:
             info = zf.getinfo('module1.py')
             perms = (info.external_attr >> 16) & 0o777
             assert perms == 0o644, oct(perms)
@@ -87,7 +87,7 @@ def test_permissions_normed():
         wheel_main(Path(td, 'module1-pkg.ini'))
 
         assert_isfile(whl)
-        with zipfile.ZipFile(whl) as zf:
+        with zipfile.ZipFile(str(whl)) as zf:
             info = zf.getinfo('module1.py')
             perms = (info.external_attr >> 16) & 0o777
             assert perms == 0o755, oct(perms)
