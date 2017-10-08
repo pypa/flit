@@ -6,8 +6,10 @@ import io
 import logging
 import os
 import re
+import stat
 import sys
 import tempfile
+from types import SimpleNamespace
 
 if sys.version_info >= (3, 6):
     import zipfile
@@ -52,7 +54,7 @@ class WheelBuilder:
             d = datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
             log.info("Zip timestamps will be from SOURCE_DATE_EPOCH: %s", d)
             # zipfile expects a 6-tuple, not a datetime object
-            self.source_time_stamp = (d.year, d.minute, d.day, d.hour, d.minute, d.second)
+            self.source_time_stamp = (d.year, d.month, d.day, d.hour, d.minute, d.second)
         except (KeyError, ValueError):
             # Otherwise, we'll use the mtime of files, and generated files will
             # default to 2016-1-1 00:00:00
@@ -79,12 +81,27 @@ class WheelBuilder:
     def _add_file(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)
         full_path, rel_path = str(full_path), str(rel_path)
+        if os.sep != '/':
+            # We always want to have /-separated paths in the zip file and in
+            # RECORD
+            rel_path = rel_path.replace(os.sep, '/')
 
         if self.source_time_stamp is None:
             zinfo = zipfile.ZipInfo.from_file(full_path, rel_path)
         else:
             # Set timestamps in zipfile for reproducible build
-            zinfo = zipfile.ZipInfo(full_path, self.source_time_stamp)
+            zinfo = zipfile.ZipInfo(rel_path, self.source_time_stamp)
+        
+        # Normalize permission bits to either 755 (executable) or 644
+        st_mode = os.stat(full_path).st_mode
+        new_mode = (st_mode | 0o644) & ~0o133  # 644 permissions, higher bits unchanged
+        if st_mode & 0o100:
+            # If executable, 644 -> 755
+            new_mode |= 0o111
+        zinfo.external_attr = (new_mode & 0xFFFF) << 16      # Unix attributes
+
+        if stat.S_ISDIR(st_mode):
+            zinfo.external_attr |= 0x10  # MS-DOS directory flag
 
         hashsum = hashlib.sha256()
         with open(full_path, 'rb') as src, self.wheel_zip.open(zinfo, 'w') as dst:
@@ -105,6 +122,9 @@ class WheelBuilder:
         yield sio
 
         log.debug("Writing data to %s in zip file", rel_path)
+        # The default is a fixed timestamp rather than the current time, so
+        # that building a wheel twice on the same computer can automatically
+        # give you the exact same result.
         date_time = self.source_time_stamp or (2016, 1, 1, 0, 0, 0)
         zi = zipfile.ZipInfo(rel_path, date_time)
         b = sio.getvalue().encode('utf-8')
@@ -179,7 +199,7 @@ def make_wheel_in(ini_path, wheel_directory):
 
     wheel_path = wheel_directory / wb.wheel_filename
     os.replace(temp_path, str(wheel_path))
-    log.info("Wheel built: %s", wheel_path)
+    log.info("Built wheel: %s", wheel_path)
     return wb, wheel_path
 
 def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
@@ -200,3 +220,5 @@ def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
     if upload:
         from .upload import do_upload
         do_upload(wheel_path, wb.metadata, repo)
+
+    return SimpleNamespace(builder=wb, file=wheel_path)

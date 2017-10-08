@@ -1,6 +1,63 @@
 Release history
 ===============
 
+Version 0.12
+------------
+
+- Normalise file permissions in the zip file, making builds more reproducible
+  across different systems.
+
+Version 0.11.4
+--------------
+
+- Explicitly open various files as UTF-8, rather than relying on locale
+  encoding.
+- Link to docs from README.
+- Better test coverage, and a few minor fixes for problems revealed by tests.
+
+Version 0.11.3
+--------------
+
+- Fixed a bug causing failed uploads when the password is entered in the
+  terminal.
+
+Version 0.11.2
+--------------
+
+- A couple of behaviour changes when uploading to warehouse.
+
+Version 0.11.1
+--------------
+
+- Fixed a bug when you use flit to build an sdist from a subdirectory inside a
+  VCS checkout. The VCS is now correctly detected.
+- Fix the rst checker for newer versions of docutils, by upgrading the bundled
+  copy of readme_renderer.
+
+Version 0.11
+------------
+
+- Flit can now build sdists (tarballs) and upload them to PyPI, if your code is
+  in a git or mercurial repository. There are new commands:
+
+  - ``flit build`` builds both a wheel and an sdist.
+  - ``flit publish`` builds and uploads a wheel and an sdist.
+
+- Smarter ways of getting the information needed for upload:
+
+  - If you have the `keyring <https://github.com/jaraco/keyring>`_ package
+    installed, flit can use it to store your password, rather than keeping it
+    in plain text in ``~/.pypirc``.
+  - If ``~/.pypirc`` does not already exist, and you are prompted for your
+    username, flit will write it into that file.
+  - You can provide the information as environment variables:
+    :envvar:`FLIT_USERNAME`, :envvar:`FLIT_PASSWORD` and :envvar:`FLIT_INDEX_URL`.
+    Use this to upload packages from a CI service, for instance.
+
+- Include 'LICENSE' or 'COPYING' files in wheels.
+- Fix for ``flit install --symlink`` inside a virtualenv.
+
+
 Version 0.10
 ------------
 

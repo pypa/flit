@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Copied from https://github.com/pypa/readme_renderer
+# Commit 5b455a9c5bafc1732dafad9619bcbfa8e15432c9
+
 from __future__ import absolute_import, division, print_function
 
 import io
@@ -45,7 +49,6 @@ class ReadMeHTMLTranslator(HTMLTranslator):
             self.body.pop()
             # add on `img` with attributes
             self.body.append(self.starttag(node, "img", **atts))
-        self.body.append(self.context.pop())
 
 
 SETTINGS = {
@@ -118,4 +121,7 @@ def render(raw, stream=None):
     else:
         rendered = parts.get("fragment")
 
-    return clean(rendered or raw), bool(rendered)
+    if rendered:
+        return clean(rendered)
+    else:
+        return None

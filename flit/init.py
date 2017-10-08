@@ -29,7 +29,7 @@ def get_data_dir():
 
 def get_defaults():
     try:
-        with (get_data_dir() / 'init_defaults.json').open() as f:
+        with (get_data_dir() / 'init_defaults.json').open(encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
@@ -40,7 +40,7 @@ def store_defaults(d):
         data_dir.mkdir(parents=True)
     except FileExistsError:
         pass
-    with (data_dir / 'init_defaults.json').open('w') as f:
+    with (data_dir / 'init_defaults.json').open('w', encoding='utf-8') as f:
         json.dump(d, f, indent=2)
 
 license_choices = [
@@ -103,10 +103,10 @@ class IniterBase:
         if (self.directory / 'LICENSE').exists():
             return
         year = date.today().year
-        with (license_templates_dir / name).open() as f:
+        with (license_templates_dir / name).open(encoding='utf-8') as f:
             license_text = f.read()
 
-        with (self.directory / 'LICENSE').open('w') as f:
+        with (self.directory / 'LICENSE').open('w', encoding='utf-8') as f:
             f.write(license_text.format(year=year, author=author))
 
 
@@ -182,6 +182,7 @@ class TerminalIniter(IniterBase):
         if license != 'skip':
             metadata['classifiers'] = [license_names_to_classifiers[license]]
             self.write_license(license, author)
+
         d = OrderedDict([
             ('build-system', OrderedDict([
                 ('requires', ['flit']),
@@ -190,8 +191,9 @@ class TerminalIniter(IniterBase):
             ('tool', {'flit': {'metadata': metadata}})
         ])
 
-        with (self.directory / 'pyproject.toml').open('w') as f:
+        with (self.directory / 'pyproject.toml').open('w', encoding='utf-8') as f:
             toml.dump(f, d)
+
         print()
         print("Written pyproject.toml; edit that file to add optional extra info.")
 

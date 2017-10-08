@@ -49,6 +49,9 @@ def test_writable_dir(path):
     if os.name == 'posix':
         return os.access(path, os.W_OK)
 
+    return _test_writable_dir_win(path)
+
+def _test_writable_dir_win(path):
     # os.access doesn't work on Windows: http://bugs.python.org/issue2528
     # and we can't use tempfile: http://bugs.python.org/issue22107
     basename = 'accesstest_deleteme_fishfingers_custard_'
@@ -72,8 +75,8 @@ def test_writable_dir(path):
 
     # This should never be reached
     msg = ('Unexpected condition testing for writable directory {!r}. '
-           'Please open an issue on flit to debug why this occurred.')
-    raise EnvironmentError(msg.format(path))
+           'Please open an issue on flit to debug why this occurred.') # pragma: no cover
+    raise EnvironmentError(msg.format(path))  # pragma: no cover
 
 class RootInstallError(Exception):
     def __str__(self):
@@ -154,7 +157,7 @@ class Installer(object):
             module, func = common.parse_entry_point(ep)
             script_file = pathlib.Path(scripts_dir) / name
             log.info('Writing script to %s', script_file)
-            with script_file.open('w') as f:
+            with script_file.open('w', encoding='utf-8') as f:
                 f.write(common.script_template.format(
                     interpreter=sys.executable,
                     module=module,
@@ -300,12 +303,12 @@ class Installer(object):
             metadata.write_metadata_file(f)
         self.installed_files.append(dist_info / 'METADATA')
 
-        with (dist_info / 'INSTALLER').open('w') as f:
+        with (dist_info / 'INSTALLER').open('w', encoding='utf-8') as f:
             f.write('flit')
         self.installed_files.append(dist_info / 'INSTALLER')
 
         # We only handle explicitly requested installations
-        with (dist_info / 'REQUESTED').open('w'): pass
+        with (dist_info / 'REQUESTED').open('wb'): pass
         self.installed_files.append(dist_info / 'REQUESTED')
 
         if self.ini_info['entrypoints']:

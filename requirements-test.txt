@@ -1,4 +1,5 @@
 requests
+requests_download
 testpath
 responses
 docutils
@@ -6,3 +7,4 @@ zipfile36
 pytoml
 pytest>=2.7.3
 pytest-warnings
+pytest-cov

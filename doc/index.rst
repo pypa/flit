@@ -14,6 +14,8 @@ Contents:
 
    flit_ini
    entrypoints
+   upload
+   reproducible
    history
 
 Environment variables
@@ -24,7 +26,7 @@ Environment variables
    .. versionadded:: 0.10
 
    Setting this to any non-empty value will stop flit from making network
-   connections (unless you explicitly ask to upload or register a package). This
+   connections (unless you explicitly ask to upload a package). This
    is intended for downstream packagers, so if you use this, it's up to you to
    ensure any necessary dependencies are installed.
 
@@ -35,12 +37,8 @@ Environment variables
    this to any non-empty value allows installation as root. It has no effect on
    Windows.
 
-.. envvar:: SOURCE_DATE_EPOCH
-
-   To make reproducible builds, set this to a timestamp as a number of seconds
-   since the start of the year 1970 in UTC. See `the specification
-   <https://reproducible-builds.org/specs/source-date-epoch/>`__ for more
-   details.
+There are other environment variables to control :doc:`uploading packages <upload>`.
+and :doc:`reproducible builds <reproducible>`.
 
 Indices and tables
 ==================

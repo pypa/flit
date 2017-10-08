@@ -34,6 +34,7 @@ metadata_allowed_fields = {
     'requires-python',
     'dist-name',
     'entry-points-file',
+    'description-file',
 } | metadata_list_fields
 
 metadata_required_fields = {
@@ -64,7 +65,7 @@ def get_cache_dir() -> Path:
 
 def _verify_classifiers_cached(classifiers):
     """Check classifiers against the downloaded list of known classifiers"""
-    with (get_cache_dir() / 'classifiers.lst').open() as f:
+    with (get_cache_dir() / 'classifiers.lst').open(encoding='utf-8') as f:
         valid_classifiers = set(l.strip() for l in f)
 
     invalid = classifiers - valid_classifiers
@@ -242,7 +243,7 @@ def _read_pkg_ini(path):
     """Reads old-style flit.ini
     """
     cp = configparser.ConfigParser()
-    with path.open() as f:
+    with path.open(encoding='utf-8') as f:
         cp.read_file(f)
 
     return cp
@@ -268,7 +269,7 @@ def _prep_metadata(md_sect, path):
     # Description file
     if 'description-file' in md_sect:
         description_file = path.parent / md_sect.get('description-file')
-        with description_file.open() as f:
+        with description_file.open(encoding='utf-8') as f:
             raw_desc =  f.read()
         if description_file.suffix == '.md':
             try:
@@ -276,14 +277,13 @@ def _prep_metadata(md_sect, path):
                 log.debug('will convert %s to rst', description_file)
                 raw_desc = pypandoc.convert(raw_desc, 'rst', format='markdown')
             except Exception:
-                log.warning('Unable to convert markdown to rst. '
-                            'Please install `pypandoc` and `pandoc` to use '
-                            'markdown long description.')
+                log.warning('Unable to convert markdown to rst. Please install '
+                    '`pypandoc` and `pandoc` to use markdown long description.')
 
         # rst check
         stream = io.StringIO()
-        _, ok = render(raw_desc, stream)
-        if not ok:
+        res = render(raw_desc, stream)
+        if not res:
             log.warning("The file description seems not to be valid rst for PyPI;"
                     " it will be interpreted as plain text")
             log.warning(stream.getvalue())
@@ -367,6 +367,7 @@ def _validate_config(cp, path):
         md_dict['name'] = md_dict.pop('dist_name')
 
     if 'classifiers' in md_dict:
+        md_dict['classifiers'] = [c for c in md_dict['classifiers'] if c.strip()]
         verify_classifiers(md_dict['classifiers'])
 
     # Scripts ---------------

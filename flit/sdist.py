@@ -5,7 +5,6 @@ import os
 from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
-import sys
 import tarfile
 
 from flit import common, inifile
@@ -55,10 +54,10 @@ def auto_packages(pkgdir: str):
     def find_nearest_pkg(rel_path):
         parts = rel_path.split(os.sep)
         for i in reversed(range(1, len(parts))):
-            ancestor = os.sep.join(parts[:i])
+            ancestor = '/'.join(parts[:i])
             if ancestor in subpkg_paths:
                 pkg = '.'.join([pkg_name] + parts[:i])
-                return pkg, os.sep.join(parts[i:])
+                return pkg, '/'.join(parts[i:])
 
         # Relative to the top-level package
         return pkg_name, rel_path
@@ -78,7 +77,7 @@ def auto_packages(pkgdir: str):
             packages.append('.'.join([pkg_name] + parts))
         else:
             pkg, from_nearest_pkg = find_nearest_pkg(from_top_level)
-            pkg_data[pkg].append(os.path.join(from_nearest_pkg, '*'))
+            pkg_data[pkg].append(pjoin(from_nearest_pkg, '*'))
 
     # Sort values in pkg_data
     pkg_data = {k: sorted(v) for (k, v) in pkg_data.items()}
@@ -121,8 +120,8 @@ def convert_requires(metadata):
     return install_reqs, dict(extra_reqs)
 
 def include_path(p):
-    return not (p.startswith('dist/')
-                or ('/__pycache__' in p)
+    return not (p.startswith('dist' + os.sep)
+                or (os.sep+'__pycache__' in p)
                 or p.endswith('.pyc'))
 
 class SdistBuilder:
@@ -151,6 +150,7 @@ class SdistBuilder:
                            self.srcdir)
 
         files = vcs_mod.list_tracked_files(self.srcdir)
+        log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
         return sorted(filter(include_path, files))
 
     def make_setup_py(self):
@@ -230,10 +230,5 @@ class SdistBuilder:
 
         tf.close()
 
-        log.info("Built %s", target)
-
-if __name__ == '__main__':
-    try:
-        SdistBuilder().build()
-    except VCSError as e:
-        sys.exit(str(e))
+        log.info("Built sdist: %s", target)
+        return target

@@ -7,7 +7,7 @@ import sys
 from . import common
 from .log import enable_colourful_output
 
-__version__ = '0.10'
+__version__ = '0.11.4'
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='pyproject.toml')
     ap.add_argument('--version', action='version', version='Flit '+__version__)
-    ap.add_argument('--repository', default='pypi',
+    ap.add_argument('--repository',
         help="Name of the repository to upload to (must be in ~/.pypirc)"
     )
     ap.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
@@ -45,6 +45,22 @@ def main(argv=None):
 
     parser_sdist = subparsers.add_parser('sdist',
          help="Build a source distribution (.tar.gz)",
+    )
+
+    parser_build = subparsers.add_parser('build',
+        help="Build wheel and sdist",
+    )
+
+    parser_build.add_argument('--format', action='append',
+        help="Select a format to build. Options: 'wheel', 'sdist'"
+    )
+
+    parser_publish = subparsers.add_parser('publish',
+        help="Upload wheel and sdist",
+    )
+
+    parser_publish.add_argument('--format', action='append',
+        help="Select a format to publish. Options: 'wheel', 'sdist'"
     )
 
     parser_install = subparsers.add_parser('install',
@@ -107,6 +123,14 @@ def main(argv=None):
             SdistBuilder(args.ini_file).build()
         except common.VCSError as e:
             sys.exit(str(e))
+
+    elif args.subcmd == 'build':
+        from .build import main
+        main(args.ini_file, formats=set(args.format or []))
+    elif args.subcmd == 'publish':
+        from .upload import main
+        main(args.ini_file, args.repository, formats=set(args.format or []))
+
     elif args.subcmd == 'install':
         from .install import Installer
         try:
@@ -127,6 +151,3 @@ def main(argv=None):
     else:
         ap.print_help()
         sys.exit(1)
-
-if __name__ == '__main__':
-    main()

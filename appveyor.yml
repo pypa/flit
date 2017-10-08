@@ -1,0 +1,14 @@
+environment:
+  matrix:
+    # For Python versions available on Appveyor, see
+    # http://www.appveyor.com/docs/installed-software#python
+    - PYTHON: "C:\\Python35-x64"
+    - PYTHON: "C:\\Python36"
+
+install:
+  - "%PYTHON%\\python.exe -m pip install -r requirements-test.txt"
+
+build: off
+
+test_script:
+  - "%PYTHON%\\python.exe -m pytest"
