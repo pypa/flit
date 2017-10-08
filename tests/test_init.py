@@ -87,5 +87,5 @@ def test_init():
           faking_input(responses):
         ti = init.TerminalIniter(td)
         ti.initialise()
-        assert_isfile('flit.ini')
+        assert_isfile('pyproject.toml')
         assert_isfile('LICENSE')
