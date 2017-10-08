@@ -153,7 +153,7 @@ def prep_toml_config(d, path):
         raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
 
     if 'metadata' not in d:
-        raise ConfigError('[metadata] section is required')
+        raise ConfigError('[tool.flit.metadata] section is required')
 
     md_dict, module = _prep_metadata(d['metadata'], path)
 
@@ -314,6 +314,15 @@ def _prep_metadata(md_sect, path):
                 raise ConfigError('Expected a string for {} field, found {!r}'
                                     .format(key, value))
 
+    # What we call requires in the ini file is technically requires_dist in
+    # the metadata.
+    if 'requires' in md_dict:
+        md_dict['requires_dist'] = md_dict.pop('requires')
+
+    # And what we call dist-name is name in the metadata
+    if 'dist_name' in md_dict:
+        md_dict['name'] = md_dict.pop('dist_name')
+
     return md_dict, module
 
 def _validate_config(cp, path):
@@ -355,16 +364,6 @@ def _validate_config(cp, path):
         entrypoints = {}
 
     md_dict, module = _prep_metadata(md_sect, path)
-
-
-    # What we call requires in the ini file is technically requires_dist in
-    # the metadata.
-    if 'requires' in md_dict:
-        md_dict['requires_dist'] = md_dict.pop('requires')
-
-    # And what we call dist-name is name in the metadata
-    if 'dist_name' in md_dict:
-        md_dict['name'] = md_dict.pop('dist_name')
 
     if 'classifiers' in md_dict:
         md_dict['classifiers'] = [c for c in md_dict['classifiers'] if c.strip()]
