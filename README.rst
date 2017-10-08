@@ -1,7 +1,3 @@
-.. figure:: logo.png
-   :alt: The Flit Python packaging tool
-   :align: right
-
 **Flit** is a simple way to put Python packages and modules on PyPI.
 
 Install
