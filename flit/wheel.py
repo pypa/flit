@@ -7,6 +7,7 @@ import io
 import logging
 import os
 import re
+import stat
 import sys
 import tempfile
 from types import SimpleNamespace
@@ -90,13 +91,16 @@ class WheelBuilder:
             # Set timestamps in zipfile for reproducible build
             zinfo = zipfile.ZipInfo(rel_path, self.source_time_stamp)
         
-        # Normalize permission bits to either 755 (executable) or 644 (not executable)
+        # Normalize permission bits to either 755 (executable) or 644
         st_mode = os.stat(full_path).st_mode
+        new_mode = (st_mode | 0o644) & ~0o133  # 644 permissions, higher bits unchanged
         if st_mode & 0o100:
-            st_mode = (st_mode | 0o755) & ~0o22
-        else:
-            st_mode = (st_mode | 0o644) & ~0o133
-        zinfo.external_attr = (st_mode & 0xFFFF) << 16      # Unix attributes
+            # If executable, 644 -> 755
+            new_mode |= 0o111
+        zinfo.external_attr = (new_mode & 0xFFFF) << 16      # Unix attributes
+
+        if stat.S_ISDIR(st_mode):
+            zinfo.external_attr |= 0x10  # MS-DOS directory flag
 
         hashsum = hashlib.sha256()
         with open(full_path, 'rb') as src, self.wheel_zip.open(zinfo, 'w') as dst:
