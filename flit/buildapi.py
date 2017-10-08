@@ -5,6 +5,7 @@ from pathlib import Path
 from .common import Module, make_metadata, write_entry_points
 from .inifile import read_pkg_ini
 from .wheel import make_wheel_in, _write_wheel_file
+from .sdist import SdistBuilder
 
 log = logging.getLogger(__name__)
 
@@ -15,6 +16,9 @@ def get_requires_for_build_wheel(config_settings):
     """Returns a list of requirements for building, as strings"""
     info = read_pkg_ini(pyproj_toml)
     return info['metadata']['requires-dist']
+
+# For now, we require all dependencies to build either a wheel or an sdist.
+get_requires_for_build_sdist = get_requires_for_build_wheel
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings):
     """Creates {metadata_directory}/foo-1.2.dist-info"""
@@ -45,3 +49,7 @@ def build_wheel(wheel_directory, config_settings, metadata_directory=None):
     _, path = make_wheel_in(pyproj_toml, Path(wheel_directory))
     return path.name
 
+def build_sdist(sdist_directory, config_settings=None):
+    """Builds an sdist, places it in sdist_directory"""
+    path = SdistBuilder(pyproj_toml).build(sdist_directory)
+    return path.name
