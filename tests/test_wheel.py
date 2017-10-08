@@ -80,3 +80,14 @@ def test_permissions_normed():
             info = zf.getinfo('module1.py')
             perms = (info.external_attr >> 16) & 0o777
             assert perms == 0o644, oct(perms)
+        whl.unlink()
+
+        # This time with executable bit set
+        Path(td, 'module1.py').chmod(0o720)
+        wheel_main(Path(td, 'module1-pkg.ini'))
+
+        assert_isfile(whl)
+        with zipfile.ZipFile(whl) as zf:
+            info = zf.getinfo('module1.py')
+            perms = (info.external_attr >> 16) & 0o777
+            assert perms == 0o755, oct(perms)
