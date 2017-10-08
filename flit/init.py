@@ -192,7 +192,7 @@ class TerminalIniter(IniterBase):
         ])
 
         with (self.directory / 'pyproject.toml').open('w', encoding='utf-8') as f:
-            toml.dump(f, d)
+            toml.dump(d, f)
 
         print()
         print("Written pyproject.toml; edit that file to add optional extra info.")
