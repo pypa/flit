@@ -210,8 +210,9 @@ class SdistBuilder:
             target_dir.mkdir(parents=True)
         target = target_dir / '{}-{}.tar.gz'.format(
                         self.metadata.name, self.metadata.version)
-        source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '') or None
-        gz = GzipFile(str(target), mode='wb', mtime=source_date_epoch)
+        source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
+        mtime = int(source_date_epoch) if source_date_epoch else None
+        gz = GzipFile(str(target), mode='wb', mtime=mtime)
         tf = tarfile.TarFile(str(target), mode='w', fileobj=gz)
 
         try:
