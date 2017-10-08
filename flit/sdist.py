@@ -1,5 +1,6 @@
 from configparser import ConfigParser
 from collections import defaultdict
+from gzip import GzipFile
 import io
 import logging
 import os
@@ -209,37 +210,43 @@ class SdistBuilder:
             target_dir.mkdir(parents=True)
         target = target_dir / '{}-{}.tar.gz'.format(
                         self.metadata.name, self.metadata.version)
-        tf = tarfile.open(str(target), mode='w:gz')
-        tf_dir = '{}-{}'.format(self.metadata.name, self.metadata.version)
+        source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '') or None
+        gz = GzipFile(str(target), mode='wb', mtime=source_date_epoch)
+        tf = tarfile.TarFile(str(target), mode='w', fileobj=gz)
 
-        files_to_add = self.find_tracked_files()
+        try:
+            tf_dir = '{}-{}'.format(self.metadata.name, self.metadata.version)
 
-        for relpath in files_to_add:
-            path = self.srcdir / relpath
-            tf.add(str(path), arcname=pjoin(tf_dir, relpath))
+            files_to_add = self.find_tracked_files()
 
-        if 'setup.py' in files_to_add:
-            log.warning("Using setup.py from repository, not generating setup.py")
-        else:
-            setup_py = self.make_setup_py()
-            log.info("Writing generated setup.py")
-            ti = tarfile.TarInfo(pjoin(tf_dir, 'setup.py'))
-            ti.size = len(setup_py)
-            tf.addfile(ti, io.BytesIO(setup_py))
+            for relpath in files_to_add:
+                path = self.srcdir / relpath
+                tf.add(str(path), arcname=pjoin(tf_dir, relpath))
 
-        pkg_info = PKG_INFO.format(
-            name=self.metadata.name,
-            version=self.metadata.version,
-            summary=self.metadata.summary,
-            home_page=self.metadata.home_page,
-            author=self.metadata.author,
-            author_email=self.metadata.author_email,
-        ).encode('utf-8')
-        ti = tarfile.TarInfo(pjoin(tf_dir, 'PKG-INFO'))
-        ti.size = len(pkg_info)
-        tf.addfile(ti, io.BytesIO(pkg_info))
+            if 'setup.py' in files_to_add:
+                log.warning("Using setup.py from repository, not generating setup.py")
+            else:
+                setup_py = self.make_setup_py()
+                log.info("Writing generated setup.py")
+                ti = tarfile.TarInfo(pjoin(tf_dir, 'setup.py'))
+                ti.size = len(setup_py)
+                tf.addfile(ti, io.BytesIO(setup_py))
 
-        tf.close()
+            pkg_info = PKG_INFO.format(
+                name=self.metadata.name,
+                version=self.metadata.version,
+                summary=self.metadata.summary,
+                home_page=self.metadata.home_page,
+                author=self.metadata.author,
+                author_email=self.metadata.author_email,
+            ).encode('utf-8')
+            ti = tarfile.TarInfo(pjoin(tf_dir, 'PKG-INFO'))
+            ti.size = len(pkg_info)
+            tf.addfile(ti, io.BytesIO(pkg_info))
+
+        finally:
+            tf.close()
+            gz.close()
 
         log.info("Built sdist: %s", target)
         return target
