@@ -1,7 +1,9 @@
 import configparser
+import os
 from pathlib import Path
 import shutil
 import tempfile
+from unittest import skipIf
 import zipfile
 
 import pytest
@@ -66,6 +68,7 @@ def test_wheel_builder():
         assert zipfile.is_zipfile(str(target))
         assert wb.wheel_filename == 'package1-0.1-py2.py3-none-any.whl'
 
+@skipIf(os.name == 'nt', 'Windows does not preserve necessary permissions')
 def test_permissions_normed():
     with tempfile.TemporaryDirectory() as td:
         shutil.copy(str(samples_dir / 'module1.py'), td)
