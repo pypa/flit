@@ -1,6 +1,12 @@
 Release history
 ===============
 
+Version 0.12
+------------
+
+- Normalise file permissions in the zip file, making builds more reproducible
+  across different systems.
+
 Version 0.11.4
 --------------
 

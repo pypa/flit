@@ -8,7 +8,7 @@ you should be able to make wheels that are exactly identical, byte for byte.
 This is useful for verifying software. For more details, see
 `reproducible-builds.org <https://reproducible-builds.org/>`__.
 
-There are a couple of caveats, however:
+There is a caveat, however:
 
 First, zip files include the modification timestamp from each file. This will
 probably be different on each computer, because it indicates when your local
@@ -29,8 +29,14 @@ These timestamps can be overridden by an environment variable:
       `The SOURCE_DATE_EPOCH specification
       <https://reproducible-builds.org/specs/source-date-epoch/>`__
 
-Zip files also record the permission bits on a file. Checking out a repository
-on computers with different umasks can result in different permissions - a file
-that has mode ``644`` on Ubuntu may have ``664`` on Fedora. If you're concerned
-about this, normalise the permissions before using flit. Normalisation might
-be added in a future version.
+.. versionchanged:: 0.12
+   Normalising permission bits
+
+Flit normalises the permission bits of files copied into a wheel to either
+755 (executable) or 644. This means that a file is readable by all users
+and writable only by the user who owns it.
+
+The most popular version control systems only track the executable bit,
+so checking out the same repository on systems with different umasks
+(e.g. Debian and Fedora) produces files with different permissions. With Flit
+0.11 and earlier, this difference would produce non-identical wheels.
