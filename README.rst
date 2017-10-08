@@ -1,7 +1,23 @@
 **Flit** is a simple way to put Python packages and modules on PyPI.
 
-Say you're writing a module ``foobar``—either as a single file ``foobar.py``,
-or as a directory—and you want to distribute it.
+Install
+-------
+
+::
+
+    $ python3 -m pip install flit
+
+Flit requires Python 3 and therefore needs to be installed using the Python 3
+version of pip.
+
+Python 2 modules can be distributed using Flit, but need to be importable on
+Python 3 without errors.
+
+Usage
+-----
+
+Say you're writing a module ``foobar`` — either as a single file ``foobar.py``,
+or as a directory — and you want to distribute it.
 
 1. Make sure that foobar's docstring starts with a one-line summary of what
    the module is, and that it has a ``__version__``:
@@ -20,7 +36,7 @@ or as a directory—and you want to distribute it.
        module=foobar
        author=Sir Robin
        author-email=robin@camelot.uk
-       home-page=http://github.com/sirrobin/foobar
+       home-page=https://github.com/sirrobin/foobar
 
        # If you want command line scripts, this is how to declare them.
        # If not, you can leave this section out completely.
@@ -43,9 +59,6 @@ or as a directory—and you want to distribute it.
 
        flit publish
 
-If your package is not registered on PyPI yet, flit will try to register it for
-you during the upload step. 
-
 To install a package locally for development, run::
 
     flit install [--symlink] [--python path/to/python]
@@ -54,8 +67,8 @@ Flit packages a single importable module or package at a time, using the import
 name as the name on PyPI. All subpackages and data files within a package are
 included automatically.
 
-Flit requires Python 3, but you can use it to distribute modules for Python 2,
-so long as they can be imported on Python 3.
+Documentation
+-------------
 
-`See Flit's documentation <https://flit.readthedocs.io/>`_ for more
+See `Flit's documentation <https://flit.readthedocs.io/>`_ for more
 information.
