@@ -1,8 +1,74 @@
 Release history
 ===============
 
-Version Next
+Version 0.11.4
+--------------
+
+- Explicitly open various files as UTF-8, rather than relying on locale
+  encoding.
+- Link to docs from README.
+- Better test coverage, and a few minor fixes for problems revealed by tests.
+
+Version 0.11.3
+--------------
+
+- Fixed a bug causing failed uploads when the password is entered in the
+  terminal.
+
+Version 0.11.2
+--------------
+
+- A couple of behaviour changes when uploading to warehouse.
+
+Version 0.11.1
+--------------
+
+- Fixed a bug when you use flit to build an sdist from a subdirectory inside a
+  VCS checkout. The VCS is now correctly detected.
+- Fix the rst checker for newer versions of docutils, by upgrading the bundled
+  copy of readme_renderer.
+
+Version 0.11
 ------------
+
+- Flit can now build sdists (tarballs) and upload them to PyPI, if your code is
+  in a git or mercurial repository. There are new commands:
+
+  - ``flit build`` builds both a wheel and an sdist.
+  - ``flit publish`` builds and uploads a wheel and an sdist.
+
+- Smarter ways of getting the information needed for upload:
+
+  - If you have the `keyring <https://github.com/jaraco/keyring>`_ package
+    installed, flit can use it to store your password, rather than keeping it
+    in plain text in ``~/.pypirc``.
+  - If ``~/.pypirc`` does not already exist, and you are prompted for your
+    username, flit will write it into that file.
+  - You can provide the information as environment variables:
+    :envvar:`FLIT_USERNAME`, :envvar:`FLIT_PASSWORD` and :envvar:`FLIT_INDEX_URL`.
+    Use this to upload packages from a CI service, for instance.
+
+- Include 'LICENSE' or 'COPYING' files in wheels.
+- Fix for ``flit install --symlink`` inside a virtualenv.
+
+
+Version 0.10
+------------
+
+- Downstream packagers can use the :envvar:`FLIT_NO_NETWORK` environment
+  variable to stop flit downloading data from the network.
+
+Version 0.9
+-----------
+
+- ``flit install`` and ``flit installfrom`` now take an optional ``--python`` argument,
+  with the path to the Python executable you want to install it for.
+  Using this, you can install modules to Python 2.
+- Installing a module normally (without ``--symlink``) builds a wheel and uses
+  pip to install it, which should work better in some corner cases.
+
+Version 0.8
+-----------
 
 - A new ``flit installfrom`` subcommand to install a project from a source
   archive, such as from Github.
@@ -10,6 +76,7 @@ Version Next
   identical wheels.
 - A warning for non-canonical version numbers according to `PEP 440
   <https://www.python.org/dev/peps/pep-0440/>`__.
+- Fix for installing projects on Windows.
 - Better error message when module docstring is only whitespace.
 
 Version 0.7

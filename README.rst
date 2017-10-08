@@ -32,7 +32,7 @@ or as a directory—and you want to distribute it.
    package.
 
    Besides the details shown above, there are other fields you can add—see the
-   `flit.ini page <http://flit.readthedocs.org/en/latest/flit_ini.html>`_
+   `flit.ini page <https://flit.readthedocs.io/en/latest/flit_ini.html>`_
    of the docs.
 
 3. Install flit if you don't already have it::
@@ -41,21 +41,14 @@ or as a directory—and you want to distribute it.
 
 4. Run this command to upload your code to PyPI::
 
-       flit wheel --upload
+       flit publish
 
 If your package is not registered on PyPI yet, flit will try to register it for
 you during the upload step. 
 
 To install a package locally for development, run::
 
-    flit install [--symlink]
-
-.. note::
-
-   Flit only creates packages in the new 'wheel' format. People using older
-   versions of pip (<1.5) or easy_install will not be able to install them.
-   People may also want a traditional sdist for other reasons, such as Linux
-   distro packaging. I hope that these problems will diminsh over time.
+    flit install [--symlink] [--python path/to/python]
 
 Flit packages a single importable module or package at a time, using the import
 name as the name on PyPI. All subpackages and data files within a package are
@@ -63,3 +56,6 @@ included automatically.
 
 Flit requires Python 3, but you can use it to distribute modules for Python 2,
 so long as they can be imported on Python 3.
+
+`See Flit's documentation <https://flit.readthedocs.io/>`_ for more
+information.

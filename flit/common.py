@@ -57,6 +57,15 @@ class NoDocstringError(ProblemInModule): pass
 class NoVersionError(ProblemInModule): pass
 class InvalidVersion(ProblemInModule): pass
 
+class VCSError(Exception):
+    def __init__(self, msg, directory):
+        self.msg = msg
+        self.directory = directory
+
+    def __str__(self):
+        return self.msg + ' ({})'.format(self.directory)
+
+
 @contextmanager
 def _module_load_ctx():
     """Preserve some global state that modules might change at import time.
@@ -77,7 +86,7 @@ def get_info_from_module(target):
     with _module_load_ctx():
         m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
-    if not docstring.strip():
+    if (not docstring) or not docstring.strip():
         raise NoDocstringError('Cannot package module without docstring, or empty docstring. '
                                 'Please add a docstring to your module.')
     module_version = m.__dict__.get('__version__', None)
@@ -90,14 +99,14 @@ def get_info_from_module(target):
 
 def check_version(version):
     """
-    Check wether a given version string match Pep 440
+    Check whether a given version string match Pep 440
 
     Raise InvalidVersion/NoVersionError With relevant information if 
     version is invalid. 
 
     Print a warning if the version is not canonical with respect to Pep440
 
-    Return wether the version is canonical with pep440
+    Return whether the version is canonical with pep440
     """
     if not version: 
         raise NoVersionError('Cannot package module without a version string. '

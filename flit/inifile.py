@@ -35,6 +35,7 @@ metadata_allowed_fields = {
     'requires-python',
     'dist-name',
     'entry-points-file',
+    'description-file',
 } | metadata_list_fields
 
 metadata_required_fields = {
@@ -60,7 +61,7 @@ def get_cache_dir():
         return Path(local, 'flit')
 
 def _verify_classifiers_cached(classifiers):
-    with (get_cache_dir() / 'classifiers.lst').open() as f:
+    with (get_cache_dir() / 'classifiers.lst').open(encoding='utf-8') as f:
         valid_classifiers = set(l.strip() for l in f)
 
     invalid = classifiers - valid_classifiers
@@ -89,6 +90,12 @@ def verify_classifiers(classifiers):
         # FileNotFoundError: We haven't yet got the classifiers cached
         # ConfigError: At least one is invalid, but it may have been added since
         #   last time we fetched them.
+
+        if os.environ.get('FLIT_NO_NETWORK', ''):
+            log.warning("Not checking classifiers, because FLIT_NO_NETWORK is set")
+            return
+
+        # Try to download up-to-date list of classifiers
         try:
             _download_classifiers()
         except requests.ConnectionError:
@@ -96,7 +103,7 @@ def verify_classifiers(classifiers):
             if isinstance(e1, ConfigError):
                 raise e1
             else:
-                log.warn("Couldn't get list of valid classifiers to check against")
+                log.warning("Couldn't get list of valid classifiers to check against")
         else:
             _verify_classifiers_cached(classifiers)
 
@@ -109,7 +116,7 @@ def read_pkg_ini(path):
 
 def _read_pkg_ini(path):
     cp = configparser.ConfigParser()
-    with path.open() as f:
+    with path.open(encoding='utf-8') as f:
         cp.read_file(f)
 
     return cp
@@ -120,6 +127,7 @@ def _validate_config(cp, path):
     Validate a config and return a dict containing `module`,`metadata`,`script`,`entry_point` keys.
     """
     unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
+    unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
         raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
 
@@ -139,7 +147,7 @@ def _validate_config(cp, path):
 
     if 'description-file' in md_sect:
         description_file = path.parent / md_sect.get('description-file')
-        with description_file.open() as f:
+        with description_file.open(encoding='utf-8') as f:
             raw_desc =  f.read()
         if description_file.suffix == '.md':
             try:
@@ -147,13 +155,14 @@ def _validate_config(cp, path):
                 log.debug('will convert %s to rst', description_file)
                 raw_desc = pypandoc.convert(raw_desc, 'rst', format='markdown')
             except Exception:
-                log.warn('Unable to convert markdown to rst. Please install `pypandoc` and `pandoc` to use markdown long description.')
+                log.warning('Unable to convert markdown to rst. Please install '
+                         '`pypandoc` and `pandoc` to use markdown long description.')
         stream = io.StringIO()
-        _, ok = render(raw_desc, stream)
-        if not ok:
-            log.warn("The file description seems not to be valid rst for PyPI;"
+        res = render(raw_desc, stream)
+        if not res:
+            log.warning("The file description seems not to be valid rst for PyPI;"
                     " it will be interpreted as plain text")
-            log.warn(stream.getvalue())
+            log.warning(stream.getvalue())
         md_dict['description'] =  raw_desc
 
     if 'entry-points-file' in md_sect:
@@ -192,6 +201,7 @@ def _validate_config(cp, path):
         md_dict['name'] = md_dict.pop('dist_name')
 
     if 'classifiers' in md_dict:
+        md_dict['classifiers'] = [c for c in md_dict['classifiers'] if c.strip()]
         verify_classifiers(md_dict['classifiers'])
 
     # Scripts ---------------
@@ -205,4 +215,5 @@ def _validate_config(cp, path):
         'metadata': md_dict,
         'scripts': scripts_dict,
         'entry_points_file': entry_points_file,
+        'raw_config': cp,
     }

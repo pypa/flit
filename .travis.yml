@@ -1,7 +1,11 @@
 language: python
 python:
+  - "3.6"
   - "3.5"
   - "3.4"
-install: pip install -r requirements-test.txt
-script: py.test
+install:
+  - pip install -r requirements-test.txt
+  - pip install codecov
+script: py.test --cov=flit
+after_success: codecov
 sudo: false

@@ -4,15 +4,18 @@ import logging
 import os
 import csv
 import pathlib
+import random
 import shutil
 import site
 import sys
 import tempfile
-from subprocess import check_call
+from subprocess import check_call, check_output
 import sysconfig
 
 from . import common
 from . import inifile
+from .wheel import WheelBuilder
+from ._get_dirs import get_dirs
 
 log = logging.getLogger(__name__)
 
@@ -38,21 +41,42 @@ def _requires_dist_to_pip_requirement(requires_dist):
     # re-add environment marker
     return ';'.join([name_version, env_mark])
 
-def get_dirs(user=True):
-    """Get the 'scripts' and 'purelib' directories we'll install into.
+def test_writable_dir(path):
+    """Check if a directory is writable.
 
-    This is now a thin wrapper around sysconfig.get_paths(). It's not inlined,
-    because some tests mock it out to install to a different location.
+    Uses os.access() on POSIX, tries creating files on Windows.
     """
-    if user:
-        if (sys.platform == "darwin") and sysconfig.get_config_var('PYTHONFRAMEWORK'):
-            return sysconfig.get_paths('osx_framework_user')
-        return sysconfig.get_paths(os.name + '_user')
-    else:
-        # The default scheme is 'posix_prefix' or 'nt', and should work for e.g.
-        # installing into a virtualenv
-        return sysconfig.get_paths()
+    if os.name == 'posix':
+        return os.access(path, os.W_OK)
 
+    return _test_writable_dir_win(path)
+
+def _test_writable_dir_win(path):
+    # os.access doesn't work on Windows: http://bugs.python.org/issue2528
+    # and we can't use tempfile: http://bugs.python.org/issue22107
+    basename = 'accesstest_deleteme_fishfingers_custard_'
+    alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    for i in range(10):
+        name = basename + ''.join(random.choice(alphabet) for _ in range(6))
+        file = os.path.join(path, name)
+        try:
+            with open(file, mode='xb'):
+                pass
+        except FileExistsError:
+            continue
+        except PermissionError:
+            # This could be because there's a directory with the same name.
+            # But it's highly unlikely there's a directory called that,
+            # so we'll assume it's because the parent directory is not writable.
+            return False
+        else:
+            os.unlink(file)
+            return True
+
+    # This should never be reached
+    msg = ('Unexpected condition testing for writable directory {!r}. '
+           'Please open an issue on flit to debug why this occurred.') # pragma: no cover
+    raise EnvironmentError(msg.format(path))  # pragma: no cover
 
 class RootInstallError(Exception):
     def __str__(self):
@@ -60,27 +84,79 @@ class RootInstallError(Exception):
             "To allow this, set FLIT_ROOT_INSTALL=1 and try again.")
 
 class Installer(object):
-    def __init__(self, ini_path, user=None, symlink=False, deps='all'):
+    def __init__(self, ini_path, user=None, python=sys.executable,
+                 symlink=False, deps='all'):
+        self.ini_path = ini_path
+        self.python = python
+        self.symlink = symlink
+        self.deps = deps
+        if deps != 'none' and os.environ.get('FLIT_NO_NETWORK', ''):
+            self.deps = 'none'
+            log.warn('Not installing dependencies, because FLIT_NO_NETWORK is set')
+
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
 
-        log.debug('%s, %s',user, site.ENABLE_USER_SITE)
-        if user is None:
-            self.user = site.ENABLE_USER_SITE
-        else:
-            self.user = user
-        if (os.getuid() == 0) and (not os.environ.get('FLIT_ROOT_INSTALL')):
+        if (hasattr(os, 'getuid') and (os.getuid() == 0) and
+                (not os.environ.get('FLIT_ROOT_INSTALL'))):
             raise RootInstallError
 
-        self.symlink = symlink
-        self.deps = deps
+        if user is None:
+            self.user = self._auto_user(python)
+        else:
+            self.user = user
+        log.debug('User install? %s', self.user)
+
         self.installed_files = []
+
+    def _run_python(self, code=None, file=None, extra_args=()):
+        if code and file:
+            raise ValueError('Specify code or file, not both')
+        if not (code or file):
+            raise ValueError('Specify code or file')
+
+        if code:
+            args = [self.python, '-c', code]
+        else:
+            args = [self.python, file]
+        args.extend(extra_args)
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        # On Windows, shell needs to be True to pick up our local PATH
+        # when finding the Python command.
+        shell = (os.name == 'nt')
+        return check_output(args, shell=shell, env=env).decode('utf-8')
+
+    def _auto_user(self, python):
+        """Default guess for whether to do user-level install.
+
+        This should be True for system Python, and False in an env.
+        """
+        if python == sys.executable:
+            user_site = site.ENABLE_USER_SITE
+            lib_dir = sysconfig.get_path('purelib')
+        else:
+            out = self._run_python(code=
+                ("import sysconfig, site; "
+                 "print(site.ENABLE_USER_SITE); "
+                 "print(sysconfig.get_path('purelib'))"))
+            user_site, lib_dir = out.split('\n', 1)
+            user_site = (user_site.strip() == 'True')
+            lib_dir = lib_dir.strip()
+
+        if not user_site:
+            # No user site packages - probably a virtualenv
+            log.debug('User site packages not available - env install')
+            return False
+
+        log.debug('Checking access to %s', lib_dir)
+        return not test_writable_dir(lib_dir)
 
     def install_scripts(self, script_defs, scripts_dir):
         for name, (module, func) in script_defs.items():
             script_file = pathlib.Path(scripts_dir) / name
             log.info('Writing script to %s', script_file)
-            with script_file.open('w') as f:
+            with script_file.open('w', encoding='utf-8') as f:
                 f.write(common.script_template.format(
                     interpreter=sys.executable,
                     module=module,
@@ -130,6 +206,8 @@ class Installer(object):
         ]
 
         # install the requirements with pip
+        # This *doesn't* use self.python, because we're doing this to make the
+        # module importable in our current Python to get docstring & __version__.
         cmd = [sys.executable, '-m', 'pip', 'install']
         if self.user:
             cmd.append('--user')
@@ -144,10 +222,19 @@ class Installer(object):
         finally:
             os.remove(tf.name)
 
-    def install(self):
+    def _get_dirs(self, user):
+        if self.python == sys.executable:
+            return get_dirs(user=user)
+        else:
+            import json
+            path = os.path.join(os.path.dirname(__file__), '_get_dirs.py')
+            args = ['--user'] if user else []
+            return json.loads(self._run_python(file=path, extra_args=args))
+
+    def install_directly(self):
         """Install a module/package into site-packages, and create its scripts.
         """
-        dirs = get_dirs(user=self.user)
+        dirs = self._get_dirs(user=self.user)
         os.makedirs(dirs['purelib'], exist_ok=True)
         os.makedirs(dirs['scripts'], exist_ok=True)
 
@@ -179,6 +266,26 @@ class Installer(object):
 
         self.write_dist_info(dirs['purelib'])
 
+    def install_with_pip(self):
+        self.install_requirements()
+
+        with tempfile.TemporaryDirectory() as td:
+            temp_whl = os.path.join(td, 'temp.whl')
+            with open(temp_whl, 'w+b') as fp:
+                wb = WheelBuilder(self.ini_path, fp)
+                wb.build()
+
+            renamed_whl = os.path.join(td, wb.wheel_filename)
+            os.rename(temp_whl, renamed_whl)
+
+            cmd = [self.python, '-m', 'pip', 'install', renamed_whl]
+            if self.user:
+                cmd.append('--user')
+            if self.deps == 'none':
+                cmd.append('--no-deps')
+            shell = (os.name == 'nt')
+            check_call(cmd, shell=shell)
+
     def write_dist_info(self, site_pkgs):
         """Write dist-info folder, according to PEP 376"""
         metadata = common.make_metadata(self.module, self.ini_info)
@@ -195,12 +302,12 @@ class Installer(object):
             metadata.write_metadata_file(f)
         self.installed_files.append(dist_info / 'METADATA')
 
-        with (dist_info / 'INSTALLER').open('w') as f:
+        with (dist_info / 'INSTALLER').open('w', encoding='utf-8') as f:
             f.write('flit')
         self.installed_files.append(dist_info / 'INSTALLER')
 
         # We only handle explicitly requested installations
-        with (dist_info / 'REQUESTED').open('w'): pass
+        with (dist_info / 'REQUESTED').open('wb'): pass
         self.installed_files.append(dist_info / 'REQUESTED')
 
         if self.ini_info['entry_points_file'] is not None:
@@ -225,3 +332,9 @@ class Installer(object):
                 cf.writerow((path, hash, size))
 
             cf.writerow(((dist_info / 'RECORD').relative_to(site_pkgs), '', ''))
+
+    def install(self):
+        if self.symlink:
+            self.install_directly()
+        else:
+            self.install_with_pip()

@@ -57,15 +57,15 @@ classifiers
   A list of `Trove classifiers <https://pypi.python.org/pypi?%3Aaction=list_classifiers>`_,
   one per line, indented.
 requires-python
-  A version specifier for the versions of Python this requires, e.g. ``3`` or
-  ``>=3.3``.
+  A version specifier for the versions of Python this requires, e.g. ``~=3.3`` or
+  ``>=3.3,<4`` which are equivalents.
 dist-name
   If you want your package's name on PyPI to be different from the importable
   module name, set this to the PyPI name.
 keywords
   Space separated list of words to help with searching for your package.
 license
-  The name of a license, if you're using one for which they're isn't a Trove
+  The name of a license, if you're using one for which there isn't a Trove
   classifier. It's recommended to use Trove classifiers instead of this in
   most cases.
 maintainer, maintainer-email
@@ -80,7 +80,7 @@ Here's the full example from flit itself:
     author-email=thomas@kluyver.me.uk
     home-page=https://github.com/takluyver/flit
     requires=requests
-    requires-python=3
+    requires-python= >=3
     description-file=README.rst
     classifiers=Intended Audience :: Developers
         License :: OSI Approved :: BSD License
