@@ -93,10 +93,7 @@ class WheelBuilder:
         
         # Normalize permission bits to either 755 (executable) or 644
         st_mode = os.stat(full_path).st_mode
-        new_mode = (st_mode | 0o644) & ~0o133  # 644 permissions, higher bits unchanged
-        if st_mode & 0o100:
-            # If executable, 644 -> 755
-            new_mode |= 0o111
+        new_mode = common.normalize_file_permissions(st_mode)
         zinfo.external_attr = (new_mode & 0xFFFF) << 16      # Unix attributes
 
         if stat.S_ISDIR(st_mode):

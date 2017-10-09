@@ -1,5 +1,6 @@
 from configparser import ConfigParser
 from collections import defaultdict
+from copy import copy
 from gzip import GzipFile
 import io
 import logging
@@ -124,6 +125,25 @@ def include_path(p):
                 or (os.sep+'__pycache__' in p)
                 or p.endswith('.pyc'))
 
+def clean_tarinfo(ti, mtime=None):
+    """Clean metadata from a TarInfo object to make it more reproducible.
+
+    - Set uid & gid to 0
+    - Set uname and gname to ""
+    - Normalise permissions to 644 or 755
+    - Set mtime if not None
+    """
+    ti = copy(ti)
+    ti.uid = 0
+    ti.gid = 0
+    ti.uname = ''
+    ti.gname = ''
+    ti.mode = common.normalize_file_permissions(ti.mode)
+    if mtime is not None:
+        ti.mtime = mtime
+    return ti
+
+
 class SdistBuilder:
     def __init__(self, ini_path=Path('flit.ini')):
         self.ini_path = ini_path
@@ -222,7 +242,14 @@ class SdistBuilder:
 
             for relpath in files_to_add:
                 path = self.srcdir / relpath
-                tf.add(str(path), arcname=pjoin(tf_dir, relpath))
+                ti = tf.gettarinfo(str(path), arcname=pjoin(tf_dir, relpath))
+                ti = clean_tarinfo(ti, mtime)
+
+                if ti.isreg():
+                    with path.open('rb') as f:
+                        tf.addfile(ti, f)
+                else:
+                    tf.addfile(ti)  # Symlinks & ?
 
             if 'setup.py' in files_to_add:
                 log.warning("Using setup.py from repository, not generating setup.py")
