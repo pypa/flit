@@ -53,7 +53,7 @@ or as a directory — and you want to distribute it.
 
 3. Install flit if you don't already have it::
 
-       pip install flit
+       python3 -m pip install flit
 
 4. Run this command to upload your code to PyPI::
 
