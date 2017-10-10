@@ -1,9 +1,11 @@
 import ast
+from io import BytesIO
 from os.path import join as pjoin
 from pathlib import Path
 import pytest
 from shutil import which, copy
 import sys
+import tarfile
 from tempfile import TemporaryDirectory
 from testpath import assert_isfile, MockCommand
 
@@ -86,3 +88,11 @@ def test_make_setup_py():
     assert 'install_requires' not in ns
     assert ns['entry_points'] == \
            {'console_scripts': ['pkg_script = package1:main']}
+
+def test_clean_tarinfo():
+    with tarfile.open(mode='w', fileobj=BytesIO()) as tf:
+        ti = tf.gettarinfo(str(samples_dir / 'module1.py'))
+    cleaned = sdist.clean_tarinfo(ti, mtime=42)
+    assert cleaned.uid == 0
+    assert cleaned.uname == ''
+    assert cleaned.mtime == 42
