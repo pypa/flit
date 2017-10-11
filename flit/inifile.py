@@ -187,7 +187,7 @@ def _validate_config(cp, path):
 
         k2 = key.replace('-', '_')
         if key in metadata_list_fields:
-            md_dict[k2] = value.splitlines()
+            md_dict[k2] = [l for l in value.splitlines() if l.strip()]
         else:
             md_dict[k2] = value
 
@@ -201,7 +201,6 @@ def _validate_config(cp, path):
         md_dict['name'] = md_dict.pop('dist_name')
 
     if 'classifiers' in md_dict:
-        md_dict['classifiers'] = [c for c in md_dict['classifiers'] if c.strip()]
         verify_classifiers(md_dict['classifiers'])
 
     # Scripts ---------------
