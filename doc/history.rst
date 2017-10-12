@@ -6,6 +6,13 @@ Version 0.12
 
 - Normalise file permissions in the zip file, making builds more reproducible
   across different systems.
+- Sdists (.tar.gz packages) can now also be reproducibly built by setting
+  :envvar:`SOURCE_DATE_EPOCH`.
+- All list fields in the INI file now ignore blank lines (``requires``,
+  ``dev-requires``, ``classifiers``).
+- Fix the path separator in the ``RECORD`` file of a wheel built on Windows.
+- Some minor fixes to building reproducible wheels.
+- Various improvements to docs and README.
 
 Version 0.11.4
 --------------
