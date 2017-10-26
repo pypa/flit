@@ -46,6 +46,11 @@ class ModuleTests(TestCase):
                                 'version': '0.1'}
                          )
 
+        info = get_info_from_module(Module('modulewithconstructedversion', samples_dir))
+        self.assertEqual(info, {'summary': 'This module has a __version__ that requires runtime interpretation',
+                                'version': '1.2.3'}
+                         )
+
         with self.assertRaises(InvalidVersion):
             get_info_from_module(Module('invalid_version1', samples_dir))
 
