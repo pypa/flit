@@ -41,6 +41,11 @@ class ModuleTests(TestCase):
                                 'version': '0.1'}
                          )
 
+        info = get_info_from_module(Module('moduleunimportable', samples_dir))
+        self.assertEqual(info, {'summary': 'A sample unimportable module',
+                                'version': '0.1'}
+                         )
+
         with self.assertRaises(InvalidVersion):
             get_info_from_module(Module('invalid_version1', samples_dir))
 
