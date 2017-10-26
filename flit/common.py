@@ -1,3 +1,4 @@
+import ast
 from contextlib import contextmanager
 import hashlib
 from importlib.machinery import SourceFileLoader
@@ -78,24 +79,63 @@ def _module_load_ctx():
     finally:
         logging.root.handlers = logging_handlers
 
-def get_info_from_module(target):
-    """Load the module/package, get its docstring and __version__
+def get_docstring_and_version_via_ast(target):
+    """
+    Return a tuple like (docstring, version) for the given module,
+    extracted by parsing its AST.
+    """
+    with target.file.open() as f:
+        node = ast.parse(f.read())
+    for child in node.body:
+        # Only use the version from the given module if it's a simple
+        # string assignment to __version__
+        is_version_str = (isinstance(child, ast.Assign) and
+                          len(child.targets) == 1 and
+                          child.targets[0].id == "__version__" and
+                          isinstance(child.value, ast.Str))
+        if is_version_str:
+            version = child.value.s
+            break
+    else:
+        version = None
+    return ast.get_docstring(node), version
+
+def get_docstring_and_version_via_import(target):
+    """
+    Return a tuple like (docstring, version) for the given module,
+    extracted by importing the module and pulling __doc__ & __version__
+    from it.
     """
     log.debug("Loading module %s", target.file)
     sl = SourceFileLoader(target.name, str(target.file))
     with _module_load_ctx():
         m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
+    version = m.__dict__.get('__version__', None)
+    return docstring, version
+
+def get_info_from_module(target):
+    """Load the module/package, get its docstring and __version__
+    """
+    log.debug("Loading module %s", target.file)
+
+    # Attempt to extract our docstring & version by parsing our target's
+    # AST, falling back to an import if that fails. This allows us to
+    # build without necessarily requiring that our built package's
+    # requirements are installed.
+    docstring, version = get_docstring_and_version_via_ast(target)
+    if not (docstring and version):
+        docstring, version = get_docstring_and_version_via_import(target)
+
     if (not docstring) or not docstring.strip():
         raise NoDocstringError('Cannot package module without docstring, or empty docstring. '
                                 'Please add a docstring to your module.')
-    module_version = m.__dict__.get('__version__', None)
 
-    check_version(module_version)
+    check_version(version)
 
     docstring_lines = docstring.lstrip().splitlines()
     return {'summary': docstring_lines[0],
-            'version': m.__version__}
+            'version': version}
 
 def check_version(version):
     """
