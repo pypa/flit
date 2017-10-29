@@ -85,10 +85,11 @@ class RootInstallError(Exception):
 
 class Installer(object):
     def __init__(self, ini_path, user=None, python=sys.executable,
-                 symlink=False, deps='all'):
+                 symlink=False, deps='all', pth=False):
         self.ini_path = ini_path
         self.python = python
         self.symlink = symlink
+        self.pth = pth
         self.deps = deps
         if deps != 'none' and os.environ.get('FLIT_NO_NETWORK', ''):
             self.deps = 'none'
@@ -252,6 +253,10 @@ class Installer(object):
             log.info("Symlinking %s -> %s", src, dst)
             os.symlink(str(self.module.path.resolve()), dst)
             self.installed_files.append(dst)
+        elif self.pth:
+            log.info("Add pth entry %s -> %s", src, dst)
+            pth = self.add_pth_entry(str(self.module.path.resolve()), dst)
+            self.installed_files.append(pth)
         elif self.module.path.is_dir():
             log.info("Copying directory %s -> %s", src, dst)
             shutil.copytree(src, dst)
@@ -265,6 +270,13 @@ class Installer(object):
         self.install_scripts(scripts, dirs['scripts'])
 
         self.write_dist_info(dirs['purelib'])
+
+    def add_pth_entry(self, src, dst):
+        log.info("pth %s %s", src, dst)
+        pth_file = dst + ".pth"
+        with open(pth_file, "w") as f:
+            f.write(os.path.dirname(src))
+        return pth_file
 
     def install_with_pip(self):
         self.install_requirements()
@@ -334,7 +346,7 @@ class Installer(object):
             cf.writerow(((dist_info / 'RECORD').relative_to(site_pkgs), '', ''))
 
     def install(self):
-        if self.symlink:
+        if self.symlink or self.pth:
             self.install_directly()
         else:
             self.install_with_pip()
