@@ -69,6 +69,9 @@ def main(argv=None):
     parser_install.add_argument('-s', '--symlink', action='store_true',
         help="Symlink the module/package into site packages instead of copying it"
     )
+    parser_install.add_argument('--pth', action='store_true',
+        help="Add pth entry of the module/package into site packages of copying it"
+    )
     add_shared_install_options(parser_install)
     parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
         help="Which set of dependencies to install")
@@ -137,7 +140,7 @@ def main(argv=None):
         from .install import Installer
         try:
             Installer(args.ini_file, user=args.user, python=args.python,
-                      symlink=args.symlink, deps=args.deps).install()
+                      symlink=args.symlink, deps=args.deps, pth=args.pth).install()
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'installfrom':

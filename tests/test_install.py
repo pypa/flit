@@ -45,6 +45,13 @@ class InstallTests(TestCase):
                       to=str(samples_dir / 'package1'))
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
 
+    def test_pth_package(self):
+        Installer(samples_dir / 'package1-pkg.ini', pth=True).install()
+        assert_isfile(self.tmpdir / 'site-packages' / 'package1.pth')
+        with open(str(self.tmpdir / 'site-packages' / 'package1.pth')) as f:
+            assert f.read() == str(samples_dir)
+        assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
+
     def test_dist_name(self):
         Installer(samples_dir / 'altdistname.ini').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
