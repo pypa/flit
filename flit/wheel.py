@@ -202,10 +202,13 @@ class WheelBuilder:
         finally:
             self.wheel_zip.close()
 
-def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
-    """Build a wheel in the dist/ directory, and optionally upload it.
+def wheel_main(ini_path, dist_dir=None, upload=False, verify_metadata=False, repo='pypi'):
+    """Build a wheel in dist_dir, and optionally upload it.
+
+    dist_dir defaults to a dist/ folder adjacent to the ini file.
     """
-    dist_dir = ini_path.parent / 'dist'
+    if dist_dir is None:
+        dist_dir = ini_path.parent / 'dist'
     try:
         dist_dir.mkdir()
     except FileExistsError:
