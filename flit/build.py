@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 
 from .sdist import SdistBuilder
-from .wheel import wheel_main
+from .wheel import wheel_main, make_wheel_in
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ def main(ini_file: Path, formats=None):
             with unpacked_tarball(sdist_file) as tmpdir:
                 log.debug('Building wheel from unpacked sdist %s', tmpdir)
                 tmp_ini_file = Path(tmpdir, ini_file.name)
-                wheel_info = wheel_main(tmp_ini_file, dist_dir=dist_dir)
+                wheel_info = make_wheel_in(tmp_ini_file, dist_dir)
     elif 'wheel' in formats:
         wheel_info = wheel_main(ini_file)
 

@@ -46,8 +46,8 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
 
 def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     """Builds a wheel, places it in wheel_directory"""
-    _, path = make_wheel_in(pyproj_toml, Path(wheel_directory))
-    return path.name
+    info = make_wheel_in(pyproj_toml, Path(wheel_directory))
+    return info.file.name
 
 def build_sdist(sdist_directory, config_settings=None):
     """Builds an sdist, places it in sdist_directory"""
