@@ -28,7 +28,7 @@ Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
-def _write_wheel_file(f, supports_py2=False):
+def _write_wheel_file(f, *, supports_py2=False):
     f.write(wheel_file_template)
     if supports_py2:
         f.write("Tag: py2-none-any\n")
@@ -167,7 +167,7 @@ class WheelBuilder:
                 self._add_file(path, '%s/%s' % (dist_info, path.name))
 
         with self._write_to_zip(dist_info + '/WHEEL') as f:
-            _write_wheel_file(f, self.supports_py2)
+            _write_wheel_file(f, supports_py2=self.supports_py2)
 
         with self._write_to_zip(dist_info + '/METADATA') as f:
             self.metadata.write_metadata_file(f)

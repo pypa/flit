@@ -295,7 +295,7 @@ def _prep_metadata(md_sect, path):
         if key not in metadata_allowed_fields:
             closest = difflib.get_close_matches(key, metadata_allowed_fields,
                                                 n=1, cutoff=0.7)
-            msg = "Unrecognised metadata key: {}".format(key)
+            msg = "Unrecognised metadata key: {!r}".format(key)
             if closest:
                 msg += " (did you mean {!r}?)".format(closest[0])
             raise ConfigError(msg)

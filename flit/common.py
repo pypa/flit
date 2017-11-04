@@ -119,7 +119,7 @@ def check_version(version):
                                 .format(version))
     canonical = _is_canonical(version)
     if not canonical:
-        log.warning('Version string (%s) does not match Pep440.' % version )
+        log.warning('Version string (%s) does not match Pep440.', version)
 
     return canonical
 
