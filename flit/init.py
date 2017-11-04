@@ -183,19 +183,20 @@ class TerminalIniter(IniterBase):
             metadata['classifiers'] = [license_names_to_classifiers[license]]
             self.write_license(license, author)
 
-        d = OrderedDict([
-            ('build-system', OrderedDict([
-                ('requires', ['flit']),
-                ('build-backend', 'flit.buildapi')
-            ])),
-            ('tool', {'flit': {'metadata': metadata}})
-        ])
-
         with (self.directory / 'pyproject.toml').open('w', encoding='utf-8') as f:
-            toml.dump(d, f)
+            f.write(TEMPLATE.format(metadata=toml.dumps(metadata)))
 
         print()
         print("Written pyproject.toml; edit that file to add optional extra info.")
+
+TEMPLATE = """
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+{metadata}
+"""
 
 if __name__ == '__main__':
     TerminalIniter().initialise()

@@ -92,7 +92,9 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     cf = args.ini_file
-    if cf == pathlib.Path('pyproject.toml') and not cf.is_file():
+    if args.subcmd != 'init' and cf == pathlib.Path('pyproject.toml')\
+            and not cf.is_file():
+        # Fallback to flit.ini if it's present
         cf_ini = pathlib.Path('flit.ini')
         if cf_ini.is_file():
             args.ini_file = cf_ini
