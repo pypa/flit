@@ -255,9 +255,14 @@ class Installer(object):
             os.symlink(str(self.module.path.resolve()), dst)
             self.installed_files.append(dst)
         elif self.pth:
-            log.info("Add pth entry %s -> %s", src, dst)
-            pth = self.add_pth_entry(str(self.module.path.resolve()), dst)
-            self.installed_files.append(pth)
+            # .pth points to the the folder containing the module (which is
+            # added to sys.path)
+            pth_target = str(self.module.path.resolve().parent)
+            pth_file = pathlib.Path(dst).with_suffix('.pth')
+            log.info("Adding .pth file %s for %s", pth_file, pth_target)
+            with pth_file.open("w") as f:
+                f.write(pth_target)
+            self.installed_files.append(pth_file)
         elif self.module.path.is_dir():
             log.info("Copying directory %s -> %s", src, dst)
             shutil.copytree(src, dst)
@@ -271,13 +276,6 @@ class Installer(object):
         self.install_scripts(scripts, dirs['scripts'])
 
         self.write_dist_info(dirs['purelib'])
-
-    def add_pth_entry(self, src, dst):
-        log.info("pth %s %s", src, dst)
-        pth_file = dst + ".pth"
-        with open(pth_file, "w") as f:
-            f.write(os.path.dirname(src))
-        return pth_file
 
     def install_with_pip(self):
         self.install_requirements()

@@ -68,6 +68,13 @@ Install the package on your system.
    Symlink the module into site-packages rather than copying it, so that you
    can test changes without reinstalling the module.
 
+.. option:: --pth-file
+
+   Create a ``.pth`` file in site-packages rather than copying the module, so
+   you can test changes without reinstalling. This is a less elegant alternative
+   to ``--symlink``, but it works on Windows, which typically doesn't allow
+   symlinks.
+
 .. option:: --deps <dependency option>
 
    Which dependencies to install. One of ``all``, ``production``, ``develop``,
