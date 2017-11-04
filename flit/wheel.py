@@ -193,12 +193,17 @@ def make_wheel_in(ini_path, wheel_directory):
     # We don't know the final filename until metadata is loaded, so write to
     # a temporary_file, and rename it afterwards.
     (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
-    with open(fd, 'w+b') as fp:
-        wb = WheelBuilder(ini_path, fp)
-        wb.build()
+    try:
+        with open(fd, 'w+b') as fp:
+            wb = WheelBuilder(ini_path, fp)
+            wb.build()
 
-    wheel_path = wheel_directory / wb.wheel_filename
-    os.replace(temp_path, str(wheel_path))
+        wheel_path = wheel_directory / wb.wheel_filename
+        os.replace(temp_path, str(wheel_path))
+    except:
+        os.unlink(temp_path)
+        raise
+
     log.info("Built wheel: %s", wheel_path)
     return wb, wheel_path
 
