@@ -40,7 +40,7 @@ Build a wheel and an sdist (tarball) from the package.
 
 .. option:: --format <format>
 
-   Limit to building either ``'wheel'`` or ``'sdist'``.
+   Limit to building either ``wheel`` or ``sdist``.
 
 
 ``flit upload``
@@ -53,7 +53,7 @@ or another repository.
 
 .. option:: --format <format>
 
-   Limit to publishing either ``'wheel'`` or ``'sdist'``.
+   Limit to publishing either ``wheel`` or ``sdist``.
    You should normally publish the two formats together.
 
 ``flit install``
