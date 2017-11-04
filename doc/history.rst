@@ -4,14 +4,24 @@ Release history
 Version 0.12
 ------------
 
+- Switch the config to ``pyproject.toml`` by default instead of ``flit.ini``,
+  and implement the PEP 517 API.
+- A new option ``--pth-file`` allows for development installation on Windows
+  (where ``--symlink`` usually won't work).
 - Normalise file permissions in the zip file, making builds more reproducible
   across different systems.
 - Sdists (.tar.gz packages) can now also be reproducibly built by setting
   :envvar:`SOURCE_DATE_EPOCH`.
+- For most modules, Flit can now extract the version number and docstring
+  without importing it. It will still fall back to importing where getting
+  these from the AST fails.
+- ``flit build`` will build the wheel from the sdist, helping to ensure that
+  files aren't left out of the sdist.
 - All list fields in the INI file now ignore blank lines (``requires``,
   ``dev-requires``, ``classifiers``).
 - Fix the path separator in the ``RECORD`` file of a wheel built on Windows.
 - Some minor fixes to building reproducible wheels.
+- If building a wheel fails, the temporary file created will be cleaned up.
 - Various improvements to docs and README.
 
 Version 0.11.4
