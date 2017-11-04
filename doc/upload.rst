@@ -41,7 +41,7 @@ You can select an index server from this config file with the
 
 If you don't use this option,
 Flit will use the server called ``pypi`` in the config file. If that doesn't
-exist, it uses
+exist, it uploads to PyPI at ``https://upload.pypi.org/legacy/`` by default.
 
 If you publish a package and you don't have a ``.pypirc`` file, Flit will create
 it to store your username.
