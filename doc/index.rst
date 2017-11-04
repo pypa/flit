@@ -13,6 +13,7 @@ Contents:
    :maxdepth: 2
 
    pyproject_toml
+   cmdline
    upload
    reproducible
    history
