@@ -12,8 +12,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   flit_ini
-   entrypoints
+   pyproject_toml
    upload
    reproducible
    history

@@ -1,7 +1,15 @@
+:orphan:
+
 The flit.ini config file
 ========================
 
 This file lives next to the module or package.
+
+.. note::
+
+   Flit 0.12 and above uses a :doc:`pyproject.toml file <pyproject_toml>` to
+   store this information. Flit can still read these ``flit.ini`` files for now,
+   but you should switch to ``pyproject.toml`` soon.
 
 Metadata section
 ----------------

@@ -1,5 +1,14 @@
+:orphan:
+
 Specifying entry points
 =======================
+
+.. note::
+
+   This description is for using entry points with ``flit.ini``, the older
+   config format. It's recommended to use the new ``pyproject.toml`` format
+   instead; entry points can be written directly in these files. See
+   :doc:`pyproject_toml`.
 
 The most common use of entry points is the ``console_scripts`` section for
 installing system commands. You can specify these in the :ref:`Scripts section

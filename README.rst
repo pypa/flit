@@ -28,32 +28,33 @@ or as a directory — and you want to distribute it.
 
        __version__ = '0.1'
 
-2. Create a file ``flit.ini`` next to the module. It should look like this:
+2. Install flit if you don't already have it::
 
-   .. code-block:: ini
+       python3 -m pip install flit
 
-       [metadata]
-       module=foobar
-       author=Sir Robin
-       author-email=robin@camelot.uk
-       home-page=https://github.com/sirrobin/foobar
+2. Run ``flit init`` to create a ``pyproject.toml`` file. It will look something
+   like this:
 
-       # If you want command line scripts, this is how to declare them.
-       # If not, you can leave this section out completely.
-       [scripts]
-       # foobar:main means the script will do: from foobar import main; main()
-       foobar=foobar:main
+   .. code-block:: toml
 
-   You can use ``flit init`` to easily create a basic ``flit.ini`` file for your
-   package.
+       [build-system]
+       requires = ["flit"]
+       build-backend = "flit.buildapi"
 
-   Besides the details shown above, there are other fields you can add—see the
+       [tool.flit.metadata]
+       module = "foobar"
+       author = "Sir Robin"
+       author-email = "robin@camelot.uk"
+       home-page = "https://github.com/sirrobin/foobar"
+
+   You can edit this file to add other metadata, for example to set up
+   command line scripts. See the
    `flit.ini page <https://flit.readthedocs.io/en/latest/flit_ini.html>`_
    of the docs.
 
-3. Install flit if you don't already have it::
-
-       python3 -m pip install flit
+   If you have already got a ``flit.ini`` file to use with older versions of
+   Flit, it will still work for now, but you should convert it to
+   ``pyproject.toml`` when convenient.
 
 4. Run this command to upload your code to PyPI::
 
