@@ -3,7 +3,9 @@ from pathlib import Path
 from unittest import TestCase
 import pytest
 
-from flit.common import Module, get_info_from_module, InvalidVersion, check_version
+from flit.common import (Module, get_info_from_module, InvalidVersion,
+     check_version, normalize_file_permissions
+)
 
 samples_dir = os.path.join(os.path.dirname(__file__), 'samples')
 
@@ -49,4 +51,6 @@ class ModuleTests(TestCase):
         assert check_version('4.1.0b1') == True
         assert check_version('4.1.0beta1') == False
 
-
+def test_normalize_file_permissions():
+    assert normalize_file_permissions(0o100664) == 0o100644 # regular file
+    assert normalize_file_permissions(0o40775) == 0o40755   # directory

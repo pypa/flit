@@ -94,10 +94,7 @@ class WheelBuilder:
         
         # Normalize permission bits to either 755 (executable) or 644
         st_mode = os.stat(full_path).st_mode
-        new_mode = (st_mode | 0o644) & ~0o133  # 644 permissions, higher bits unchanged
-        if st_mode & 0o100:
-            # If executable, 644 -> 755
-            new_mode |= 0o111
+        new_mode = common.normalize_file_permissions(st_mode)
         zinfo.external_attr = (new_mode & 0xFFFF) << 16      # Unix attributes
 
         if stat.S_ISDIR(st_mode):
@@ -210,7 +207,8 @@ def make_wheel_in(ini_path, wheel_directory):
 def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
     """Build a wheel in the dist/ directory, and optionally upload it.
     """
-    dist_dir = ini_path.parent / 'dist'
+    if dist_dir is None:
+        dist_dir = ini_path.parent / 'dist'
     try:
         dist_dir.mkdir()
     except FileExistsError:
@@ -220,10 +218,12 @@ def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
 
     if verify_metadata:
         from .upload import verify
+        log.warning("'flit wheel --verify-metadata' is deprecated.")
         verify(wb.metadata, repo)
 
     if upload:
         from .upload import do_upload
+        log.warning("'flit wheel --upload' is deprecated; use 'flit publish' instead.")
         do_upload(wheel_path, wb.metadata, repo)
 
     return SimpleNamespace(builder=wb, file=wheel_path)

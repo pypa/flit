@@ -1,4 +1,6 @@
 from collections import defaultdict
+from copy import copy
+from gzip import GzipFile
 import io
 import logging
 import os
@@ -124,6 +126,25 @@ def include_path(p):
                 or (os.sep+'__pycache__' in p)
                 or p.endswith('.pyc'))
 
+def clean_tarinfo(ti, mtime=None):
+    """Clean metadata from a TarInfo object to make it more reproducible.
+
+    - Set uid & gid to 0
+    - Set uname and gname to ""
+    - Normalise permissions to 644 or 755
+    - Set mtime if not None
+    """
+    ti = copy(ti)
+    ti.uid = 0
+    ti.gid = 0
+    ti.uname = ''
+    ti.gname = ''
+    ti.mode = common.normalize_file_permissions(ti.mode)
+    if mtime is not None:
+        ti.mtime = mtime
+    return ti
+
+
 class SdistBuilder:
     def __init__(self, ini_path=Path('flit.ini')):
         self.ini_path = ini_path
@@ -198,37 +219,51 @@ class SdistBuilder:
             target_dir.mkdir(parents=True)
         target = target_dir / '{}-{}.tar.gz'.format(
                         self.metadata.name, self.metadata.version)
-        tf = tarfile.open(str(target), mode='w:gz')
-        tf_dir = '{}-{}'.format(self.metadata.name, self.metadata.version)
+        source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
+        mtime = int(source_date_epoch) if source_date_epoch else None
+        gz = GzipFile(str(target), mode='wb', mtime=mtime)
+        tf = tarfile.TarFile(str(target), mode='w', fileobj=gz)
 
-        files_to_add = self.find_tracked_files()
+        try:
+            tf_dir = '{}-{}'.format(self.metadata.name, self.metadata.version)
 
-        for relpath in files_to_add:
-            path = self.srcdir / relpath
-            tf.add(str(path), arcname=pjoin(tf_dir, relpath))
+            files_to_add = self.find_tracked_files()
 
-        if 'setup.py' in files_to_add:
-            log.warning("Using setup.py from repository, not generating setup.py")
-        else:
-            setup_py = self.make_setup_py()
-            log.info("Writing generated setup.py")
-            ti = tarfile.TarInfo(pjoin(tf_dir, 'setup.py'))
-            ti.size = len(setup_py)
-            tf.addfile(ti, io.BytesIO(setup_py))
+            for relpath in files_to_add:
+                path = self.srcdir / relpath
+                ti = tf.gettarinfo(str(path), arcname=pjoin(tf_dir, relpath))
+                ti = clean_tarinfo(ti, mtime)
 
-        pkg_info = PKG_INFO.format(
-            name=self.metadata.name,
-            version=self.metadata.version,
-            summary=self.metadata.summary,
-            home_page=self.metadata.home_page,
-            author=self.metadata.author,
-            author_email=self.metadata.author_email,
-        ).encode('utf-8')
-        ti = tarfile.TarInfo(pjoin(tf_dir, 'PKG-INFO'))
-        ti.size = len(pkg_info)
-        tf.addfile(ti, io.BytesIO(pkg_info))
+                if ti.isreg():
+                    with path.open('rb') as f:
+                        tf.addfile(ti, f)
+                else:
+                    tf.addfile(ti)  # Symlinks & ?
 
-        tf.close()
+            if 'setup.py' in files_to_add:
+                log.warning("Using setup.py from repository, not generating setup.py")
+            else:
+                setup_py = self.make_setup_py()
+                log.info("Writing generated setup.py")
+                ti = tarfile.TarInfo(pjoin(tf_dir, 'setup.py'))
+                ti.size = len(setup_py)
+                tf.addfile(ti, io.BytesIO(setup_py))
+
+            pkg_info = PKG_INFO.format(
+                name=self.metadata.name,
+                version=self.metadata.version,
+                summary=self.metadata.summary,
+                home_page=self.metadata.home_page,
+                author=self.metadata.author,
+                author_email=self.metadata.author_email,
+            ).encode('utf-8')
+            ti = tarfile.TarInfo(pjoin(tf_dir, 'PKG-INFO'))
+            ti.size = len(pkg_info)
+            tf.addfile(ti, io.BytesIO(pkg_info))
+
+        finally:
+            tf.close()
+            gz.close()
 
         log.info("Built sdist: %s", target)
         return target

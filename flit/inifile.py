@@ -341,7 +341,7 @@ def _validate_config(cp, path):
     md_sect = {}
     for k, v in cp['metadata'].items():
         if k in metadata_list_fields:
-            md_sect[k] = v.splitlines()
+            md_sect[k] = [l for l in v.splitlines() if l.strip()]
         else:
             md_sect[k] = v
 
@@ -366,7 +366,6 @@ def _validate_config(cp, path):
     md_dict, module = _prep_metadata(md_sect, path)
 
     if 'classifiers' in md_dict:
-        md_dict['classifiers'] = [c for c in md_dict['classifiers'] if c.strip()]
         verify_classifiers(md_dict['classifiers'])
 
     # Scripts ---------------

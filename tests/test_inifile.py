@@ -17,6 +17,14 @@ def test_classifiers_with_space():
     """
     read_pkg_ini(samples_dir / 'classifiers_with_space.ini')
 
+@pytest.mark.parametrize(('filename', 'key', 'expected'), [
+    ('requires_with_empty_lines.ini', 'requires_dist', ['foo', 'bar']),
+    ('dev_requires_with_empty_lines.ini', 'dev_requires', ['foo']),
+])
+def test_requires_with_empty_lines(filename, key, expected):
+    ini_info = read_pkg_ini(samples_dir / filename)
+    assert ini_info['metadata'][key] == expected
+
 def test_missing_entrypoints():
     with pytest.raises(FileNotFoundError):
         read_pkg_ini(samples_dir / 'entrypoints_missing.ini')
