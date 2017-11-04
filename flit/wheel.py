@@ -227,10 +227,12 @@ def wheel_main(ini_path, dist_dir=None, upload=False, verify_metadata=False, rep
 
     if verify_metadata:
         from .upload import verify
+        log.warning("'flit wheel --verify-metadata' is deprecated.")
         verify(wb.metadata, repo)
 
     if upload:
         from .upload import do_upload
+        log.warning("'flit wheel --upload' is deprecated; use 'flit publish' instead.")
         do_upload(wheel_path, wb.metadata, repo)
 
     return SimpleNamespace(builder=wb, file=wheel_path)
