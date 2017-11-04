@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from flit import init
 
+
 @contextmanager
 def patch_data_dir():
     with TemporaryDirectory() as td:
@@ -86,5 +87,5 @@ def test_init():
           faking_input(responses):
         ti = init.TerminalIniter(td)
         ti.initialise()
-        assert_isfile('flit.ini')
+        assert_isfile('pyproject.toml')
         assert_isfile('LICENSE')

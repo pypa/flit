@@ -1,4 +1,3 @@
-from configparser import ConfigParser
 from collections import defaultdict
 from copy import copy
 from gzip import GzipFile
@@ -13,7 +12,6 @@ import tarfile
 from flit import common, inifile
 from flit.common import VCSError
 from flit.vcs import identify_vcs
-from flit.wheel import EntryPointsConflict
 
 log = logging.getLogger(__name__)
 
@@ -83,7 +81,10 @@ def auto_packages(pkgdir: str):
             pkg, from_nearest_pkg = find_nearest_pkg(from_top_level)
             pkg_data[pkg].append(pjoin(from_nearest_pkg, '*'))
 
-    return sorted(packages), dict(pkg_data)
+    # Sort values in pkg_data
+    pkg_data = {k: sorted(v) for (k, v) in pkg_data.items()}
+
+    return sorted(packages), pkg_data
 
 def _parse_req(requires_dist):
     """Parse "Foo (v); python_version == '2.x'" from Requires-Dist
@@ -153,23 +154,11 @@ class SdistBuilder:
         self.srcdir = ini_path.parent
 
     def prep_entry_points(self):
-        # Write entry points
-        cp = ConfigParser()
-
-        if self.ini_info['scripts']:
-            cp['console_scripts'] = {k: '%s:%s' % v
-                                 for (k, v) in self.ini_info['scripts'].items()}
-
-        if self.ini_info['entry_points_file'] is not None:
-            cp.read(str(self.ini_info['entry_points_file']))
-            if 'console_scripts' in cp:
-                raise EntryPointsConflict
-
+        # Reformat entry points from dict-of-dicts to dict-of-lists
         res = defaultdict(list)
-        for group in cp.sections():
-            sect = cp[group]
-            for name in sorted(sect):
-                res[group].append('{} = {}'.format(name, sect[name]))
+        for groupname, group in self.ini_info['entrypoints'].items():
+            for name, ep in sorted(group.items()):
+                res[groupname].append('{} = {}'.format(name, ep))
 
         return dict(res)
 

@@ -4,3 +4,5 @@ __pycache__/
 /doc/_build/
 /tests/samples/build/
 /tests/samples/dist/
+/htmlcov/
+/.coverage

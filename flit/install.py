@@ -92,7 +92,7 @@ class Installer(object):
         self.deps = deps
         if deps != 'none' and os.environ.get('FLIT_NO_NETWORK', ''):
             self.deps = 'none'
-            log.warn('Not installing dependencies, because FLIT_NO_NETWORK is set')
+            log.warning('Not installing dependencies, because FLIT_NO_NETWORK is set')
 
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
@@ -153,7 +153,8 @@ class Installer(object):
         return not test_writable_dir(lib_dir)
 
     def install_scripts(self, script_defs, scripts_dir):
-        for name, (module, func) in script_defs.items():
+        for name, ep in script_defs.items():
+            module, func = common.parse_entry_point(ep)
             script_file = pathlib.Path(scripts_dir) / name
             log.info('Writing script to %s', script_file)
             with script_file.open('w', encoding='utf-8') as f:
@@ -310,10 +311,9 @@ class Installer(object):
         with (dist_info / 'REQUESTED').open('wb'): pass
         self.installed_files.append(dist_info / 'REQUESTED')
 
-        if self.ini_info['entry_points_file'] is not None:
-            shutil.copy(str(self.ini_info['entry_points_file']),
-                            str(dist_info / 'entry_points.txt')
-                       )
+        if self.ini_info['entrypoints']:
+            with (dist_info / 'entry_points.txt').open('w') as f:
+                common.write_entry_points(self.ini_info['entrypoints'], f)
             self.installed_files.append(dist_info / 'entry_points.txt')
 
         with (dist_info / 'RECORD').open('w', encoding='utf-8') as f:

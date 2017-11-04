@@ -1,5 +1,4 @@
 from base64 import urlsafe_b64encode
-import configparser
 import contextlib
 from datetime import datetime
 import hashlib
@@ -29,10 +28,12 @@ Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
-class EntryPointsConflict(ValueError):
-    def __str__(self):
-        return ('Please specify console_scripts entry points or scripts in '
-            'flit.ini, not both.')
+def _write_wheel_file(f, *, supports_py2=False):
+    f.write(wheel_file_template)
+    if supports_py2:
+        f.write("Tag: py2-none-any\n")
+    f.write("Tag: py3-none-any\n")
+
 
 class WheelBuilder:
     def __init__(self, ini_path, target_fp):
@@ -154,33 +155,16 @@ class WheelBuilder:
         log.info('Writing metadata files')
         dist_info = self.dist_version + '.dist-info'
 
-        # Write entry points
-        if self.ini_info['scripts']:
-            cp = configparser.ConfigParser()
-
-            if self.ini_info['entry_points_file'] is not None:
-                cp.read(str(self.ini_info['entry_points_file']))
-                if 'console_scripts' in cp:
-                    raise EntryPointsConflict
-
-            cp['console_scripts'] = {k: '%s:%s' % v
-                                     for (k,v) in self.ini_info['scripts'].items()}
-            log.debug('Writing entry_points.txt in %s', dist_info)
+        if self.ini_info['entrypoints']:
             with self._write_to_zip(dist_info + '/entry_points.txt') as f:
-                cp.write(f)
+                common.write_entry_points(self.ini_info['entrypoints'], f)
 
-        elif self.ini_info['entry_points_file'] is not None:
-            self._add_file(self.ini_info['entry_points_file'],
-                           dist_info + '/entry_points.txt')
         for base in ('COPYING', 'LICENSE'):
             for path in sorted(self.directory.glob(base + '*')):
                 self._add_file(path, '%s/%s' % (dist_info, path.name))
 
         with self._write_to_zip(dist_info + '/WHEEL') as f:
-            f.write(wheel_file_template)
-            if self.supports_py2:
-                f.write("Tag: py2-none-any\n")
-            f.write("Tag: py3-none-any\n")
+            _write_wheel_file(f, supports_py2=self.supports_py2)
 
         with self._write_to_zip(dist_info + '/METADATA') as f:
             self.metadata.write_metadata_file(f)
@@ -202,37 +186,43 @@ class WheelBuilder:
         finally:
             self.wheel_zip.close()
 
-def wheel_main(ini_path, dist_dir=None, upload=False, verify_metadata=False, repo='pypi'):
-    """Build a wheel in dist_dir, and optionally upload it.
+def make_wheel_in(ini_path, wheel_directory):
+    # We don't know the final filename until metadata is loaded, so write to
+    # a temporary_file, and rename it afterwards.
+    (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
+    try:
+        with open(fd, 'w+b') as fp:
+            wb = WheelBuilder(ini_path, fp)
+            wb.build()
 
-    dist_dir defaults to a dist/ folder adjacent to the ini file.
+        wheel_path = wheel_directory / wb.wheel_filename
+        os.replace(temp_path, str(wheel_path))
+    except:
+        os.unlink(temp_path)
+        raise
+
+    log.info("Built wheel: %s", wheel_path)
+    return SimpleNamespace(builder=wb, file=wheel_path)
+
+def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
+    """Build a wheel in the dist/ directory, and optionally upload it.
     """
-    if dist_dir is None:
-        dist_dir = ini_path.parent / 'dist'
+    dist_dir = ini_path.parent / 'dist'
     try:
         dist_dir.mkdir()
     except FileExistsError:
         pass
 
-    # We don't know the final filename until metadata is loaded, so write to
-    # a temporary_file, and rename it afterwards.
-    (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(dist_dir))
-    with open(fd, 'w+b') as fp:
-        wb = WheelBuilder(ini_path, fp)
-        wb.build()
-
-    wheel_path = dist_dir / wb.wheel_filename
-    os.replace(temp_path, str(wheel_path))
-    log.info("Built wheel: %s", wheel_path)
+    wheel_info = make_wheel_in(ini_path, dist_dir)
 
     if verify_metadata:
         from .upload import verify
         log.warning("'flit wheel --verify-metadata' is deprecated.")
-        verify(wb.metadata, repo)
+        verify(wheel_info.builder.metadata, repo)
 
     if upload:
         from .upload import do_upload
         log.warning("'flit wheel --upload' is deprecated; use 'flit publish' instead.")
-        do_upload(wheel_path, wb.metadata, repo)
+        do_upload(wheel_info.file, wheel_info.builder.metadata, repo)
 
-    return SimpleNamespace(builder=wb, file=wheel_path)
+    return wheel_info
