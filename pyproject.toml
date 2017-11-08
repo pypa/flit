@@ -11,6 +11,7 @@ requires=["requests",
     "docutils",
     "requests_download",
     "pytoml",
+    "zipfile36; python_version in '3.3 3.4 3.5'",
 ]
 requires-python=">=3"
 description-file="README.rst"
