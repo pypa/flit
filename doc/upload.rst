@@ -52,16 +52,23 @@ If keyring is not installed, Flit will ask for your password for each upload.
 Alternatively, you can also manually add your password to the ``.pypirc`` file
 (``password = ...``)
 
+.. _upload_envvars:
+
 Using environment variables
 ---------------------------
 
-.. envvar:: FLIT_USERNAME
-            FLIT_PASSWORD
-            FLIT_INDEX_URL
-
-   .. versionadded:: 0.11
-
-   Set a username, password, and index URL for uploading packages.
-
+You can specify a server to upload to with :envvar:`FLIT_INDEX_URL`, and
+pass credentials with :envvar:`FLIT_USERNAME` and :envvar:`FLIT_PASSWORD`.
 Environment variables take precedence over the config file, except if you use
-the ``--repository`` option to explicitly pick a server from the config file.
+the :option:`--repository` option to explicitly pick a server from the config file.
+
+This can make it easier to automate uploads, for example to release packages
+from a continuous integration job.
+
+.. warning::
+
+   Storing a password in an environment variable is convenient, but it's
+   `easy to accidentally leak it <https://www.diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/>`_.
+   Look out for scripts that helpfully print all environment variables for
+   debugging, and remember that other scripts and libraries you run in
+   that environment have access to your password.

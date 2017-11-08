@@ -8,26 +8,18 @@ you should be able to make wheels that are exactly identical, byte for byte.
 This is useful for verifying software. For more details, see
 `reproducible-builds.org <https://reproducible-builds.org/>`__.
 
-There is a caveat, however:
-
-First, zip files include the modification timestamp from each file. This will
+There is a caveat, however: wheels (which are zip files) include the
+modification timestamp from each file. This will
 probably be different on each computer, because it indicates when your local
 copy of the file was written, not when it was changed in version control.
-These timestamps can be overridden by an environment variable:
+These timestamps can be overridden by the environment variable
+:envvar:`SOURCE_DATE_EPOCH`.
 
-.. envvar:: SOURCE_DATE_EPOCH
+.. code-block:: shell
 
-   To make reproducible builds, set this to a timestamp as a number of seconds
-   since the start of the year 1970 in UTC, and document the value you used.
-   On Unix systems, you can get a value for the current time by running::
-
-       date +%s
-
-
-   .. seealso::
-
-      `The SOURCE_DATE_EPOCH specification
-      <https://reproducible-builds.org/specs/source-date-epoch/>`__
+   SOURCE_DATE_EPOCH=$(date +%s)
+   flit publish
+   # Record the value of SOURCE_DATE_EPOCH in release notes for reproduction
 
 .. versionchanged:: 0.12
    Normalising permission bits

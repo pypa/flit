@@ -107,3 +107,47 @@ Install the package on your system.
 
 Create a new ``pyproject.toml``  config file by prompting for information about
 the module in the current directory.
+
+Environment variables
+---------------------
+
+.. envvar:: FLIT_NO_NETWORK
+
+   .. versionadded:: 0.10
+
+   Setting this to any non-empty value will stop flit from making network
+   connections (unless you explicitly ask to upload a package). This
+   is intended for downstream packagers, so if you use this, it's up to you to
+   ensure any necessary dependencies are installed.
+
+.. envvar:: FLIT_ROOT_INSTALL
+
+   By default, ``flit install`` will fail when run as root on POSIX systems,
+   because installing Python modules systemwide is not recommended. Setting
+   this to any non-empty value allows installation as root. It has no effect on
+   Windows.
+
+.. envvar:: FLIT_USERNAME
+            FLIT_PASSWORD
+            FLIT_INDEX_URL
+
+   .. versionadded:: 0.11
+
+   Set a username, password, and index URL for uploading packages.
+   See :ref:`uploading packages with environment variables <upload_envvars>`
+   for more information.
+
+.. envvar:: SOURCE_DATE_EPOCH
+
+   To make reproducible builds, set this to a timestamp as a number of seconds
+   since the start of the year 1970 in UTC, and document the value you used.
+   On Unix systems, you can get a value for the current time by running::
+
+       date +%s
+
+
+   .. seealso::
+
+      `The SOURCE_DATE_EPOCH specification
+      <https://reproducible-builds.org/specs/source-date-epoch/>`__
+
