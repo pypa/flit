@@ -80,6 +80,26 @@ Install the package on your system.
    Which dependencies to install. One of ``all``, ``production``, ``develop``,
    or ``none``. Default ``all``.
 
+.. option:: --user
+
+   Do a user-local installation. This is the default if flit is not in a
+   virtualenv or conda env (if the environment's library directory is
+   read-only and ``site.ENABLE_USER_SITE`` is true).
+
+.. option:: --env
+
+   Install into the environment. This is the default in a virtualenv or conda
+   env (if the environment's library directory is writable or
+   ``site.ENABLE_USER_SITE`` is false).
+
+.. option:: --python <path to python>
+
+   Install for another Python, identified by the path of the python
+   executable. The default is to install the module for the copy of Python
+   that is running Flit. Using this option, you can install a module for Python
+   2, for instance.
+
+
 ``flit init``
 -------------
 
