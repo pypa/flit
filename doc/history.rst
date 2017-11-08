@@ -1,6 +1,13 @@
 Release history
 ===============
 
+Version 0.12.1
+--------------
+
+- Restore dependency on ``zipfile36`` backport package.
+- Add some missing options to documentation of ``flit install`` subcommand.
+- Rearrange environment variables in the docs.
+
 Version 0.12
 ------------
 
