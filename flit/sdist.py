@@ -222,7 +222,8 @@ class SdistBuilder:
         source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
         mtime = int(source_date_epoch) if source_date_epoch else None
         gz = GzipFile(str(target), mode='wb', mtime=mtime)
-        tf = tarfile.TarFile(str(target), mode='w', fileobj=gz)
+        tf = tarfile.TarFile(str(target), mode='w', fileobj=gz,
+                             format=tarfile.PAX_FORMAT)
 
         try:
             tf_dir = '{}-{}'.format(self.metadata.name, self.metadata.version)
