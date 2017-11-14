@@ -37,6 +37,7 @@ def convert(path):
         with ep_file.open(encoding='utf-8') as f:
             entrypoints.read_file(f)
 
+    written_entrypoints = False
     with Path('pyproject.toml').open('w', encoding='utf-8') as f:
         f.write(TEMPLATE.format(metadata=pytoml.dumps(metadata)))
 
@@ -52,10 +53,11 @@ def convert(path):
                 groupname = '"{}"'.format(groupname)
             f.write('\n[tool.flit.entrypoints.{}]\n'.format(groupname))
             pytoml.dump(dict(group), f)
+            written_entrypoints = True
 
     print("Written 'pyproject.toml'")
     files = str(path)
-    if entrypoints:
+    if written_entrypoints:
         files += ' and ' + str(ep_file)
     print("Please check the new file, then remove", files)
 
