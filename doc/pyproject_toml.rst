@@ -9,6 +9,9 @@ This file lives next to the module or package.
    similar information. Flit can still read these files for now, but you should
    switch to ``pyproject.toml`` soon.
 
+   Run ``python3 -m flit.tomlify`` to convert a ``flit.ini`` file to
+   ``pyproject.toml``.
+
 Build system section
 --------------------
 
