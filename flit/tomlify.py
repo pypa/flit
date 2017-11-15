@@ -62,10 +62,10 @@ def convert(path):
         files += ' and ' + str(ep_file)
     print("Please check the new file, then remove", files)
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('-f', '--ini-file', type=Path, default='flit.ini')
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     os.chdir(str(args.ini_file.parent))
     convert(Path(args.ini_file.name))
