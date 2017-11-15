@@ -8,7 +8,7 @@ Version 0.12.2
 
       python3 -m flit.tomlify
 
-- Use the PAX tar format for sdists, as specified by PEP 517.   
+- Use the PAX tar format for sdists, as specified by PEP 517.
 
 Version 0.12.1
 --------------

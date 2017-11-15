@@ -35,7 +35,7 @@ or as a directory — and you want to distribute it.
 2. Run ``flit init`` to create a ``pyproject.toml`` file. It will look something
    like this:
 
-   .. code-block:: toml
+   .. code-block:: ini
 
        [build-system]
        requires = ["flit"]
