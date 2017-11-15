@@ -189,7 +189,7 @@ class TerminalIniter(IniterBase):
         print()
         print("Written pyproject.toml; edit that file to add optional extra info.")
 
-TEMPLATE = """
+TEMPLATE = """\
 [build-system]
 requires = ["flit"]
 build-backend = "flit.buildapi"
