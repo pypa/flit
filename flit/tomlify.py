@@ -1,6 +1,7 @@
 """Convert a flit.ini file to pyproject.toml
 """
 import argparse
+from collections import OrderedDict
 import configparser
 import os
 from pathlib import Path
@@ -18,7 +19,7 @@ def convert(path):
         cp.read_file(f)
 
     ep_file = Path('entry_points.txt')
-    metadata = {}
+    metadata = OrderedDict()
     for name, value in cp['metadata'].items():
         if name in metadata_list_fields:
             metadata[name] = [l for l in value.splitlines() if l.strip()]
@@ -28,7 +29,7 @@ def convert(path):
             metadata[name] = value
 
     if 'scripts' in cp:
-        scripts = dict(cp['scripts'])
+        scripts = OrderedDict(cp['scripts'])
     else:
         scripts = {}
 
@@ -52,7 +53,7 @@ def convert(path):
             if '.' in groupname:
                 groupname = '"{}"'.format(groupname)
             f.write('\n[tool.flit.entrypoints.{}]\n'.format(groupname))
-            pytoml.dump(dict(group), f)
+            pytoml.dump(OrderedDict(group), f)
             written_entrypoints = True
 
     print("Written 'pyproject.toml'")
