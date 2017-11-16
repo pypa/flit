@@ -55,7 +55,7 @@ class InstallTests(TestCase):
     def test_dist_name(self):
         Installer(samples_dir / 'altdistname.ini').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
-        assert_isdir(self.tmpdir / 'site-packages' / 'packagedist1-0.1.dist-info')
+        assert_isdir(self.tmpdir / 'site-packages' / 'package_dist1-0.1.dist-info')
 
     def test_entry_points(self):
         Installer(samples_dir / 'entrypoints_valid.ini').install_directly()

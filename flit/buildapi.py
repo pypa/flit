@@ -2,7 +2,7 @@
 import logging
 from pathlib import Path
 
-from .common import Module, make_metadata, write_entry_points
+from .common import Module, make_metadata, write_entry_points, dist_info_name
 from .inifile import read_pkg_ini
 from .wheel import make_wheel_in, _write_wheel_file
 from .sdist import SdistBuilder
@@ -26,8 +26,8 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     module = Module(ini_info['module'], Path.cwd())
     metadata = make_metadata(module, ini_info)
 
-    dist_version = metadata.name + '-' + metadata.version
-    dist_info = Path(metadata_directory, dist_version + '.dist-info')
+    dist_info = Path(metadata_directory,
+                     dist_info_name(metadata.name, metadata.version))
     dist_info.mkdir()
 
     supports_py2 = not (metadata.requires_python or '')\

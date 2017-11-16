@@ -46,7 +46,6 @@ class WheelBuilder:
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
         self.metadata = common.make_metadata(self.module, self.ini_info)
 
-        self.dist_version = self.metadata.name + '-' + self.metadata.version
         self.records = []
         try:
             # If SOURCE_DATE_EPOCH is set (e.g. by Debian), it's used for
@@ -63,6 +62,10 @@ class WheelBuilder:
         # Open the zip file ready to write
         self.wheel_zip = zipfile.ZipFile(target_fp, 'w',
                              compression=zipfile.ZIP_DEFLATED)
+
+    @property
+    def dist_info(self):
+        return common.dist_info_name(self.metadata.name, self.metadata.version)
 
     @property
     def wheel_filename(self):
@@ -153,30 +156,29 @@ class WheelBuilder:
 
     def write_metadata(self):
         log.info('Writing metadata files')
-        dist_info = self.dist_version + '.dist-info'
 
         if self.ini_info['entrypoints']:
-            with self._write_to_zip(dist_info + '/entry_points.txt') as f:
+            with self._write_to_zip(self.dist_info + '/entry_points.txt') as f:
                 common.write_entry_points(self.ini_info['entrypoints'], f)
 
         for base in ('COPYING', 'LICENSE'):
             for path in sorted(self.directory.glob(base + '*')):
-                self._add_file(path, '%s/%s' % (dist_info, path.name))
+                self._add_file(path, '%s/%s' % (self.dist_info, path.name))
 
-        with self._write_to_zip(dist_info + '/WHEEL') as f:
+        with self._write_to_zip(self.dist_info + '/WHEEL') as f:
             _write_wheel_file(f, supports_py2=self.supports_py2)
 
-        with self._write_to_zip(dist_info + '/METADATA') as f:
+        with self._write_to_zip(self.dist_info + '/METADATA') as f:
             self.metadata.write_metadata_file(f)
 
     def write_record(self):
         log.info('Writing the record of files')
         # Write a record of the files in the wheel
-        with self._write_to_zip(self.dist_version + '.dist-info/RECORD') as f:
+        with self._write_to_zip(self.dist_info + '/RECORD') as f:
             for path, hash, size in self.records:
                 f.write('{},sha256={},{}\n'.format(path, hash, size))
             # RECORD itself is recorded with no hash or size
-            f.write(self.dist_version + '.dist-info/RECORD,,\n')
+            f.write(self.dist_info + '/RECORD,,\n')
 
     def build(self):
         try:

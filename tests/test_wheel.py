@@ -7,7 +7,7 @@ from unittest import skipIf
 import zipfile
 
 import pytest
-from testpath import assert_isfile
+from testpath import assert_isfile, assert_isdir
 
 from flit.wheel import wheel_main, WheelBuilder
 from flit.inifile import EntryPointsConflict
@@ -39,7 +39,10 @@ def test_wheel_package():
 def test_dist_name():
     clear_samples_dist()
     wheel_main(samples_dir / 'altdistname.ini')
-    assert_isfile(samples_dir / 'dist/packagedist1-0.1-py2.py3-none-any.whl')
+    res = samples_dir / 'dist/package_dist1-0.1-py2.py3-none-any.whl'
+    assert_isfile(res)
+    with unpack(res) as td:
+        assert_isdir(Path(td, 'package_dist1-0.1.dist-info'))
 
 def test_entry_points():
     clear_samples_dist()
