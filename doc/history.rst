@@ -1,6 +1,12 @@
 Release history
 ===============
 
+Version 0.12.3
+--------------
+
+- Fix building and installing packages with a ``-`` in the distribution name.
+- Fix numbering in README.
+
 Version 0.12.2
 --------------
 
