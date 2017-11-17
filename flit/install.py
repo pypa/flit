@@ -5,6 +5,7 @@ import os
 import csv
 import pathlib
 import random
+import re
 import shutil
 import site
 import sys
@@ -300,9 +301,8 @@ class Installer(object):
     def write_dist_info(self, site_pkgs):
         """Write dist-info folder, according to PEP 376"""
         metadata = common.make_metadata(self.module, self.ini_info)
-
-        dist_info = pathlib.Path(site_pkgs) / '{}-{}.dist-info'.format(
-                                            metadata.name, metadata.version)
+        dist_info = pathlib.Path(site_pkgs) / common.dist_info_name(
+                                                metadata.name, metadata.version)
         try:
             dist_info.mkdir()
         except FileExistsError:
