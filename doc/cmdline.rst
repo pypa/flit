@@ -44,7 +44,7 @@ Build a wheel and an sdist (tarball) from the package.
 
 
 ``flit publish``
----------------
+----------------
 
 .. program:: flit publish
 
@@ -55,6 +55,8 @@ or another repository.
 
    Limit to publishing either ``wheel`` or ``sdist``.
    You should normally publish the two formats together.
+
+.. seealso:: :doc:`upload`
 
 ``flit install``
 ----------------
