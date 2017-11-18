@@ -43,10 +43,10 @@ Build a wheel and an sdist (tarball) from the package.
    Limit to building either ``wheel`` or ``sdist``.
 
 
-``flit upload``
+``flit publish``
 ---------------
 
-.. program:: flit upload
+.. program:: flit publish
 
 Build a wheel and an sdist (tarball) from the package, and upload them to PyPI
 or another repository.
