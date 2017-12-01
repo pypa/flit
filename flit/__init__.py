@@ -115,6 +115,7 @@ def main(argv=None):
         sys.exit(0)
 
     if args.subcmd == 'wheel':
+        log.warning("'flit wheel' is deprecated: use 'flit build'.")
         from .wheel import wheel_main
         try:
             wheel_main(args.ini_file, upload=args.upload,
@@ -123,6 +124,7 @@ def main(argv=None):
         except common.ProblemInModule as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'sdist':
+        log.warning("'flit sdist' is deprecated: use 'flit build'.")
         from .sdist import SdistBuilder
         try:
             SdistBuilder(args.ini_file).build()
@@ -147,6 +149,7 @@ def main(argv=None):
         from .installfrom import installfrom
         sys.exit(installfrom(args.location, user=args.user, python=args.python))
     elif args.subcmd == 'register':
+        log.warning("'flit register' is deprecated. Use 'flit publish' directly.")
         from .upload import register
         meta, mod = common.metadata_and_module_from_ini_path(args.ini_file)
         register(meta, args.repository)
