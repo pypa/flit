@@ -3,6 +3,7 @@
 import logging
 import os
 from pathlib import Path
+import re
 import requests
 import sys
 
@@ -121,11 +122,25 @@ def validate_entrypoints(entrypoints):
                                 '{} = {}'.format(groupname, k, v))
     return problems
 
+def _valid_version_specifier(s):
+    for clause in s.split(','):
+        if not re.match(r'(~=|===?|!=|<=?|>=?).*$', clause):
+            return False
+    return True
+
+def validate_requires_python(metadata):
+    spec = metadata.get('requires_python', None)
+    if spec is None or _valid_version_specifier(spec):
+        return []
+    return ['Invalid requires-python: {!r}'.format(spec)]
+
 def validate_config(config_info):
     i = config_info
-    problems = \
-        validate_classifiers(i['metadata'].get('classifiers')) + \
-        validate_entrypoints(i['entrypoints'])
+    problems = sum([
+        validate_classifiers(i['metadata'].get('classifiers')),
+        validate_entrypoints(i['entrypoints']),
+        validate_requires_python(i['metadata']),
+                   ], [])
 
     for p in problems:
         log.error(p)
