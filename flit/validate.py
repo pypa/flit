@@ -122,9 +122,25 @@ def validate_entrypoints(entrypoints):
                                 '{} = {}'.format(groupname, k, v))
     return problems
 
+# Distribution name, not quite the same as a Python identifier
+NAME = re.compile(r'^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$', re.IGNORECASE)
+VERSION_SPEC = re.compile(r'(~=|===?|!=|<=?|>=?).*$')
+REQUIREMENT = re.compile(NAME.pattern[:-1] +  # Trim '$'
+     r"""\s*(?P<extras>[.*])?
+         \s*(?P<version>[(=~<>!].*)?
+         \s*(?P<envmark>;.*)?
+     """, re.IGNORECASE | re.VERBOSE)
+
+def validate_name(metadata):
+    name = metadata.get('name', None)
+    if name is None or NAME.match(name):
+        return []
+    return ['Invalid name: {!r}'.format(name)]
+
+
 def _valid_version_specifier(s):
     for clause in s.split(','):
-        if not re.match(r'(~=|===?|!=|<=?|>=?).*$', clause):
+        if not VERSION_SPEC.match(clause):
             return False
     return True
 
@@ -134,12 +150,35 @@ def validate_requires_python(metadata):
         return []
     return ['Invalid requires-python: {!r}'.format(spec)]
 
+def validate_requires_dist(metadata):
+    probs = []
+    for req in metadata.get('requires_dist', []):
+        m = REQUIREMENT.match(req)
+        if not m:
+            probs.append("Could not parse requirement: {!r}".format(req))
+            continue
+        extras, version, envmark = m.group('extras', 'version', 'envmark')
+        if not (extras is None or all(NAME.match(e.strip())
+                                      for e in extras.split(','))):
+            probs.append("Invalid extras in requirement: {!r}".format(req))
+        if version is not None:
+            if version.startswith('(') and version.endswith(')'):
+                version = version[1:-1]
+            if not _valid_version_specifier(version):
+                print((extras, version, envmark))
+                probs.append("Invalid version specifier in requirement: {!r}"
+                             .format(req))
+        # TODO: validate environment marker
+    return probs
+
 def validate_config(config_info):
     i = config_info
     problems = sum([
         validate_classifiers(i['metadata'].get('classifiers')),
         validate_entrypoints(i['entrypoints']),
+        validate_name(i['metadata']),
         validate_requires_python(i['metadata']),
+        validate_requires_dist(i['metadata']),
                    ], [])
 
     for p in problems:
