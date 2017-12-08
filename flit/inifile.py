@@ -1,13 +1,11 @@
 import configparser
 import difflib
 import logging
-import os
 from pathlib import Path
-import sys
 
-import requests
 import pytoml as toml
 
+from .validate import validate_config
 from .vendorized.readme.rst import render
 import io
 
@@ -44,80 +42,6 @@ metadata_required_fields = {
     'home-page',
 }
 
-def get_cache_dir() -> Path:
-    """Locate a platform-appropriate cache directory for flit to use
-    
-    Does not ensure that the cache directory exists.
-    """
-    if os.name == 'posix' and sys.platform != 'darwin':
-        # Linux, Unix, AIX, etc.
-        # use ~/.cache if empty OR not set
-        xdg = os.environ.get("XDG_CACHE_HOME", None) or (os.path.expanduser('~/.cache'))
-        return Path(xdg, 'flit')
-
-    elif sys.platform == 'darwin':
-        return Path(os.path.expanduser('~'), 'Library/Caches/flit')
-
-    else:
-        # Windows (hopefully)
-        local = os.environ.get('LOCALAPPDATA', None) or (os.path.expanduser('~\\AppData\\Local'))
-        return Path(local, 'flit')
-
-def _verify_classifiers_cached(classifiers):
-    """Check classifiers against the downloaded list of known classifiers"""
-    with (get_cache_dir() / 'classifiers.lst').open(encoding='utf-8') as f:
-        valid_classifiers = set(l.strip() for l in f)
-
-    invalid = classifiers - valid_classifiers
-    if invalid:
-        raise ConfigError("Invalid classifiers:\n" +
-                          "\n".join(invalid))
-
-def _download_classifiers():
-    """Get the list of valid trove classifiers from PyPI"""
-    log.info('Fetching list of valid trove classifiers')
-    resp = requests.get('https://pypi.python.org/pypi?%3Aaction=list_classifiers')
-    resp.raise_for_status()
-
-    cache_dir = get_cache_dir()
-    try:
-        cache_dir.mkdir(parents=True)
-    except FileExistsError:
-        pass
-    with (get_cache_dir() / 'classifiers.lst').open('wb') as f:
-        f.write(resp.content)
-
-def verify_classifiers(classifiers):
-    """Verify trove classifiers from config file.
-    
-    Fetches and caches a list of known classifiers from PyPI. Setting the
-    environment variable FLIT_NO_NETWORK=1 will skip this if the classifiers
-    are not already cached.
-    """
-    classifiers = set(classifiers)
-    try:
-        _verify_classifiers_cached(classifiers)
-    except (FileNotFoundError, ConfigError) as e1:
-        # FileNotFoundError: We haven't yet got the classifiers cached
-        # ConfigError: At least one is invalid, but it may have been added since
-        #   last time we fetched them.
-
-        if os.environ.get('FLIT_NO_NETWORK', ''):
-            log.warning("Not checking classifiers, because FLIT_NO_NETWORK is set")
-            return
-
-        # Try to download up-to-date list of classifiers
-        try:
-            _download_classifiers()
-        except requests.ConnectionError:
-            # The error you get on a train, going through Oregon, without wifi
-            if isinstance(e1, ConfigError):
-                raise e1
-            else:
-                log.warning("Couldn't get list of valid classifiers to check against")
-        else:
-            _verify_classifiers_cached(classifiers)
-
 
 def read_pkg_ini(path: Path):
     """Read and check the `pyproject.toml` or `flit.ini` file with data about the package.
@@ -125,13 +49,17 @@ def read_pkg_ini(path: Path):
     if path.suffix == '.toml':
         with path.open() as f:
             d = toml.load(f)
-        return prep_toml_config(d, path)
+        res = prep_toml_config(d, path)
     else:
         # Treat all other extensions as the older flit.ini format
         cp = _read_pkg_ini(path)
-        return _validate_config(cp, path)
+        res = _validate_config(cp, path)
 
-class EntryPointsConflict(ValueError):
+    if validate_config(res):
+        raise ConfigError("Invalid config values (see log)")
+    return res
+
+class EntryPointsConflict(ConfigError):
     def __str__(self):
         return ('Please specify console_scripts entry points, or [scripts] in '
             'flit config, not both.')
@@ -167,7 +95,6 @@ def prep_toml_config(d, path):
     else:
         entrypoints = {}
     _add_scripts_to_entrypoints(entrypoints, scripts_dict)
-    _validate_entrypoints(entrypoints)
 
     return {
         'module': module,
@@ -215,28 +142,6 @@ def _add_scripts_to_entrypoints(entrypoints, scripts_dict):
             raise EntryPointsConflict
         else:
             entrypoints['console_scripts'] = scripts_dict
-
-def _validate_entrypoints(entrypoints):
-    """Check that the loaded entrypoints are valid.
-    
-    Expects a dict of dicts, e.g.::
-    
-        {'console_scripts': {'flit': 'flit:main'}}
-    """
-    def _is_identifier_attr(s):
-        return all(n.isidentifier() for n in s.split('.'))
-
-    for groupname, group in entrypoints.items():
-        for k, v in group.items():
-            if ':' in v:
-                mod, obj = v.split(':', 1)
-                valid = _is_identifier_attr(mod) and _is_identifier_attr(obj)
-            else:
-                valid = _is_identifier_attr(v)
-
-            if not valid:
-                raise ConfigError('Invalid entry point in group {}:\n'
-                                  '{} = {}'.format(groupname, k, v))
 
 
 def _read_pkg_ini(path):
@@ -365,9 +270,6 @@ def _validate_config(cp, path):
 
     md_dict, module = _prep_metadata(md_sect, path)
 
-    if 'classifiers' in md_dict:
-        verify_classifiers(md_dict['classifiers'])
-
     # Scripts ---------------
     if cp.has_section('scripts'):
         scripts_dict = dict(cp['scripts'])
@@ -375,7 +277,6 @@ def _validate_config(cp, path):
         scripts_dict = {}
 
     _add_scripts_to_entrypoints(entrypoints, scripts_dict)
-    _validate_entrypoints(entrypoints)
 
     return {
         'module': module,
