@@ -1,6 +1,7 @@
 import configparser
 import difflib
 import logging
+import os
 from pathlib import Path
 
 import pytoml as toml
@@ -56,7 +57,10 @@ def read_pkg_ini(path: Path):
         res = _validate_config(cp, path)
 
     if validate_config(res):
-        raise ConfigError("Invalid config values (see log)")
+        if os.environ.get('FLIT_ALLOW_INVALID'):
+            log.warning("Allowing invalid data (FLIT_ALLOW_INVALID set). Uploads may still fail.")
+        else:
+            raise ConfigError("Invalid config values (see log)")
     return res
 
 class EntryPointsConflict(ConfigError):

@@ -139,6 +139,19 @@ Environment variables
    See :ref:`uploading packages with environment variables <upload_envvars>`
    for more information.
 
+.. envvar:: FLIT_ALLOW_INVALID
+
+   .. versionadded:: 0.13
+
+   Setting this to any non-empty value tells Flit to continue if it detects
+   invalid metadata, instead of failing with an error. Problems will still be
+   reported in the logs, but won't cause Flit to stop.
+
+   If the metadata is invalid, uploading the package to PyPI may fail. This
+   environment variable provides an escape hatch in case Flit incorrectly
+   rejects your valid metadata. If you need to use it and you believe your
+   metadata is valid, please `open an issue <https://github.com/takluyver/flit/issues>`__.
+
 .. envvar:: SOURCE_DATE_EPOCH
 
    To make reproducible builds, set this to a timestamp as a number of seconds
