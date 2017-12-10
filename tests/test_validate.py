@@ -49,3 +49,29 @@ def test_validate_requires_dist():
 
     assert len(check('Bücher')) == 1
     assert len(check('requests 2.14')) == 1
+    assert len(check('pexpect; sys.platform == "win32"')) == 1  # '.' -> '_'
+    # Several problems in one requirement
+    assert len(check('pexpect[_foo] =3; sys.platform == "win32"')) == 3
+
+def test_validate_environment_marker():
+    vem = fv.validate_environment_marker
+
+    assert vem('python_version >= "3" and os_name == \'posix\'') == []
+
+    res = vem('python_version >= "3')  # Unclosed string
+    assert len(res) == 1
+    assert res[0].startswith("Invalid string")
+
+    res = vem('python_verson >= "3"')  # Misspelled name
+    assert len(res) == 1
+    assert res[0].startswith("Invalid variable")
+
+    res = vem("os_name is 'posix'")  # No 'is' comparisons
+    assert len(res) == 1
+    assert res[0].startswith("Invalid expression")
+
+    res = vem("'2' < python_version < '4'")  # No chained comparisons
+    assert len(res) == 1
+    assert res[0].startswith("Invalid expression")
+
+    assert len(vem('os.name == "linux\'')) == 2

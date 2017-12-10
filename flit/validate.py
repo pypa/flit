@@ -131,6 +131,7 @@ REQUIREMENT = re.compile(NAME.pattern[:-1] +  # Trim '$'
          \s*(?P<version>[(=~<>!][^;]*)?
          \s*(?P<envmark>;.*)?
      $""", re.IGNORECASE | re.VERBOSE)
+MARKER_OP = re.compile(r'(~=|===?|!=|<=?|>=?|\s+in\s+|\s+not in\s+)')
 
 def validate_name(metadata):
     name = metadata.get('name', None)
@@ -151,6 +152,30 @@ def validate_requires_python(metadata):
         return []
     return ['Invalid requires-python: {!r}'.format(spec)]
 
+MARKER_VARS = {
+    'python_version', 'python_full_version', 'os_name', 'sys_platform',
+    'platform_release', 'platform_system', 'platform_version', 'platform_machine',
+    'platform_python_implementation', 'implementation_name',
+    'implementation_version', 'extra',
+}
+
+def validate_environment_marker(em):
+    clauses = re.split(r'\s+(?:and|or)\s+', em)
+    problems = []
+    for c in clauses:
+        parts = MARKER_OP.split(c)
+        if len(parts) != 3:
+            problems.append("Invalid expression in environment marker: {!r}".format(c))
+            continue
+        l, op, r = parts
+        for var in (l.strip(), r.strip()):
+            if var[:1] in {'"', "'"}:
+                if len(var) < 2 or var[-1:] != var[:1]:
+                    problems.append("Invalid string in environment marker: {}".format(var))
+            elif var not in MARKER_VARS:
+                problems.append("Invalid variable name in environment marker: {!r}".format(var))
+    return problems
+
 def validate_requires_dist(metadata):
     probs = []
     for req in metadata.get('requires_dist', []):
@@ -158,6 +183,7 @@ def validate_requires_dist(metadata):
         if not m:
             probs.append("Could not parse requirement: {!r}".format(req))
             continue
+
         extras, version, envmark = m.group('extras', 'version', 'envmark')
         if not (extras is None or all(NAME.match(e.strip())
                                       for e in extras[1:-1].split(','))):
@@ -169,7 +195,8 @@ def validate_requires_dist(metadata):
                 print((extras, version, envmark))
                 probs.append("Invalid version specifier {!r} in requirement {!r}"
                              .format(version, req))
-        # TODO: validate environment marker
+        if envmark is not None:
+            probs.extend(validate_environment_marker(envmark[1:]))
     return probs
 
 def validate_config(config_info):
