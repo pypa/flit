@@ -124,12 +124,13 @@ def validate_entrypoints(entrypoints):
 
 # Distribution name, not quite the same as a Python identifier
 NAME = re.compile(r'^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$', re.IGNORECASE)
-VERSION_SPEC = re.compile(r'(~=|===?|!=|<=?|>=?).*$')
+r''
+VERSION_SPEC = re.compile(r'(~=|===?|!=|<=?|>=?)\s*[A-Z0-9\-_.*+!]+$', re.IGNORECASE)
 REQUIREMENT = re.compile(NAME.pattern[:-1] +  # Trim '$'
-     r"""\s*(?P<extras>[.*])?
-         \s*(?P<version>[(=~<>!].*)?
+     r"""\s*(?P<extras>\[.*\])?
+         \s*(?P<version>[(=~<>!][^;]*)?
          \s*(?P<envmark>;.*)?
-     """, re.IGNORECASE | re.VERBOSE)
+     $""", re.IGNORECASE | re.VERBOSE)
 
 def validate_name(metadata):
     name = metadata.get('name', None)
@@ -140,7 +141,7 @@ def validate_name(metadata):
 
 def _valid_version_specifier(s):
     for clause in s.split(','):
-        if not VERSION_SPEC.match(clause):
+        if not VERSION_SPEC.match(clause.strip()):
             return False
     return True
 
@@ -159,15 +160,15 @@ def validate_requires_dist(metadata):
             continue
         extras, version, envmark = m.group('extras', 'version', 'envmark')
         if not (extras is None or all(NAME.match(e.strip())
-                                      for e in extras.split(','))):
+                                      for e in extras[1:-1].split(','))):
             probs.append("Invalid extras in requirement: {!r}".format(req))
         if version is not None:
             if version.startswith('(') and version.endswith(')'):
                 version = version[1:-1]
             if not _valid_version_specifier(version):
                 print((extras, version, envmark))
-                probs.append("Invalid version specifier in requirement: {!r}"
-                             .format(req))
+                probs.append("Invalid version specifier {!r} in requirement {!r}"
+                             .format(version, req))
         # TODO: validate environment marker
     return probs
 
