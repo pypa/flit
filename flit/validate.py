@@ -47,7 +47,7 @@ def _download_classifiers():
     """Get the list of valid trove classifiers from PyPI"""
     log.info('Fetching list of valid trove classifiers')
     resp = requests.get(
-        'https://pypi.python.org/pypi?%3Aaction=list_classifiers')
+        'https://pypi.org/pypi?%3Aaction=list_classifiers')
     resp.raise_for_status()
 
     cache_dir = get_cache_dir()
