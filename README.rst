@@ -49,8 +49,8 @@ or as a directory — and you want to distribute it.
 
    You can edit this file to add other metadata, for example to set up
    command line scripts. See the
-   `flit.ini page <https://flit.readthedocs.io/en/latest/flit_ini.html>`_
-   of the docs.
+   `pyproject.toml page <https://flit.readthedocs.io/en/latest/pyproject_toml.html#scripts-section>`_
+   of the documentation.
 
    If you have already got a ``flit.ini`` file to use with older versions of
    Flit, it will still work for now, but you should convert it to
