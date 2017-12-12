@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest import TestCase
 import pytest
 
-from flit.common import (Module, get_info_from_module, InvalidVersion,
+from flit.common import (Module, get_info_from_module, InvalidVersion, NoVersionError,
      check_version, normalize_file_permissions
 )
 
@@ -58,8 +58,17 @@ class ModuleTests(TestCase):
         with pytest.raises(InvalidVersion):
             check_version('a.1.0.beta0')
 
-        assert check_version('4.1.0b1') == True
-        assert check_version('4.1.0beta1') == False
+        with pytest.raises(InvalidVersion):
+            check_version('3!')
+
+        with pytest.raises(InvalidVersion):
+            check_version((1, 2))
+
+        with pytest.raises(NoVersionError):
+            check_version(None)
+
+        assert check_version('4.1.0beta1') == '4.1.0b1'
+        assert check_version('v1.2') == '1.2'
 
 def test_normalize_file_permissions():
     assert normalize_file_permissions(0o100664) == 0o100644 # regular file

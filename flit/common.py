@@ -9,23 +9,6 @@ log = logging.getLogger(__name__)
 
 import re
 
-
-pep440re = re.compile('^'
-                   '([1-9]\d*!)?'
-                 '(0|[1-9]\d*)'
-               '(.(0|[1-9]\d*))*'
-        '((a|b|rc)(0|[1-9]\d*))?'
-          '(\.post(0|[1-9]\d*))?'
-           '(\.dev(0|[1-9]\d*))?'
-        '$')
-
-def _is_canonical(version)->bool:
-    """
-    Return whether or not the version string is canonical according to Pep 440
-    """
-    return pep440re.match(version) is not None
-
-
 class Module(object):
     """This represents the module/package that we are going to distribute
     """
@@ -131,7 +114,8 @@ def get_info_from_module(target):
         raise NoDocstringError('Cannot package module without docstring, or empty docstring. '
                                 'Please add a docstring to your module.')
 
-    check_version(version)
+
+    version = check_version(version)
 
     docstring_lines = docstring.lstrip().splitlines()
     return {'summary': docstring_lines[0],
@@ -139,14 +123,14 @@ def get_info_from_module(target):
 
 def check_version(version):
     """
-    Check whether a given version string match Pep 440
+    Check whether a given version string match PEP 440, and do normalisation.
 
-    Raise InvalidVersion/NoVersionError With relevant information if
+    Raise InvalidVersion/NoVersionError with relevant information if
     version is invalid.
 
-    Print a warning if the version is not canonical with respect to Pep440
+    Log a warning if the version is not canonical with respect to PEP 440.
 
-    Return whether the version is canonical with pep440
+    Returns the version in canonical PEP 440 format.
     """
     if not version:
         raise NoVersionError('Cannot package module without a version string. '
@@ -154,14 +138,12 @@ def check_version(version):
     if not isinstance(version, str):
         raise InvalidVersion('__version__ must be a string, not {}.'
                                 .format(type(version)))
-    if not version[0].isdigit():
-        raise InvalidVersion('__version__ must start with a number. It is {!r}.'
-                                .format(version))
-    canonical = _is_canonical(version)
-    if not canonical:
-        log.warning('Version string (%s) does not match Pep440.', version)
 
-    return canonical
+    # Import here to avoid circular import
+    from .validate import normalise_version
+    version = normalise_version(version)
+
+    return version
 
 
 script_template = """\
