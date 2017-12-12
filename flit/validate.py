@@ -19,8 +19,8 @@ def get_cache_dir() -> Path:
     # Linux, Unix, AIX, etc.
     if os.name == 'posix' and sys.platform != 'darwin':
         # use ~/.cache if empty OR not set
-        xdg = os.environ.get("XDG_CACHE_HOME", None) or (
-        os.path.expanduser('~/.cache'))
+        xdg = os.environ.get("XDG_CACHE_HOME", None) \
+              or os.path.expanduser('~/.cache')
         return Path(xdg, 'flit')
 
     # Mac OS
@@ -29,8 +29,8 @@ def get_cache_dir() -> Path:
 
     # Windows (hopefully)
     else:
-        local = os.environ.get('LOCALAPPDATA', None) or (
-        os.path.expanduser('~\\AppData\\Local'))
+        local = os.environ.get('LOCALAPPDATA', None) \
+                or os.path.expanduser('~\\AppData\\Local')
         return Path(local, 'flit')
 
 def _verify_classifiers_cached(classifiers):
