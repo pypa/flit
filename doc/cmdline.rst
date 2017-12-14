@@ -31,6 +31,8 @@ Common options
 
    Show more detailed logs about what flit is doing.
 
+.. _build_cmd:
+
 ``flit build``
 --------------
 

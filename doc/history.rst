@@ -1,6 +1,20 @@
 Release history
 ===============
 
+Version 0.13
+------------
+
+- Better validation of several metadata fields (``dist-name``, ``requires``,
+  ``requires-python``, ``home-page``), and of the version number.
+- New :envvar:`FLIT_ALLOW_INVALID` environment variable to ignore validation
+  failures in case they go wrong.
+- The list of valid classifiers is now fetched from Warehouse (https://pypi.org),
+  rather than the older https://pypi.python.org site.
+- Deprecated ``flit wheel`` and ``flit sdist`` subcommands: use
+  :ref:`build_cmd`.
+- Deprecated ``flit register``: you can no longer register a package separately
+  from uploading it.
+
 Version 0.12.3
 --------------
 
