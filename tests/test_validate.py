@@ -78,6 +78,13 @@ def test_validate_environment_marker():
 
     assert len(vem('os.name == "linux\'')) == 2
 
+def test_validate_url():
+    vurl = fv.validate_url
+    assert vurl('https://github.com/takluyver/flit') == []
+
+    assert len(vurl('github.com/takluyver/flit')) == 1
+    assert len(vurl('https://')) == 1
+
 def test_normalise_version():
     nv = fv.normalise_version
     assert nv('4.3.1') == '4.3.1'
