@@ -202,6 +202,16 @@ def validate_requires_dist(metadata):
             probs.extend(validate_environment_marker(envmark[1:]))
     return probs
 
+def validate_url(url):
+    probs = []
+    if not url.startswith(('http://', 'https://')):
+        probs.append("URL {!r} doesn't start with https:// or http://"
+                     .format(url))
+    elif not url.split('//', 1)[1]:
+        probs.append("URL missing address")
+    return probs
+
+
 def validate_config(config_info):
     i = config_info
     problems = sum([
@@ -210,6 +220,7 @@ def validate_config(config_info):
         validate_name(i['metadata']),
         validate_requires_python(i['metadata']),
         validate_requires_dist(i['metadata']),
+        validate_url(i['metadata']['home_page'])
                    ], [])
 
     for p in problems:
