@@ -35,6 +35,11 @@ def test_load_toml():
     assert inf['module'] == 'module1'
     assert inf['metadata']['home_page'] == 'http://github.com/sirrobin/module1'
 
+def test_load_toml_ns():
+    inf = read_pkg_ini(samples_dir / 'ns1-pkg.toml')
+    assert inf['module'] == 'ns1.pkg'
+    assert inf['metadata']['home_page'] == 'http://github.com/sirrobin/module1'
+
 def test_misspelled_key():
     with pytest.raises(ConfigError) as e_info:
         read_pkg_ini(samples_dir / 'misspelled-key.ini')

@@ -177,7 +177,7 @@ def _prep_metadata(md_sect, path):
         raise ConfigError("Required fields missing: " + '\n'.join(missing))
 
     module = md_sect.get('module')
-    if not module.isidentifier():
+    if not all([m.isidentifier() for m in module.split(".")]):
         raise ConfigError("Module name %r is not a valid identifier" % module)
 
     md_dict = {}

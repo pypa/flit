@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import hashlib
 from importlib.machinery import SourceFileLoader
 import logging
+import os
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -14,12 +15,19 @@ class Module(object):
     """
     def __init__(self, name, directory='.'):
         self.name = name
+        self.is_namespace_package = False
+        self.is_package = False
 
         # It must exist either as a .py file or a directory, but not both
+        name = (name + ".").split(".", 1)[0]
         pkg_dir = Path(directory, name)
         py_file = Path(directory, name+'.py')
         if pkg_dir.is_dir() and py_file.is_file():
             raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
+        elif pkg_dir.is_dir() and "." in self.name:
+            self.path = pkg_dir
+            self.ns_path = Path(directory, self.name.replace('.', os.sep))
+            self.is_namespace_package = True
         elif pkg_dir.is_dir():
             self.path = pkg_dir
             self.is_package = True
@@ -31,7 +39,9 @@ class Module(object):
 
     @property
     def file(self):
-        if self.is_package:
+        if self.is_namespace_package:
+            return self.ns_path / '__init__.py'
+        elif self.is_package:
             return self.path / '__init__.py'
         else:
             return self.path
