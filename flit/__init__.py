@@ -33,16 +33,6 @@ def main(argv=None):
     ap.add_argument('--logo', action='store_true', help=argparse.SUPPRESS)
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 
-    parser_wheel = subparsers.add_parser('wheel',
-        help="Build a wheel package",
-    )
-    parser_wheel.add_argument('--upload', action='store_true',
-          help="Upload the built wheel to PyPI"
-    )
-    parser_wheel.add_argument('--verify-metadata', action='store_true',
-          help="Verify the package metadata with the PyPI server"
-    )
-
     parser_build = subparsers.add_parser('build',
         help="Build wheel and sdist",
     )
@@ -106,16 +96,7 @@ def main(argv=None):
         print(clogo.format(version=__version__))
         sys.exit(0)
 
-    if args.subcmd == 'wheel':
-        log.warning("'flit wheel' is deprecated: use 'flit build'.")
-        from .wheel import wheel_main
-        try:
-            wheel_main(args.ini_file, upload=args.upload,
-                     verify_metadata=args.verify_metadata,
-                     repo=args.repository)
-        except common.ProblemInModule as e:
-            sys.exit(e.args[0])
-    elif args.subcmd == 'build':
+    if args.subcmd == 'build':
         from .build import main
         main(args.ini_file, formats=set(args.format or []))
     elif args.subcmd == 'publish':
