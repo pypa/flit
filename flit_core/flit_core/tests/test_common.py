@@ -18,7 +18,7 @@ class ModuleTests(TestCase):
         i = Module('ns1.pkg', samples_dir)
         assert i.path == Path(samples_dir, 'ns1')
         assert i.file == Path(samples_dir, 'ns1', 'pkg', '__init__.py')
-        assert not i.is_package
+        assert i.is_package
         assert i.is_namespace_package
 
     def test_package_importable(self):
