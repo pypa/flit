@@ -88,10 +88,6 @@ def main(argv=None):
         help="Prepare flit.ini for a new package"
     )
 
-    subparsers.add_parser('register',
-        help="register a package on PyPI without uploading any files"
-    )
-
     args = ap.parse_args(argv)
 
     cf = args.ini_file
@@ -148,11 +144,6 @@ def main(argv=None):
     elif args.subcmd == 'installfrom':
         from .installfrom import installfrom
         sys.exit(installfrom(args.location, user=args.user, python=args.python))
-    elif args.subcmd == 'register':
-        log.warning("'flit register' is deprecated. Use 'flit publish' directly.")
-        from .upload import register
-        meta, mod = common.metadata_and_module_from_ini_path(args.ini_file)
-        register(meta, args.repository)
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()
