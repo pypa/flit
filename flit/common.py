@@ -28,6 +28,7 @@ class Module(object):
             self.path = pkg_dir
             self.ns_path = Path(directory, self.name.replace('.', os.sep))
             self.is_namespace_package = True
+            self.is_package = True
         elif pkg_dir.is_dir():
             self.path = pkg_dir
             self.is_package = True
