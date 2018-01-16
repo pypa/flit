@@ -79,6 +79,11 @@ class InstallTests(TestCase):
             samples_dir / 'package1', 'package1', '0.1', expected_editable=False
         )
 
+    def test_install_ns_package(self):
+        Installer(samples_dir / 'ns1-pkg.toml').install_directly()
+        assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
+        assert_isdir(self.tmpdir / 'site-packages' / 'ns1.pkg-0.1.dist-info')
+
     def test_symlink_package(self):
         if os.name == 'nt':
             raise SkipTest("symlink")

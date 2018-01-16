@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import hashlib
 import logging
 import os
-import os.path as osp
+
 from pathlib import Path
 import re
 
@@ -19,13 +19,23 @@ class Module(object):
         self.directory = directory
 
         # It must exist either as a .py file or a directory, but not both
+        name = (name + ".").split(".", 1)[0]
         pkg_dir = directory / name
         py_file = directory / (name+'.py')
         src_pkg_dir = directory / 'src' / name
         src_py_file = directory / 'src' / (name+'.py')
 
         existing = set()
-        if pkg_dir.is_dir():
+
+        self.is_namespace_package = False
+        self.is_package = False
+
+        # It must exist either as a .py file or a directory, but not both
+        if pkg_dir.is_dir() and "." in self.name:
+            self.path = pkg_dir
+            self.ns_path = Path(directory, self.name.replace('.', os.sep))
+            self.is_namespace_package = True
+        elif pkg_dir.is_dir():
             self.path = pkg_dir
             self.is_package = True
             self.prefix = ''
@@ -61,7 +71,9 @@ class Module(object):
 
     @property
     def file(self):
-        if self.is_package:
+        if self.is_namespace_package:
+            return self.ns_path / '__init__.py'
+        elif self.is_package:
             return self.path / '__init__.py'
         else:
             return self.path
