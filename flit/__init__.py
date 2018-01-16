@@ -43,10 +43,6 @@ def main(argv=None):
           help="Verify the package metadata with the PyPI server"
     )
 
-    parser_sdist = subparsers.add_parser('sdist',
-         help="Build a source distribution (.tar.gz)",
-    )
-
     parser_build = subparsers.add_parser('build',
         help="Build wheel and sdist",
     )
@@ -119,14 +115,6 @@ def main(argv=None):
                      repo=args.repository)
         except common.ProblemInModule as e:
             sys.exit(e.args[0])
-    elif args.subcmd == 'sdist':
-        log.warning("'flit sdist' is deprecated: use 'flit build'.")
-        from .sdist import SdistBuilder
-        try:
-            SdistBuilder(args.ini_file).build()
-        except common.VCSError as e:
-            sys.exit(str(e))
-
     elif args.subcmd == 'build':
         from .build import main
         main(args.ini_file, formats=set(args.format or []))
