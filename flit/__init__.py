@@ -33,20 +33,6 @@ def main(argv=None):
     ap.add_argument('--logo', action='store_true', help=argparse.SUPPRESS)
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 
-    parser_wheel = subparsers.add_parser('wheel',
-        help="Build a wheel package",
-    )
-    parser_wheel.add_argument('--upload', action='store_true',
-          help="Upload the built wheel to PyPI"
-    )
-    parser_wheel.add_argument('--verify-metadata', action='store_true',
-          help="Verify the package metadata with the PyPI server"
-    )
-
-    parser_sdist = subparsers.add_parser('sdist',
-         help="Build a source distribution (.tar.gz)",
-    )
-
     parser_build = subparsers.add_parser('build',
         help="Build wheel and sdist",
     )
@@ -88,10 +74,6 @@ def main(argv=None):
         help="Prepare flit.ini for a new package"
     )
 
-    subparsers.add_parser('register',
-        help="register a package on PyPI without uploading any files"
-    )
-
     args = ap.parse_args(argv)
 
     cf = args.ini_file
@@ -114,24 +96,7 @@ def main(argv=None):
         print(clogo.format(version=__version__))
         sys.exit(0)
 
-    if args.subcmd == 'wheel':
-        log.warning("'flit wheel' is deprecated: use 'flit build'.")
-        from .wheel import wheel_main
-        try:
-            wheel_main(args.ini_file, upload=args.upload,
-                     verify_metadata=args.verify_metadata,
-                     repo=args.repository)
-        except common.ProblemInModule as e:
-            sys.exit(e.args[0])
-    elif args.subcmd == 'sdist':
-        log.warning("'flit sdist' is deprecated: use 'flit build'.")
-        from .sdist import SdistBuilder
-        try:
-            SdistBuilder(args.ini_file).build()
-        except common.VCSError as e:
-            sys.exit(str(e))
-
-    elif args.subcmd == 'build':
+    if args.subcmd == 'build':
         from .build import main
         main(args.ini_file, formats=set(args.format or []))
     elif args.subcmd == 'publish':
@@ -148,11 +113,6 @@ def main(argv=None):
     elif args.subcmd == 'installfrom':
         from .installfrom import installfrom
         sys.exit(installfrom(args.location, user=args.user, python=args.python))
-    elif args.subcmd == 'register':
-        log.warning("'flit register' is deprecated. Use 'flit publish' directly.")
-        from .upload import register
-        meta, mod = common.metadata_and_module_from_ini_path(args.ini_file)
-        register(meta, args.repository)
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()

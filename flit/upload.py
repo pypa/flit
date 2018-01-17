@@ -232,19 +232,6 @@ def upload_file(file:Path, metadata:Metadata, repo):
                         )
     resp.raise_for_status()
 
-def register(metadata:Metadata, repo):
-    """Register a new release with the PyPI server.
-    """
-
-    if not isinstance(repo, dict):
-        repo = get_repository(repo)
-    data = build_post_data('submit', metadata)
-    resp = requests.post(repo['url'], data=data,
-                         auth=(repo['username'], repo['password'])
-                        )
-    resp.raise_for_status()
-    log.info('Registered %s with PyPI', metadata.name)
-
 def verify(metadata:Metadata, repo_name):
     """Verify the metadata with the PyPI server.
     """
