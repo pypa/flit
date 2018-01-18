@@ -3,6 +3,7 @@
 This is cribbed heavily from distutils.command.(upgrade|register), which as part
 of Python is under the PSF license.
 """
+import argparse
 import configparser
 import getpass
 import hashlib
@@ -269,7 +270,7 @@ def do_upload(file:Path, metadata:Metadata, repo_name=None):
         log.info("Package is at %s/%s", repo['url'], metadata.name)
 
 
-def main(ini_path, repo_name, formats=None):
+def publish(ini_path, repo_name, formats=None):
     """Build and upload wheel and sdist."""
     from . import build
     built = build.main(ini_path, formats=formats)
@@ -278,3 +279,16 @@ def main(ini_path, repo_name, formats=None):
         do_upload(built.wheel.file, built.wheel.builder.metadata, repo_name)
     if built.sdist is not None:
         do_upload(built.sdist.file, built.sdist.builder.metadata, repo_name)
+
+def main(argv):
+    ap = argparse.ArgumentParser()
+    from . import add_ini_file_option
+    add_ini_file_option(ap)
+    from .build import add_format_option
+    add_format_option(ap)
+    ap.add_argument('--repository',
+        help="Name of the repository to upload to (must be in ~/.pypirc)"
+    )
+    args = ap.parse_args(argv)
+
+    publish(args.ini_file, args.repository, formats=set(args.format or []))

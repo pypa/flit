@@ -18,7 +18,7 @@ if '--deleted' not in sys.argv:
     print('EG_README.rst')
 """.format(python=sys.executable)
 
-def test_build_main():
+def test_build():
     with TemporaryDirectory() as td:
         pyproject = Path(td, 'pyproject.toml')
         shutil.copy(str(samples_dir / 'module1-pkg.toml'), str(pyproject))
@@ -27,7 +27,7 @@ def test_build_main():
         Path(td, '.git').mkdir()   # Fake a git repo
 
         with MockCommand('git', LIST_FILES):
-            res = build.main(pyproject)
+            res = build.build(pyproject)
         assert res.wheel.file.suffix == '.whl'
         assert res.sdist.file.name.endswith('.tar.gz')
 

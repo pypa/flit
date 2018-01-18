@@ -198,5 +198,8 @@ build-backend = "flit.buildapi"
 {metadata}
 """
 
+def main(argv):
+    TerminalIniter().initialise()
+
 if __name__ == '__main__':
     TerminalIniter().initialise()

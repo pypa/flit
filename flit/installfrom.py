@@ -1,3 +1,4 @@
+import argparse
 import os.path
 import pathlib
 import re
@@ -124,3 +125,14 @@ def installfrom(address, user=None, python=sys.executable):
     except BadInput as e:
         print(e, file=sys.stderr)
         return 2
+
+def main(argv):
+    ap = argparse.ArgumentParser()
+    from .install import add_shared_install_options
+    add_shared_install_options(ap)
+    ap.add_argument('location',
+        help="A URL to download, or a shorthand like github:takluyver/flit"
+    )
+    args = ap.parse_args(argv)
+
+    return installfrom(args.location, user=args.user, python=args.python)

@@ -1,91 +1,45 @@
 """A simple packaging tool for simple packages."""
 import argparse
 import logging
-import pathlib
+from pathlib import Path
 import sys
 
 from . import common
 from .log import enable_colourful_output
+from .subcmds import Subcommand, SubcommandArgumentParser
 
 __version__ = '0.13'
 
 log = logging.getLogger(__name__)
 
-def add_shared_install_options(parser):
-    parser.add_argument('--user', action='store_true', default=None,
-        help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
+def add_ini_file_option(parser):
+    default = pyproject = Path('pyproject.toml')
+    flit_ini = Path('flit.ini')
+    if flit_ini.is_file() and not pyproject.is_file():
+        default = flit_ini
+    parser.add_argument('-f', '--ini-file', type=Path, default=default,
+        help=""
     )
-    parser.add_argument('--env', action='store_false', dest='user',
-        help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
-    )
-    parser.add_argument('--python', default=sys.executable,
-        help="Target Python executable, if different from the one running flit"
-    )
+
+
+subcmds = [
+    Subcommand('build', func='flit.build:main', help="Build wheel and sdist"),
+    Subcommand('publish', func='flit.upload:main', help="Upload wheel and sdist"),
+    Subcommand('install', func='flit.install:main', help="Install the package"),
+    Subcommand('installfrom', func='flit.installfrom:main',
+               help="Download and install a package using flit from source"),
+    Subcommand('init', func='flit.init:main',
+               help="Prepare pyproject.toml for a new package")
+]
 
 def main(argv=None):
-    ap = argparse.ArgumentParser()
-    ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='pyproject.toml')
+    ap = SubcommandArgumentParser()
     ap.add_argument('--version', action='version', version='Flit '+__version__)
-    ap.add_argument('--repository',
-        help="Name of the repository to upload to (must be in ~/.pypirc)"
-    )
     ap.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
     ap.add_argument('--logo', action='store_true', help=argparse.SUPPRESS)
-    subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
-
-    parser_build = subparsers.add_parser('build',
-        help="Build wheel and sdist",
-    )
-
-    parser_build.add_argument('--format', action='append',
-        help="Select a format to build. Options: 'wheel', 'sdist'"
-    )
-
-    parser_publish = subparsers.add_parser('publish',
-        help="Upload wheel and sdist",
-    )
-
-    parser_publish.add_argument('--format', action='append',
-        help="Select a format to publish. Options: 'wheel', 'sdist'"
-    )
-
-    parser_install = subparsers.add_parser('install',
-        help="Install the package",
-    )
-    parser_install.add_argument('-s', '--symlink', action='store_true',
-        help="Symlink the module/package into site packages instead of copying it"
-    )
-    parser_install.add_argument('--pth-file', action='store_true',
-        help="Add .pth file for the module/package to site packages instead of copying it"
-    )
-    add_shared_install_options(parser_install)
-    parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
-        help="Which set of dependencies to install")
-
-    parser_installfrom = subparsers.add_parser('installfrom',
-       help="Download and install a package using flit from source"
-    )
-    parser_installfrom.add_argument('location',
-        help="A URL to download, or a shorthand like github:takluyver/flit"
-    )
-    add_shared_install_options(parser_installfrom)
-
-    parser_init = subparsers.add_parser('init',
-        help="Prepare flit.ini for a new package"
-    )
+    ap.add_subcommands(subcmds)
 
     args = ap.parse_args(argv)
-
-    cf = args.ini_file
-    if args.subcmd != 'init' and cf == pathlib.Path('pyproject.toml')\
-            and not cf.is_file():
-        # Fallback to flit.ini if it's present
-        cf_ini = pathlib.Path('flit.ini')
-        if cf_ini.is_file():
-            args.ini_file = cf_ini
-        else:
-            sys.exit('Neither pyproject.toml nor flit.ini found, '
-                     'and no other config file path specified')
 
     enable_colourful_output(logging.DEBUG if args.debug else logging.INFO)
 
@@ -96,26 +50,4 @@ def main(argv=None):
         print(clogo.format(version=__version__))
         sys.exit(0)
 
-    if args.subcmd == 'build':
-        from .build import main
-        main(args.ini_file, formats=set(args.format or []))
-    elif args.subcmd == 'publish':
-        from .upload import main
-        main(args.ini_file, args.repository, formats=set(args.format or []))
-
-    elif args.subcmd == 'install':
-        from .install import Installer
-        try:
-            Installer(args.ini_file, user=args.user, python=args.python,
-                      symlink=args.symlink, deps=args.deps, pth=args.pth_file).install()
-        except (common.NoDocstringError, common.NoVersionError) as e:
-            sys.exit(e.args[0])
-    elif args.subcmd == 'installfrom':
-        from .installfrom import installfrom
-        sys.exit(installfrom(args.location, user=args.user, python=args.python))
-    elif args.subcmd == 'init':
-        from .init import TerminalIniter
-        TerminalIniter().initialise()
-    else:
-        ap.print_help()
-        sys.exit(1)
+    ap.dispatch_subcommand(args)
