@@ -295,6 +295,6 @@ def metadata_and_module_from_ini_path(ini_path):
 
 def dist_info_name(distribution, version):
     """Get the correct name of the .dist-info folder"""
-    escaped_name = re.sub("[^\w\d.]+", "_", distribution, flags=re.UNICODE)
-    escaped_version = re.sub("[^\w\d.]+", "_", version, flags=re.UNICODE)
+    escaped_name = re.sub(r"[^\w\d.]+", "_", distribution, flags=re.UNICODE)
+    escaped_version = re.sub(r"[^\w\d.]+", "_", version, flags=re.UNICODE)
     return '{}-{}.dist-info'.format(escaped_name, escaped_version)
