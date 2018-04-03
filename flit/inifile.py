@@ -198,6 +198,11 @@ def _prep_metadata(md_sect, path):
             log.warning(stream.getvalue())
         md_dict['description'] =  raw_desc
 
+    if 'urls' in md_sect:
+        project_urls = md_dict['project_urls'] = []
+        for label, url in md_sect.pop('urls').items():
+            project_urls.append("{}, {}".format(label, url))
+
     for key, value in md_sect.items():
         if key in {'description-file', 'module'}:
             continue

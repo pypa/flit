@@ -277,6 +277,9 @@ class Metadata:
         for req in self.requires_dist:
             fp.write('Requires-Dist: {}\n'.format(req))
 
+        for url in self.project_urls:
+            fp.write('Project-URL: {}\n'.format(url))
+
         if self.description is not None:
             fp.write('\n' + self.description + '\n')
 

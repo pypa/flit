@@ -115,6 +115,25 @@ Here's the full metadata section from flit itself:
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
 
+.. _pyproject_toml_urls:
+
+URLs subsection
+~~~~~~~~~~~~~~~
+
+Your project's page on `pypi.org <https://pypi.org/>`_ can show a number of
+links, in addition to the required ``home-page`` URL described above. You can
+point people to documentation or a bug tracker, for example.
+
+This section is called ``[tool.flit.metadata.urls]`` in the file. You can use
+any names inside it. Here it is for flit:
+
+.. code-block:: toml
+
+  [tool.flit.metadata.urls]
+  Documentation = "https://flit.readthedocs.io/en/latest/"
+
+.. versionadded:: 0.14
+
 .. _pyproject_toml_scripts:
 
 Scripts section

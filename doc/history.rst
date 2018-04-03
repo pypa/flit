@@ -1,6 +1,13 @@
 Release history
 ===============
 
+Version 0.14
+------------
+
+- Multiple links (e.g. documentation, bug tracker) can now be specified in a
+  new :ref:`[tool.flit.metadata.urls] section <pyproject_toml_urls>` of
+  ``pyproject.toml``.
+
 Version 0.13
 ------------
 
