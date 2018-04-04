@@ -6,3 +6,4 @@ __pycache__/
 /tests/samples/dist/
 /htmlcov/
 /.coverage
+/.pytest_cache
