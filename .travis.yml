@@ -4,6 +4,7 @@ python:
   - "3.5"
   - "3.4"
 install:
+  - pip install --upgrade pytest
   - pip install -r requirements-test.txt
   - pip install codecov
 script: py.test --cov=flit
