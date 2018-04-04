@@ -71,11 +71,11 @@ dev-requires
   These are not (yet) encoded in the wheel, but are used when doing
   ``flit install``.
 description-file
-  A path (relative to the .ini file) to a file containing a longer description
+  A path (relative to the .toml file) to a file containing a longer description
   of your package to show on PyPI. This should be written in `reStructuredText
-  <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_, if your long
-  description is not valid reStructuredText, a warning will be printed,
-  and it will be interpreted as plain text on PyPI.
+  <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_, Markdown or
+  plain text, and the filename should have the appropriate extension
+  (``.rst``, ``.md`` or ``.txt``).
 classifiers
   A list of `Trove classifiers <https://pypi.python.org/pypi?%3Aaction=list_classifiers>`_.
 requires-python

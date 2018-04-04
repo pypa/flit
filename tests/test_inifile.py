@@ -48,4 +48,4 @@ def test_description_file():
     info = read_pkg_ini(samples_dir / 'package1-pkg.ini')
     assert info['metadata']['description'] == \
         "Sample description for test.\n"
-
+    assert info['metadata']['description_content_type'] == 'text/x-rst'
