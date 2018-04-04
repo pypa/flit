@@ -1,3 +1,4 @@
+import logging
 import pathlib
 
 import pytest
@@ -49,3 +50,9 @@ def test_description_file():
     assert info['metadata']['description'] == \
         "Sample description for test.\n"
     assert info['metadata']['description_content_type'] == 'text/x-rst'
+
+def test_bad_description_extension(caplog):
+    info = read_pkg_ini(samples_dir / 'bad-description-ext.toml')
+    assert info['metadata']['description_content_type'] is None
+    assert any((r.levelno == logging.WARN and "Unknown extension" in r.msg)
+                for r in caplog.records)
