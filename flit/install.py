@@ -209,9 +209,7 @@ class Installer(object):
         ]
 
         # install the requirements with pip
-        # This *doesn't* use self.python, because we're doing this to make the
-        # module importable in our current Python to get docstring & __version__.
-        cmd = [sys.executable, '-m', 'pip', 'install']
+        cmd = [self.python, '-m', 'pip', 'install']
         if self.user:
             cmd.append('--user')
         with tempfile.NamedTemporaryFile(mode='w',
@@ -224,6 +222,24 @@ class Installer(object):
             check_call(cmd)
         finally:
             os.remove(tf.name)
+
+    def install_reqs_my_python_if_needed(self):
+        """Install requirements to this environment if needed.
+
+        We can normally get the module's docstring and version number without
+        importing it, but if we do need to import it, we may need to install
+        its requirements for the Python where flit is running.
+        """
+        try:
+            common.get_info_from_module(self.module)
+        except ImportError:
+            if self.deps == 'none':
+                raise  # We were asked not to install deps, so bail out.
+
+            log.warning("Installing requirements to Flit's env to import module.")
+            user = self.user if (self.python == sys.executable) else None
+            i2 = Installer(ini_path=self.ini_path, user=user, deps='production')
+            i2.install_requirements()
 
     def _get_dirs(self, user):
         if self.python == sys.executable:
@@ -248,7 +264,13 @@ class Installer(object):
             else:
                 os.unlink(dst)
 
+        # Install requirements to target environment
         self.install_requirements()
+
+        # Install requirements to this environment if we need them to
+        # get docstring & version number.
+        if self.python != sys.executable:
+            self.install_reqs_my_python_if_needed()
 
         src = str(self.module.path)
         if self.symlink:
@@ -279,7 +301,7 @@ class Installer(object):
         self.write_dist_info(dirs['purelib'])
 
     def install_with_pip(self):
-        self.install_requirements()
+        self.install_reqs_my_python_if_needed()
 
         with tempfile.TemporaryDirectory() as td:
             temp_whl = os.path.join(td, 'temp.whl')

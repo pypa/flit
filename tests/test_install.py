@@ -107,6 +107,16 @@ class InstallTests(TestCase):
                       to=str(samples_dir / 'package1'))
         assert_isfile(self.tmpdir / 'scripts2' / 'pkg_script')
 
+    def test_install_requires(self):
+        ins = Installer(samples_dir / 'requires-requests.toml',
+                        user=False, python='mock_python')
+
+        with MockCommand('mock_python') as mockpy:
+            ins.install_requirements()
+        calls = mockpy.get_calls()
+        assert len(calls) == 1
+        assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
+
 def test_requires_dist_to_pip_requirement():
     rd = 'pathlib2 (>=2.3); python_version == "2.7"'
     assert _requires_dist_to_pip_requirement(rd) == \
