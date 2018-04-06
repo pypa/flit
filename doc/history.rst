@@ -1,8 +1,8 @@
 Release history
 ===============
 
-Version 0.14
-------------
+Version 1.0
+-----------
 
 - The description file may now be written in reStructuredText, Markdown or
   plain text. The file extension should indicate which of these formats it is
@@ -11,6 +11,17 @@ Version 0.14
 - Multiple links (e.g. documentation, bug tracker) can now be specified in a
   new :ref:`[tool.flit.metadata.urls] section <pyproject_toml_urls>` of
   ``pyproject.toml``.
+- Dependencies are now correctly installed to the target Python when you use
+  the ``--symlink`` or ``--pth-file`` options.
+- Dependencies are only installed to the Python where Flit is running if
+  it fails to get the docstring and version number without them.
+- The commands deprecated in 0.13—``flit wheel``, ``flit sdist`` and
+  ``flit register``—have been removed.
+
+Although version 1.0 sounds like a milestone, there's nothing that makes this
+release especially significant. It doesn't represent a step change in stability
+or completeness. Flit has been gradually maturing for some time, and I chose
+this point to end the series of 0.x version numbers.
 
 Version 0.13
 ------------

@@ -132,7 +132,7 @@ any names inside it. Here it is for flit:
   [tool.flit.metadata.urls]
   Documentation = "https://flit.readthedocs.io/en/latest/"
 
-.. versionadded:: 0.14
+.. versionadded:: 1.0
 
 .. _pyproject_toml_scripts:
 
