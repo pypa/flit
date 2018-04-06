@@ -157,6 +157,12 @@ def _read_pkg_ini(path):
 
     return cp
 
+readme_ext_to_content_type = {
+    '.rst': 'text/x-rst',
+    '.md': 'text/markdown',
+    '.txt': 'text/plain',
+}
+
 def _prep_metadata(md_sect, path):
     """Process & verify the metadata from a config file
     
@@ -180,23 +186,26 @@ def _prep_metadata(md_sect, path):
         description_file = path.parent / md_sect.get('description-file')
         with description_file.open(encoding='utf-8') as f:
             raw_desc =  f.read()
-        if description_file.suffix == '.md':
-            try:
-                import pypandoc
-                log.debug('will convert %s to rst', description_file)
-                raw_desc = pypandoc.convert(raw_desc, 'rst', format='markdown')
-            except Exception:
-                log.warning('Unable to convert markdown to rst. Please install '
-                    '`pypandoc` and `pandoc` to use markdown long description.')
+        ext = description_file.suffix
+        try:
+            mimetype = readme_ext_to_content_type[ext]
+        except KeyError:
+            log.warning("Unknown extension %r for description file.", ext)
+            log.warning("  Recognised extensions: %s",
+                        " ".join(readme_ext_to_content_type))
+            mimetype = None
 
-        # rst check
-        stream = io.StringIO()
-        res = render(raw_desc, stream)
-        if not res:
-            log.warning("The file description seems not to be valid rst for PyPI;"
-                    " it will be interpreted as plain text")
-            log.warning(stream.getvalue())
+        if mimetype == 'text/x-rst':
+            # rst check
+            stream = io.StringIO()
+            res = render(raw_desc, stream)
+            if not res:
+                log.warning("The file description seems not to be valid rst for PyPI;"
+                        " it will be interpreted as plain text")
+                log.warning(stream.getvalue())
+
         md_dict['description'] =  raw_desc
+        md_dict['description_content_type'] = mimetype
 
     if 'urls' in md_sect:
         project_urls = md_dict['project_urls'] = []

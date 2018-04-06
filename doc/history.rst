@@ -4,6 +4,10 @@ Release history
 Version 0.14
 ------------
 
+- The description file may now be written in reStructuredText, Markdown or
+  plain text. The file extension should indicate which of these formats it is
+  (``.rst``, ``.md`` or ``.txt``). Previously, only reStructuredText was
+  officially supported.
 - Multiple links (e.g. documentation, bug tracker) can now be specified in a
   new :ref:`[tool.flit.metadata.urls] section <pyproject_toml_urls>` of
   ``pyproject.toml``.

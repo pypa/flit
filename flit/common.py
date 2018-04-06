@@ -212,6 +212,7 @@ class Metadata:
     keywords = None
     download_url = None
     requires_python = None
+    description_content_type = None
 
     platform = ()
     supported_platform = ()
@@ -224,8 +225,9 @@ class Metadata:
     requires_dist = ()
     obsoletes_dist = ()
     requires_external = ()
+    provides_extra = ()
 
-    metadata_version="1.2"
+    metadata_version="2.1"
 
     # this is part of metadata spec 2, we are using it for installation but it
     # doesn't actually get written to the metadata file
@@ -244,7 +246,7 @@ class Metadata:
         return n.lower().replace('-', '_')
 
     def write_metadata_file(self, fp):
-        """Write out metadata in the 1.x format (email like)"""
+        """Write out metadata in the email headers format"""
         fields = [
             'Metadata-Version',
             'Name',
@@ -260,6 +262,7 @@ class Metadata:
             'Maintainer',
             'Maintainer-email',
             'Requires-Python',
+            'Description-Content-Type',
         ]
 
         for field in fields:
@@ -279,6 +282,9 @@ class Metadata:
 
         for url in self.project_urls:
             fp.write('Project-URL: {}\n'.format(url))
+
+        for extra in self.provides_extra:
+            fp.write('Provides-Extra: {}\n'.format(extra))
 
         if self.description is not None:
             fp.write('\n' + self.description + '\n')
