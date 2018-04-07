@@ -177,7 +177,7 @@ def build_post_data(action, metadata:Metadata):
         "version": metadata.version,
 
         # additional meta-data
-        "metadata_version": '1.1',
+        "metadata_version": '2.1',
         "summary": metadata.summary,
         "home_page": metadata.home_page,
         "author": metadata.author,
@@ -191,17 +191,20 @@ def build_post_data(action, metadata:Metadata):
         "classifiers": metadata.classifiers,
         "download_url": metadata.download_url,
         "supported_platform": metadata.supported_platform,
-        # PEP 314
+        # Metadata 1.1 (PEP 314)
         "provides": metadata.provides,
         "requires": metadata.requires,
         "obsoletes": metadata.obsoletes,
-        # Metadata 1.2 - PyPI gives a 500 error when I try to supply any of these
+        # Metadata 1.2 (PEP 345)
         "project_urls": metadata.project_urls,
         "provides_dist": metadata.provides_dist,
         "obsoletes_dist": metadata.obsoletes_dist,
         "requires_dist": metadata.requires_dist,
         "requires_external": metadata.requires_external,
         "requires_python": metadata.requires_python,
+        # Metadata 2.1 (PEP 566)
+        "description_content_type": metadata.description_content_type,
+        "provides_extra": metadata.provides_extra,
       }
 
     return {k:v for k,v in d.items() if v}
