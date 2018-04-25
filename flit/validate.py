@@ -213,6 +213,19 @@ def validate_url(url):
         probs.append("URL missing address")
     return probs
 
+def validate_project_urls(metadata):
+    probs = []
+    for prurl in metadata.get('project_urls', []):
+        name, url = prurl.split(',', 1)
+        url = url.lstrip()
+        if not name:
+            probs.append("No name for project URL {!r}".format(url))
+        elif len(name) > 32:
+            probs.append("Project URL name {!r} longer than 32 characters"
+                         .format(name))
+        probs.extend(validate_url(url))
+
+    return probs
 
 def validate_config(config_info):
     i = config_info
@@ -222,7 +235,8 @@ def validate_config(config_info):
         validate_name(i['metadata']),
         validate_requires_python(i['metadata']),
         validate_requires_dist(i['metadata']),
-        validate_url(i['metadata'].get('home_page', None))
+        validate_url(i['metadata'].get('home_page', None)),
+        validate_project_urls(i['metadata']),
                    ], [])
 
     for p in problems:

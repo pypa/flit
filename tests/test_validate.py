@@ -85,6 +85,23 @@ def test_validate_url():
     assert len(vurl('github.com/takluyver/flit')) == 1
     assert len(vurl('https://')) == 1
 
+def test_validate_project_urls():
+    vpu = fv.validate_project_urls
+
+    def check(prurl):
+        return vpu({'project_urls': [prurl]})
+    assert vpu({}) == []   # Not required
+    assert check('Documentation, https://flit.readthedocs.io/') == []
+
+    # Missing https://
+    assert len(check('Documentation, flit.readthedocs.io')) == 1
+    # Double comma
+    assert len(check('A, B, flit.readthedocs.io')) == 1
+    # No name
+    assert len(check(', https://flit.readthedocs.io/')) == 1
+    # Name longer than 32 chars
+    assert len(check('Supercalifragilisticexpialidocious, https://flit.readthedocs.io/')) == 1
+
 def test_normalise_version():
     nv = fv.normalise_version
     assert nv('4.3.1') == '4.3.1'
