@@ -40,7 +40,6 @@ metadata_required_fields = {
     'module',
     'author',
     'author-email',
-    'home-page',
 }
 
 

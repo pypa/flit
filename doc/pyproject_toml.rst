@@ -28,7 +28,7 @@ Metadata section
 ----------------
 
 This section is called ``[tool.flit.metadata]`` in the file.
-There are four required fields:
+There are three required fields:
 
 module
   The name of the module/package, as you'd use in an import statement.
@@ -36,8 +36,6 @@ author
   Your name
 author-email
   Your email address
-home-page
-  A URL for the project, such as its Github repository.
 
 e.g. for flit itself
 
@@ -47,10 +45,15 @@ e.g. for flit itself
     module = "flit"
     author = "Thomas Kluyver"
     author-email = "thomas@kluyver.me.uk"
-    home-page = "https://github.com/takluyver/flit"
+
+.. versionchanged:: 1.1
+
+   ``home-page`` was previously required.
 
 The remaining fields are optional:
 
+home-page
+  A URL for the project, such as its Github repository.
 requires
   A list of other packages from PyPI that this package needs. Each package
   may be followed by a version specifier in

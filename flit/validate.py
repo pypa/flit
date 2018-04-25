@@ -203,6 +203,8 @@ def validate_requires_dist(metadata):
     return probs
 
 def validate_url(url):
+    if url is None:
+        return []
     probs = []
     if not url.startswith(('http://', 'https://')):
         probs.append("URL {!r} doesn't start with https:// or http://"
@@ -220,7 +222,7 @@ def validate_config(config_info):
         validate_name(i['metadata']),
         validate_requires_python(i['metadata']),
         validate_requires_dist(i['metadata']),
-        validate_url(i['metadata']['home_page'])
+        validate_url(i['metadata'].get('home_page', None))
                    ], [])
 
     for p in problems:
