@@ -7,7 +7,8 @@ Flit |version|
 
 .. include:: ../README.rst
 
-Contents:
+Documentation contents
+----------------------
 
 .. toctree::
    :maxdepth: 2
