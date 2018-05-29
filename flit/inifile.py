@@ -34,6 +34,7 @@ metadata_allowed_fields = {
     'dist-name',
     'entry-points-file',
     'description-file',
+    'extras-require',
 } | metadata_list_fields
 
 metadata_required_fields = {

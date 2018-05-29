@@ -227,17 +227,23 @@ class Metadata:
     requires_external = ()
     provides_extra = ()
 
-    metadata_version="2.1"
+    metadata_version = "2.1"
 
-    # this is part of metadata spec 2, we are using it for installation but it
-    # doesn't actually get written to the metadata file
+    # metadata spec 2
     dev_requires = ()
+    extras_require = {}
 
     def __init__(self, data):
         self.name = data.pop('name')
         self.version = data.pop('version')
         self.author_email = data.pop('author_email')
         self.summary = data.pop('summary')
+        self.extras_require = data.pop('extras_require', {})
+        dev_requires = data.pop('dev_requires', None)
+        if dev_requires is not None:
+            self.extras_require['dev'] = dev_requires
+        explicit_extras = data.pop('provides_extra', ())
+        self.provides_extra = list(set(explicit_extras) | self.extras_require.keys())
         for k, v in data.items():
             assert hasattr(self, k), "data does not have attribute '{}'".format(k)
             setattr(self, k, v)
@@ -279,6 +285,10 @@ class Metadata:
 
         for req in self.requires_dist:
             fp.write('Requires-Dist: {}\n'.format(req))
+
+        for extra, reqs in self.extras_require.items():
+            for req in reqs:
+                fp.write('Requires-Dist: {}; extra == "{}"\n'.format(req, extra))
 
         for url in self.project_urls:
             fp.write('Project-URL: {}\n'.format(url))

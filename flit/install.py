@@ -197,7 +197,9 @@ class Installer(object):
         if self.deps in ('all', 'production'):
             requirements.extend(self.ini_info['metadata'].get('requires_dist', []))
         if self.deps in ('all', 'develop'):
-            requirements.extend(self.ini_info['metadata'].get('dev_requires', []))
+            extra_reqs = self.ini_info['metadata'].get('extras_require', {})
+            for extra in ['dev', 'doc', 'test']:
+                requirements.extend(extra_reqs.get(extra, []))
 
         # there aren't any requirements, so return
         if len(requirements) == 0:
