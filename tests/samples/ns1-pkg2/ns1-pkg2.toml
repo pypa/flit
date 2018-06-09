@@ -1,0 +1,9 @@
+[build-system]
+requires = ["flit"]
+
+[tool.flit.metadata]
+module = "ns1.pkg2"
+author = "Sir Robin"
+author-email = "robin@camelot.uk"
+home-page = "http://github.com/sirrobin/module1"
+description-file = "EG_README.rst"
