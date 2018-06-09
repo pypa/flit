@@ -16,7 +16,7 @@ def test_load_toml():
     assert inf.metadata['home_page'] == 'http://github.com/sirrobin/module1'
 
 def test_load_toml_ns():
-    inf = config.read_flit_config(samples_dir / 'ns1-pkg.toml')
+    inf = config.read_flit_config(samples_dir / 'ns1-pkg' / 'ns1-pkg.toml')
     assert inf['module'] == 'ns1.pkg'
     assert inf['metadata']['home_page'] == 'http://github.com/sirrobin/module1'
 

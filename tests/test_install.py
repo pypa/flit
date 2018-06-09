@@ -80,17 +80,23 @@ class InstallTests(TestCase):
         )
 
     def test_install_ns_package_native(self):
-        Installer(samples_dir / 'ns1-pkg.toml').install_directly()
+        Installer(samples_dir / 'ns1-pkg' / 'ns1-pkg.toml').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1.pkg-0.1.dist-info')
 
     def test_install_ns_package_native_symlink(self):
-        Installer(samples_dir / 'ns1-pkg.toml', symlink=True).install_directly()
+        Installer(samples_dir / 'ns1-pkg' / 'ns1-pkg.toml', symlink=True).install_directly()
+        Installer(samples_dir / 'ns1-pkg2' / 'ns1-pkg2.toml', symlink=True).install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1' / 'pkg')
         assert_islink(self.tmpdir / 'site-packages' / 'ns1' / 'pkg',
-                      to=str(samples_dir / 'ns1' / 'pkg'))
+                      to=str(samples_dir / 'ns1-pkg' / 'ns1' / 'pkg'))
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1.pkg-0.1.dist-info')
+        assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
+        assert_isdir(self.tmpdir / 'site-packages' / 'ns1' / 'pkg2')
+        assert_islink(self.tmpdir / 'site-packages' / 'ns1' / 'pkg2',
+                      to=str(samples_dir / 'ns1-pkg2' / 'ns1' / 'pkg2'))
+        assert_isdir(self.tmpdir / 'site-packages' / 'ns1.pkg2-0.1.dist-info')
 
     def test_install_ns_package_pkgutil(self):
         Installer(samples_dir / 'ns2-pkg.toml').install_directly()

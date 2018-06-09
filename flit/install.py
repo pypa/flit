@@ -288,7 +288,7 @@ class Installer(object):
         os.makedirs(dirs['scripts'], exist_ok=True)
 
         dst = osp.join(dirs['purelib'], self.module.path.name)
-        if osp.lexists(dst):
+        if osp.lexists(dst) and self.module.path == self.module.pkg_dir:
             if osp.isdir(dst) and not osp.islink(dst):
                 shutil.rmtree(dst)
             else:
@@ -305,11 +305,13 @@ class Installer(object):
         src = str(self.module.path)
         if self.symlink:
             if self.module.path != self.module.pkg_dir:
-                os.makedirs(os.path.join(dst, str(self.module.pkg_dir.parent.relative_to(self.module.path))))
+                ns_dir = os.path.join(dst, str(self.module.pkg_dir.parent.relative_to(self.module.path)))
+                if not os.path.exists(ns_dir):
+                    os.makedirs(ns_dir)
                 src = str(self.module.pkg_dir)
                 dst = os.path.join(dst, str(self.module.pkg_dir.relative_to(self.module.path)))
             log.info("Symlinking %s -> %s", src, dst)
-            os.symlink(str(self.module.pkg_dir.resolve()), dst)
+            os.symlink(src, dst)
             self.installed_files.append(dst)
         elif self.pth:
             # .pth points to the the folder containing the module (which is
