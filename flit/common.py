@@ -15,22 +15,19 @@ class Module(object):
     """
     def __init__(self, name, directory='.'):
         self.name = name
-        self.is_namespace_package = False
         self.is_package = False
 
         # It must exist either as a .py file or a directory, but not both
-        name = (name + ".").split(".", 1)[0]
-        pkg_dir = Path(directory, name)
-        py_file = Path(directory, name+'.py')
+        top_level_pkg = name.split(".")[0]
+        top_level_pkg_dir = Path(directory, top_level_pkg)
+        py_file = Path(directory, name.replace('.', os.sep)+'.py')
+        pkg_dir = Path(directory, name.replace('.', os.sep))
+
         if pkg_dir.is_dir() and py_file.is_file():
             raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
-        elif pkg_dir.is_dir() and "." in self.name:
-            self.path = pkg_dir
-            self.ns_path = Path(directory, self.name.replace('.', os.sep))
-            self.is_namespace_package = True
-            self.is_package = True
         elif pkg_dir.is_dir():
-            self.path = pkg_dir
+            self.path = top_level_pkg_dir
+            self.pkg_dir = pkg_dir
             self.is_package = True
         elif py_file.is_file():
             self.path = py_file
@@ -40,10 +37,8 @@ class Module(object):
 
     @property
     def file(self):
-        if self.is_namespace_package:
-            return self.ns_path / '__init__.py'
-        elif self.is_package:
-            return self.path / '__init__.py'
+        if self.is_package:
+            return self.pkg_dir / '__init__.py'
         else:
             return self.path
 

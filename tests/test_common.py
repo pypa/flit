@@ -14,20 +14,17 @@ class ModuleTests(TestCase):
         assert i.path == Path(samples_dir, 'ns1')
         assert i.file == Path(samples_dir, 'ns1', 'pkg', '__init__.py')
         assert i.is_package
-        assert i.is_namespace_package
 
     def test_package_importable(self):
         i = Module('package1', samples_dir)
         assert i.path == samples_dir / 'package1'
         assert i.file == samples_dir / 'package1' / '__init__.py'
         assert i.is_package
-        assert not i.is_namespace_package
 
     def test_module_importable(self):
         i = Module('module1', samples_dir)
         assert i.path == samples_dir / 'module1.py'
         assert not i.is_package
-        assert not i.is_namespace_package
 
     def test_missing_name(self):
         with self.assertRaises(ValueError):
