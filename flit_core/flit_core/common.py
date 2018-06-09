@@ -20,6 +20,8 @@ class Module(object):
 
         # It must exist either as a .py file or a directory, but not both
         name = (name + ".").split(".", 1)[0]
+        top_level_pkg = name.split(".")[0]
+        top_level_pkg_dir = Path(directory, top_level_pkg)
         pkg_dir = directory / name
         py_file = directory / (name+'.py')
         src_pkg_dir = directory / 'src' / name
@@ -37,7 +39,8 @@ class Module(object):
             self.is_namespace_package = True
             self.is_package = True
         elif pkg_dir.is_dir():
-            self.path = pkg_dir
+            self.path = top_level_pkg_dir
+            self.pkg_dir = pkg_dir
             self.is_package = True
             self.prefix = ''
             existing.add(pkg_dir)
@@ -72,10 +75,8 @@ class Module(object):
 
     @property
     def file(self):
-        if self.is_namespace_package:
-            return self.ns_path / '__init__.py'
-        elif self.is_package:
-            return self.path / '__init__.py'
+        if self.is_package:
+            return self.pkg_dir / '__init__.py'
         else:
             return self.path
 
