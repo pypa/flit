@@ -30,10 +30,10 @@ e.g. for flit itself
 .. code-block:: ini
 
     [metadata]
-    module=flit
-    author=Thomas Kluyver
-    author-email=thomas@kluyver.me.uk
-    home-page=https://github.com/takluyver/flit
+    module = "flit"
+    author = "Thomas Kluyver"
+    author-email = "thomas@kluyver.me.uk"
+    home-page = "https://github.com/takluyver/flit"
 
 The remaining fields are optional:
 
@@ -46,8 +46,10 @@ requires
 
   .. code-block:: ini
 
-      requires = requests (>=2.6)
-            configparser; python_version == '2.7'
+      requires = [
+          "requests (>=2.6)",
+          "configparser; python_version == '2.7'",
+      ]
 
 dev-requires
   Packages that are required for development. This field is in the same format
@@ -84,16 +86,18 @@ Here's the full example from flit itself:
 .. code-block:: ini
 
     [metadata]
-    author=Thomas Kluyver
-    author-email=thomas@kluyver.me.uk
-    home-page=https://github.com/takluyver/flit
-    requires=requests
-    requires-python= >=3
-    description-file=README.rst
-    classifiers=Intended Audience :: Developers
-        License :: OSI Approved :: BSD License
-        Programming Language :: Python :: 3
-        Topic :: Software Development :: Libraries :: Python Modules
+    author = "Thomas Kluyver"
+    author-email = "thomas@kluyver.me.uk"
+    home-page = "https://github.com/takluyver/flit"
+    requires = "requests"
+    requires-python = ">=3"
+    description-file = "README.rst"
+    classifiers = [
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Programming Language :: Python :: 3",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ]
 
 .. _flit_ini_scripts:
 
@@ -107,7 +111,7 @@ for flit:
 .. code-block:: ini
 
     [scripts]
-    flit = flit:main
+    flit = "flit:main"
 
 This will create a ``flit`` command, which will call the function ``main()``
 imported from :mod:`flit`.
