@@ -229,24 +229,26 @@ class Metadata:
 
     metadata_version = "2.1"
 
-    # metadata spec 2
+    # deprecated, we use “extras_require: {'dev': ...}” for it
     dev_requires = ()
-    extras_require = {}
 
     def __init__(self, data):
         self.name = data.pop('name')
         self.version = data.pop('version')
         self.author_email = data.pop('author_email')
         self.summary = data.pop('summary')
-        self.extras_require = data.pop('extras_require', {})
+        extras_require = data.pop('extras_require', {})
         dev_requires = data.pop('dev_requires', None)
         if dev_requires is not None:
-            self.extras_require['dev'] = dev_requires
+            log.warning('“dev_requires = ...” is obsolete. Use “extras_require = {"dev" = ...}” instead.')
+            extras_require.setdefault('dev', []).extend(dev_requires)
         explicit_extras = data.pop('provides_extra', ())
-        self.provides_extra = list(set(explicit_extras) | self.extras_require.keys())
+        self.provides_extra = list(set(explicit_extras) | extras_require.keys())
         for k, v in data.items():
             assert hasattr(self, k), "data does not have attribute '{}'".format(k)
             setattr(self, k, v)
+        if extras_require:
+            self.requires_dist = self.requires_dist + ['{}; extra == "{}"'.format(d, e) for e, d in extras_require.items()]
 
     def _normalise_name(self, n):
         return n.lower().replace('-', '_')
@@ -285,10 +287,6 @@ class Metadata:
 
         for req in self.requires_dist:
             fp.write('Requires-Dist: {}\n'.format(req))
-
-        for extra, reqs in self.extras_require.items():
-            for req in reqs:
-                fp.write('Requires-Dist: {}; extra == "{}"\n'.format(req, extra))
 
         for url in self.project_urls:
             fp.write('Project-URL: {}\n'.format(url))

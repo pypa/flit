@@ -79,11 +79,6 @@ extras-require
       test = ["pytest>=2.7.3", "pytest-cov"]
       doc = ["sphinx"]
 
-dev-requires
-  Packages that are required for development, other than the ones belonging to
-  the extras ``test`` and ``doc``. This field is in the same format as ``requires``.
-
-  These are installed by ``flit install`` and encoded in the wheel as extra ``dev``.
 description-file
   A path (relative to the .toml file) to a file containing a longer description
   of your package to show on PyPI. This should be written in `reStructuredText
