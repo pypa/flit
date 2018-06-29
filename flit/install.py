@@ -84,17 +84,24 @@ class RootInstallError(Exception):
         return ("Installing packages as root is not recommended. "
             "To allow this, set FLIT_ROOT_INSTALL=1 and try again.")
 
+class DependencyError(Exception):
+    def __str__(self):
+        return 'To install dependencies for extras, you cannot set deps=none.'
+
 class Installer(object):
     def __init__(self, ini_path, user=None, python=sys.executable,
-                 symlink=False, deps='all', pth=False):
+                 symlink=False, deps='all', extras=(), pth=False):
         self.ini_path = ini_path
         self.python = python
         self.symlink = symlink
         self.pth = pth
         self.deps = deps
+        self.extras = extras
         if deps != 'none' and os.environ.get('FLIT_NO_NETWORK', ''):
             self.deps = 'none'
             log.warning('Not installing dependencies, because FLIT_NO_NETWORK is set')
+        if deps == 'none' and extras:
+            raise DependencyError()
 
         self.ini_info = inifile.read_pkg_ini(ini_path)
         self.module = common.Module(self.ini_info['module'], ini_path.parent)
@@ -196,10 +203,15 @@ class Installer(object):
             return
         if self.deps in ('all', 'production'):
             requirements.extend(self.ini_info['metadata'].get('requires_dist', []))
-        if self.deps in ('all', 'develop'):
-            extra_reqs = self.ini_info['metadata'].get('extras_require', {})
-            for extra in ['dev', 'doc', 'test']:
-                requirements.extend(extra_reqs.get(extra, []))
+
+        extra_reqs = self.ini_info['metadata'].get('extras_require', {})
+        extras_to_install = set(self.extras)
+        if self.deps == 'all':
+            extras_to_install |= set(extra_reqs.keys())
+        elif self.deps == 'dev':
+            extras_to_install |= {'dev', 'doc', 'test'}
+        for extra in extras_to_install:
+            requirements.extend(extra_reqs.get(extra, []))
 
         # there aren't any requirements, so return
         if len(requirements) == 0:
