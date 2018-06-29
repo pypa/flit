@@ -229,9 +229,6 @@ class Metadata:
 
     metadata_version = "2.1"
 
-    # deprecated, we use “extras_require: {'dev': ...}” for it
-    dev_requires = ()
-
     def __init__(self, data):
         self.name = data.pop('name')
         self.version = data.pop('version')
@@ -240,7 +237,9 @@ class Metadata:
         extras_require = data.pop('extras_require', {})
         dev_requires = data.pop('dev_requires', None)
         if dev_requires is not None:
-            log.warning('“dev_requires = ...” is obsolete. Use “extras_require = {"dev" = ...}” instead.')
+            if 'dev' in extras_require:
+                raise ValueError('Ambiguity: Encountered dev-requires together with its replacement extras-require.dev.')
+            log.warning('“dev-requires = ...” is obsolete. Use “extras-require = {"dev" = ...}” instead.')
             extras_require.setdefault('dev', []).extend(dev_requires)
         explicit_extras = data.pop('provides_extra', ())
         self.provides_extra = list(set(explicit_extras) | extras_require.keys())
