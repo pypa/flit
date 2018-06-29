@@ -9,8 +9,6 @@ from unittest.mock import patch
 
 from flit import upload, common, wheel
 
-samples_dir = pathlib.Path(__file__).parent / 'samples'
-
 repo_settings = {'url': upload.PYPI,
                  'username': 'user',
                  'password': 'pw',
@@ -18,7 +16,7 @@ repo_settings = {'url': upload.PYPI,
                 }
 
 @responses.activate
-def test_verify():
+def test_verify(samples_dir):
     responses.add(responses.POST, upload.PYPI, status=200)
 
     meta, mod = common.metadata_and_module_from_ini_path(samples_dir / 'module1-pkg.ini')
@@ -28,7 +26,7 @@ def test_verify():
     assert len(responses.calls) == 1
 
 @responses.activate
-def test_upload():
+def test_upload(samples_dir):
     responses.add(responses.POST, upload.PYPI, status=200)
 
     with patch('flit.upload.get_repository', return_value=repo_settings):

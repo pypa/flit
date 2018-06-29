@@ -8,8 +8,6 @@ import zipfile
 
 from flit import buildapi
 
-samples_dir = Path(__file__).parent / 'samples'
-
 @contextmanager
 def cwd(directory):
     prev = os.getcwd()
@@ -19,27 +17,27 @@ def cwd(directory):
     finally:
         os.chdir(prev)
 
-def test_get_build_requires():
+def test_get_build_requires(samples_dir):
     expected = ["requests >= 2.18", "docutils"]
     with cwd(samples_dir / 'pep517'):
         assert buildapi.get_requires_for_build_wheel() == expected
         assert buildapi.get_requires_for_build_sdist() == expected
 
-def test_build_wheel():
+def test_build_wheel(samples_dir):
     with TemporaryDirectory() as td, cwd(samples_dir / 'pep517'):
         filename = buildapi.build_wheel(td)
         assert filename.endswith('.whl'), filename
         assert_isfile(Path(td, filename))
         assert zipfile.is_zipfile(str(Path(td, filename)))
 
-def test_build_sdist():
+def test_build_sdist(samples_dir):
     with TemporaryDirectory() as td, cwd(samples_dir / 'pep517'):
         filename = buildapi.build_sdist(td)
         assert filename.endswith('.tar.gz'), filename
         assert_isfile(Path(td, filename))
         assert tarfile.is_tarfile(str(Path(td, filename)))
 
-def test_prepare_metadata_for_build_wheel():
+def test_prepare_metadata_for_build_wheel(samples_dir):
     with TemporaryDirectory() as td, cwd(samples_dir / 'pep517'):
         dirname = buildapi.prepare_metadata_for_build_wheel(td)
         assert dirname.endswith('.dist-info'), dirname

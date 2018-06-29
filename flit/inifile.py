@@ -232,6 +232,16 @@ def _prep_metadata(md_sect, path):
             if not all(isinstance(a, str) for a in value):
                 raise ConfigError('Expected a list of strings for {} field'
                                     .format(key))
+        elif key == 'extras-require':
+            if not isinstance(value, dict):
+                raise ConfigError('Expected a dict for extras-require field, found {!r}'
+                                    .format(value))
+            if not all(isinstance(e, list) for e in value.values()):
+                raise ConfigError('Expected a dict of lists for extras-require field')
+            for e, reqs in value.items():
+                if not all(isinstance(a, str) for a in reqs):
+                    raise ConfigError('Expected a string lists for extras-require.{}'
+                                        .format(e))
         else:
             if not isinstance(value, str):
                 raise ConfigError('Expected a string for {} field, found {!r}'

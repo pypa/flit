@@ -7,9 +7,7 @@ from testpath.tempdir import TemporaryWorkingDirectory
 
 from flit import tomlify
 
-samples_dir = Path(__file__).parent / 'samples'
-
-def test_tomlify():
+def test_tomlify(samples_dir):
     with TemporaryWorkingDirectory() as td:
         copy(str(samples_dir / 'entrypoints_valid.ini'),
              os.path.join(td, 'flit.ini'))

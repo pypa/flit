@@ -6,8 +6,6 @@ from testpath import assert_isdir, MockCommand
 
 from flit import build
 
-samples_dir = Path(__file__).parent / 'samples'
-
 LIST_FILES = """\
 #!{python}
 import sys
@@ -18,7 +16,7 @@ if '--deleted' not in sys.argv:
     print('EG_README.rst')
 """.format(python=sys.executable)
 
-def test_build_main():
+def test_build_main(samples_dir):
     with TemporaryDirectory() as td:
         pyproject = Path(td, 'pyproject.toml')
         shutil.copy(str(samples_dir / 'module1-pkg.toml'), str(pyproject))
