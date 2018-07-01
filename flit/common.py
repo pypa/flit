@@ -247,7 +247,11 @@ class Metadata:
             assert hasattr(self, k), "data does not have attribute '{}'".format(k)
             setattr(self, k, v)
         if extras_require:
-            self.requires_dist = self.requires_dist + ['{}; extra == "{}"'.format(d, e) for e, d in extras_require.items()]
+            self.requires_dist = list(self.requires_dist) + [
+                '{}; extra == "{}"'.format(d, e)
+                for e, ds in extras_require.items()
+                for d in ds
+            ]
 
     def _normalise_name(self, n):
         return n.lower().replace('-', '_')

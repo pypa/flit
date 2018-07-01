@@ -117,6 +117,36 @@ class InstallTests(TestCase):
         assert len(calls) == 1
         assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
 
+@pytest.mark.parametrize(('deps', 'extras', 'installed'), [
+    ('none', [], set()),
+    ('dev', [], {'pytest;'}),  # TODO: why not also normal reqs, i.e. toml?
+    ('production', [], {'toml;'}),
+    ('all', [], {'toml;', 'pytest;', 'requests;'}),
+])
+def test_install_requires_extras(deps, extras, installed, samples_dir):
+    it = InstallTests()
+    try:
+        it.setUp()
+        ins = Installer(samples_dir / 'extras.toml', python='mock_python',
+                        user=False, deps=deps, extras=extras)
+
+        cmd = MockCommand('mock_python')
+        get_reqs = (
+            "#!{python}\n"
+            "import sys, pathlib\n"
+            "pathlib.Path({recording_file!r}).write_text(pathlib.Path(sys.argv[-1]).read_text())\n"
+        ).format(python=sys.executable, recording_file=cmd.recording_file)
+        cmd.content = get_reqs
+
+        with cmd as mock_py:
+            ins.install_requirements()
+            str_deps = pathlib.Path(mock_py.recording_file).read_text()
+            deps = str_deps.split('\n') if str_deps else []
+
+        assert set(deps) == installed
+    finally:
+        it.tearDown()
+
 def test_requires_dist_to_pip_requirement():
     rd = 'pathlib2 (>=2.3); python_version == "2.7"'
     assert _requires_dist_to_pip_requirement(rd) == \
