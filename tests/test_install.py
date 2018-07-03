@@ -133,15 +133,17 @@ def test_install_requires_extras(deps, extras, installed, samples_dir):
         cmd = MockCommand('mock_python')
         get_reqs = (
             "#!{python}\n"
-            "import sys, pathlib\n"
-            "pathlib.Path({recording_file!r}).write_text(pathlib.Path(sys.argv[-1]).read_text())\n"
+            "import sys\n"
+            "with open({recording_file!r}, 'wb') as w, open(sys.argv[-1], 'rb') as r:\n"
+            "    w.write(r.read())"
         ).format(python=sys.executable, recording_file=cmd.recording_file)
         cmd.content = get_reqs
 
         with cmd as mock_py:
             ins.install_requirements()
-            str_deps = pathlib.Path(mock_py.recording_file).read_text()
-            deps = str_deps.split('\n') if str_deps else []
+        with open(mock_py.recording_file) as f:
+            str_deps = f.read()
+        deps = str_deps.split('\n') if str_deps else []
 
         assert set(deps) == installed
     finally:
