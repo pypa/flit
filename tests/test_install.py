@@ -9,7 +9,8 @@ import pytest
 from testpath import assert_isfile, assert_isdir, assert_islink, MockCommand
 
 from flit import install
-from flit.install import Installer, _requires_dist_to_pip_requirement
+from flit.install import Installer, _requires_dist_to_pip_requirement, DependencyError
+
 
 @pytest.mark.usefixtures('samples_dir')
 class InstallTests(TestCase):
@@ -116,6 +117,11 @@ class InstallTests(TestCase):
         calls = mockpy.get_calls()
         assert len(calls) == 1
         assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
+
+    def test_extras_error(self):
+        with pytest.raises(DependencyError):
+            Installer(self.samples_dir / 'requires-requests.toml',
+                            user=False, deps='none', extras='dev')
 
 @pytest.mark.parametrize(('deps', 'extras', 'installed'), [
     ('none', [], set()),
