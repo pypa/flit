@@ -59,4 +59,4 @@ def test_bad_description_extension(caplog, samples_dir):
 def test_faulty_extras_require(erroneous, match):
     metadata = {'module': 'mymod', 'author': '', 'author-email': ''}
     with pytest.raises(ConfigError, match=match):
-        _prep_metadata({**metadata, **erroneous}, None)
+        _prep_metadata(dict(metadata, **erroneous), None)
