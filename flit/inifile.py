@@ -240,7 +240,7 @@ def _prep_metadata(md_sect, path):
                 raise ConfigError('Expected a dict of lists for extras-require field')
             for e, reqs in value.items():
                 if not all(isinstance(a, str) for a in reqs):
-                    raise ConfigError('Expected a string lists for extras-require.{}'
+                    raise ConfigError('Expected a string list for extras-require. (extra {})'
                                         .format(e))
         else:
             if not isinstance(value, str):

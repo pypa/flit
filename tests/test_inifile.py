@@ -2,7 +2,8 @@ import logging
 
 import pytest
 
-from flit.inifile import read_pkg_ini, ConfigError, flatten_entrypoints
+from flit.inifile import read_pkg_ini, ConfigError, flatten_entrypoints, _prep_metadata
+
 
 def test_invalid_classifier(samples_dir):
     with pytest.raises(ConfigError):
@@ -49,3 +50,13 @@ def test_bad_description_extension(caplog, samples_dir):
     assert info['metadata']['description_content_type'] is None
     assert any((r.levelno == logging.WARN and "Unknown extension" in r.msg)
                 for r in caplog.records)
+
+@pytest.mark.parametrize(('erroneous', 'match'), [
+    ({'extras-require': None}, r'Expected a dict for extras-require field'),
+    ({'extras-require': dict(dev=None)}, r'Expected a dict of lists for extras-require field'),
+    ({'extras-require': dict(dev=[1])}, r'Expected a string list for extras-require'),
+])
+def test_faulty_extras_require(erroneous, match):
+    metadata = {'module': 'mymod', 'author': '', 'author-email': ''}
+    with pytest.raises(ConfigError, match=match):
+        _prep_metadata({**metadata, **erroneous}, None)
