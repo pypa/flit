@@ -13,6 +13,13 @@ def test_extras_dev_conflict(samples_dir):
     with pytest.raises(ValueError, match=r'Ambiguity'):
         Metadata(dict(name=info['module'], version='0.0', summary='', **info['metadata']))
 
+def test_extras_dev_warning(samples_dir, caplog):
+    info = read_pkg_ini(samples_dir / 'extras-dev-conflict.toml')
+    info['metadata']['extras_require'] = {}
+    meta = Metadata(dict(name=info['module'], version='0.0', summary='', **info['metadata']))
+    assert '“dev-requires = ...” is obsolete' in caplog.text
+    assert set(meta.requires_dist) == {'apackage; extra == "dev"'}
+
 def test_extra_conditions(samples_dir):
     info = read_pkg_ini(samples_dir / 'extras.toml')
     meta = Metadata(dict(name=info['module'], version='0.0', summary='', **info['metadata']))
