@@ -75,7 +75,7 @@ To install the development version of Flit from Github::
 
     git clone https://github.com/takluyver/flit.git
     cd flit
-    python3 -m pip install docutils requests
+    python3 -m pip install docutils requests pytoml
     python3 -m flit install
 
 You may want to use the ``--symlink`` or ``--pth-file`` options so you can test
