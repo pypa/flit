@@ -31,7 +31,7 @@ def main(argv=None):
     )
     ap.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
     ap.add_argument('--logo', action='store_true', help=argparse.SUPPRESS)
-    subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
+    subparsers = ap.add_subparsers(title='subcommands', dest='subcmd', required=False)
 
     parser_build = subparsers.add_parser('build',
         help="Build wheel and sdist",
