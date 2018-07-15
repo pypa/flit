@@ -1,5 +1,6 @@
 """Install packages locally for development
 """
+import argparse
 import logging
 import os
 import csv
@@ -370,3 +371,38 @@ class Installer(object):
             self.install_directly()
         else:
             self.install_with_pip()
+
+
+def add_shared_install_options(parser):
+    parser.add_argument('--user', action='store_true', default=None,
+        help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
+    )
+    parser.add_argument('--env', action='store_false', dest='user',
+        help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
+    )
+    parser.add_argument('--python', default=sys.executable,
+        help="Target Python executable, if different from the one running flit"
+    )
+
+def main(argv):
+    ap = argparse.ArgumentParser()
+    from . import add_ini_file_option
+    add_ini_file_option(ap)
+    add_shared_install_options(ap)
+    ap.add_argument('-s', '--symlink', action='store_true',
+        help="Symlink the module/package into site packages instead of copying it"
+    )
+    ap.add_argument('--pth-file', action='store_true',
+        help="Add .pth file for the module/package to site packages instead of copying it"
+    )
+    ap.add_argument('--deps', choices=['all', 'production', 'develop', 'none'],
+        default='all', help="Which set of dependencies to install"
+    )
+    args = ap.parse_args(argv)
+
+    try:
+        Installer(args.ini_file, user=args.user, python=args.python,
+                  symlink=args.symlink, deps=args.deps,
+                  pth=args.pth_file).install()
+    except (common.NoDocstringError, common.NoVersionError) as e:
+        sys.exit(e.args[0])

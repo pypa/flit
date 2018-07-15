@@ -1,5 +1,6 @@
 """flit build - build both wheel and sdist"""
 
+import argparse
 from contextlib import contextmanager
 import logging
 import os
@@ -26,7 +27,7 @@ def unpacked_tarball(path):
         assert len(files) == 1, files
         yield os.path.join(tmpdir, files[0])
 
-def main(ini_file: Path, formats=None):
+def build(ini_file: Path, formats=None):
     """Build wheel and sdist"""
     if not formats:
         formats = ALL_FORMATS
@@ -54,3 +55,20 @@ def main(ini_file: Path, formats=None):
         sys.exit('Config error: {}'.format(e))
 
     return SimpleNamespace(wheel=wheel_info, sdist=sdist_info)
+
+
+def add_format_option(parser):
+    parser.add_argument('--format', action='append',
+        help="Select a format to build. Options: 'wheel', 'sdist'"
+    )
+
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(prog='flit build')
+    from . import add_ini_file_option
+    add_ini_file_option(ap)
+    add_format_option(ap)
+    args = ap.parse_args(argv)
+
+    build(args.ini_file, formats=set(args.format or []))

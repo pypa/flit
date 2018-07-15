@@ -10,4 +10,4 @@ def test_flit_usage():
     p = Popen([sys.executable, '-m', 'flit'], stdout=PIPE, stderr=STDOUT)
     out, _ = p.communicate()
     assert 'Build wheel' in out.decode('utf-8', 'replace')
-    assert p.poll() == 1
+    assert p.poll() == 2
