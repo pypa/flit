@@ -212,6 +212,7 @@ class Installer(object):
             extras_to_install |= {'dev', 'doc', 'test'}
         for extra in extras_to_install:
             requirements.extend(extra_reqs.get(extra, []))
+        log.info("Extras to install for deps %r: %s", self.deps, extras_to_install)
 
         # there aren't any requirements, so return
         if len(requirements) == 0:
