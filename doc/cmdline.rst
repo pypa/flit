@@ -2,7 +2,7 @@ Flit command line interface
 ===========================
 
 All operations use the ``flit`` command, followed by one of a number of
-subcomamnds.
+subcommands.
 
 Common options
 --------------
