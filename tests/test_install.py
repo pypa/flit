@@ -125,7 +125,7 @@ class InstallTests(TestCase):
 
 @pytest.mark.parametrize(('deps', 'extras', 'installed'), [
     ('none', [], set()),
-    ('dev', [], {'pytest;'}),  # TODO: why not also normal reqs, i.e. toml?
+    ('develop', [], {'pytest;'}),  # TODO: why not also normal reqs, i.e. toml?
     ('production', [], {'toml;'}),
     ('all', [], {'toml;', 'pytest;', 'requests;'}),
 ])
