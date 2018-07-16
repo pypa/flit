@@ -191,6 +191,19 @@ class Installer(object):
             for f in files:
                 self.installed_files.append(os.path.join(dirpath, f))
 
+    @property
+    def extra_reqs(self):
+        return self.ini_info['metadata'].get('extras_require', {})
+
+    def _extras_to_install(self):
+        extras_to_install = set(self.extras)
+        if self.deps == 'all':
+            extras_to_install |= set(self.extra_reqs.keys())
+        elif self.deps == 'dev':
+            extras_to_install |= {'dev', 'doc', 'test'}
+        log.info("Extras to install for deps %r: %s", self.deps, extras_to_install)
+        return extras_to_install
+
     def install_requirements(self):
         """Install requirements of a package with pip.
 
@@ -204,15 +217,8 @@ class Installer(object):
         if self.deps in ('all', 'production'):
             requirements.extend(self.ini_info['metadata'].get('requires_dist', []))
 
-        extra_reqs = self.ini_info['metadata'].get('extras_require', {})
-        extras_to_install = set(self.extras)
-        if self.deps == 'all':
-            extras_to_install |= set(extra_reqs.keys())
-        elif self.deps == 'dev':
-            extras_to_install |= {'dev', 'doc', 'test'}
-        for extra in extras_to_install:
-            requirements.extend(extra_reqs.get(extra, []))
-        log.info("Extras to install for deps %r: %s", self.deps, extras_to_install)
+        for extra in self._extras_to_install():
+            requirements.extend(self.extra_reqs.get(extra, []))
 
         # there aren't any requirements, so return
         if len(requirements) == 0:
@@ -326,8 +332,11 @@ class Installer(object):
 
             renamed_whl = os.path.join(td, wb.wheel_filename)
             os.rename(temp_whl, renamed_whl)
+            extras = self._extras_to_install()
+            whl_with_extras = '{}[{}]'.format(renamed_whl, ','.join(extras)) \
+                if extras else renamed_whl
 
-            cmd = [self.python, '-m', 'pip', 'install', renamed_whl]
+            cmd = [self.python, '-m', 'pip', 'install', whl_with_extras]
             if self.user:
                 cmd.append('--user')
             if self.deps == 'none':
