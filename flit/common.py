@@ -111,8 +111,8 @@ def get_info_from_module(target):
         docstring, version = get_docstring_and_version_via_import(target)
 
     if (not docstring) or not docstring.strip():
-        raise NoDocstringError('Cannot package module without docstring, or empty docstring. '
-                                'Please add a docstring to your module.')
+        raise NoDocstringError('Flit cannot package module without docstring, or empty docstring. '
+                               'Please add a docstring to your module.')
 
 
     version = check_version(version)
