@@ -39,14 +39,14 @@ def test_build_main():
 def test_build_module_no_docstring():
     with TemporaryDirectory() as td:
         pyproject = Path(td, 'pyproject.toml')
-        shutil.copy(str(samples_dir / 'module3-pkg.toml'), str(pyproject))
-        shutil.copy(str(samples_dir / 'module3.py'), td)
+        shutil.copy(str(samples_dir / 'no_docstring-pkg.toml'), str(pyproject))
+        shutil.copy(str(samples_dir / 'no_docstring.py'), td)
         shutil.copy(str(samples_dir / 'EG_README.rst'), td)
         Path(td, '.git').mkdir()   # Fake a git repo
 
 
         with MockCommand('git', LIST_FILES_TEMPLATE.format(
-                python=sys.executable, module='module3.py')):
+                python=sys.executable, module='no_docstring.py')):
             with pytest.raises(ValueError) as exc_info:
                 build.main(pyproject)
             assert str(
