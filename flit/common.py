@@ -234,22 +234,22 @@ class Metadata:
         self.version = data.pop('version')
         self.author_email = data.pop('author_email')
         self.summary = data.pop('summary')
-        extras_require = data.pop('extras_require', {})
+        requires_extra = data.pop('requires_extra', {})
         dev_requires = data.pop('dev_requires', None)
         if dev_requires is not None:
-            if 'dev' in extras_require:
-                raise ValueError('Ambiguity: Encountered dev-requires together with its replacement extras-require.dev.')
-            log.warning('“dev-requires = ...” is obsolete. Use “extras-require = {"dev" = ...}” instead.')
-            extras_require.setdefault('dev', []).extend(dev_requires)
+            if 'dev' in requires_extra:
+                raise ValueError('Ambiguity: Encountered dev-requires together with its replacement requires-extra.dev.')
+            log.warning('“dev-requires = ...” is obsolete. Use “requires-extra = {"dev" = ...}” instead.')
+            requires_extra.setdefault('dev', []).extend(dev_requires)
         explicit_extras = data.pop('provides_extra', ())
-        self.provides_extra = list(set(explicit_extras) | extras_require.keys())
+        self.provides_extra = list(set(explicit_extras) | requires_extra.keys())
         for k, v in data.items():
             assert hasattr(self, k), "data does not have attribute '{}'".format(k)
             setattr(self, k, v)
-        if extras_require:
+        if requires_extra:
             self.requires_dist = list(self.requires_dist) + [
                 '{}; extra == "{}"'.format(d, e)
-                for e, ds in extras_require.items()
+                for e, ds in requires_extra.items()
                 for d in ds
             ]
 

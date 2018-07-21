@@ -129,7 +129,7 @@ class InstallTests(TestCase):
     ('production', [], {'toml;'}),
     ('all', [], {'toml;', 'pytest;', 'requests;'}),
 ])
-def test_install_requires_extras(deps, extras, installed, samples_dir):
+def test_install_requires_extra(deps, extras, installed, samples_dir):
     it = InstallTests()
     try:
         it.setUp()

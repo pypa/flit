@@ -25,7 +25,7 @@ classifiers=["Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-[tool.flit.metadata.extras-require]
+[tool.flit.metadata.requires-extra]
 test = [
 	"testpath",
 	"responses",

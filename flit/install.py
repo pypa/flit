@@ -193,7 +193,7 @@ class Installer(object):
 
     @property
     def extra_reqs(self):
-        return self.ini_info['metadata'].get('extras_require', {})
+        return self.ini_info['metadata'].get('requires_extra', {})
 
     def _extras_to_install(self):
         extras_to_install = set(self.extras)

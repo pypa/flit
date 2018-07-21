@@ -52,11 +52,11 @@ def test_bad_description_extension(caplog, samples_dir):
                 for r in caplog.records)
 
 @pytest.mark.parametrize(('erroneous', 'match'), [
-    ({'extras-require': None}, r'Expected a dict for extras-require field'),
-    ({'extras-require': dict(dev=None)}, r'Expected a dict of lists for extras-require field'),
-    ({'extras-require': dict(dev=[1])}, r'Expected a string list for extras-require'),
+    ({'requires-extra': None}, r'Expected a dict for requires-extra field'),
+    ({'requires-extra': dict(dev=None)}, r'Expected a dict of lists for requires-extra field'),
+    ({'requires-extra': dict(dev=[1])}, r'Expected a string list for requires-extra'),
 ])
-def test_faulty_extras_require(erroneous, match):
+def test_faulty_requires_extra(erroneous, match):
     metadata = {'module': 'mymod', 'author': '', 'author-email': ''}
     with pytest.raises(ConfigError, match=match):
         _prep_metadata(dict(metadata, **erroneous), None)

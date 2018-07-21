@@ -67,7 +67,7 @@ requires
             "configparser; python_version == '2.7'"
       ]
 
-extras-require
+requires-extra
   Lists of packages needed for every optional feature. The requirements
   are specified in the same format as for ``requires``. The requirements of
   the two reserved extras ``test`` and ``doc`` as well as the extra ``dev``
@@ -75,7 +75,7 @@ extras-require
 
   .. code-block:: toml
 
-      [tool.flit.metadata.extras-require]
+      [tool.flit.metadata.requires-extra]
       test = ["pytest>=2.7.3", "pytest-cov"]
       doc = ["sphinx"]
 
