@@ -103,7 +103,10 @@ def main(argv=None):
 
     if args.subcmd == 'build':
         from .build import main
-        main(args.ini_file, formats=set(args.format or []))
+        try:
+            main(args.ini_file, formats=set(args.format or []))
+        except(common.NoDocstringError) as e:
+            sys.exit(e.args[0])
     elif args.subcmd == 'publish':
         from .upload import main
         main(args.ini_file, args.repository, formats=set(args.format or []))
