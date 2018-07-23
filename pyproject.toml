@@ -25,6 +25,18 @@ classifiers=["Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
+[tool.flit.metadata.requires-extra]
+test = [
+	"testpath",
+	"responses",
+	"pytest>=2.7.3",
+	"pytest-warnings",
+	"pytest-cov",
+]
+doc = [
+	"pygments-github-lexers",  # TOML highlighting
+]
+
 [tool.flit.metadata.urls]
 Documentation = "https://flit.readthedocs.io/en/latest/"
 

@@ -67,12 +67,18 @@ requires
             "configparser; python_version == '2.7'"
       ]
 
-dev-requires
-  Packages that are required for development. This field is in the same format
-  as ``requires``.
+requires-extra
+  Lists of packages needed for every optional feature. The requirements
+  are specified in the same format as for ``requires``. The requirements of
+  the two reserved extras ``test`` and ``doc`` as well as the extra ``dev``
+  are installed by ``flit install``. For example:
 
-  These are not (yet) encoded in the wheel, but are used when doing
-  ``flit install``.
+  .. code-block:: toml
+
+      [tool.flit.metadata.requires-extra]
+      test = ["pytest>=2.7.3", "pytest-cov"]
+      doc = ["sphinx"]
+
 description-file
   A path (relative to the .toml file) to a file containing a longer description
   of your package to show on PyPI. This should be written in `reStructuredText

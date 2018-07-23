@@ -82,7 +82,14 @@ Install the package on your system.
 .. option:: --deps <dependency option>
 
    Which dependencies to install. One of ``all``, ``production``, ``develop``,
-   or ``none``. Default ``all``.
+   or ``none``. ``all`` and ``develop`` install the extras ``test``, ``docs``,
+   and ``dev``. Default ``all``.
+
+.. option:: --extras <extra[,extra,...]>
+
+   Which named extra features to install dependencies for. Specify ``all`` to
+   install all optional dependencies, or a comma-separated list of extras.
+   Default depends on ``--deps``.
 
 .. option:: --user
 

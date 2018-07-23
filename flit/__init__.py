@@ -60,7 +60,12 @@ def main(argv=None):
     )
     add_shared_install_options(parser_install)
     parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
-        help="Which set of dependencies to install")
+        help="Which set of dependencies to install. If --deps=develop, the extras dev, doc, and test are installed"
+    )
+    parser_install.add_argument('--extras', default=(), type=lambda l: l.split(',') if l else (),
+        help="Install the dependencies of these (comma separated) extras additionally to the ones implied by --deps. "
+             "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
+    )
 
     parser_installfrom = subparsers.add_parser('installfrom',
        help="Download and install a package using flit from source"
@@ -107,7 +112,8 @@ def main(argv=None):
         from .install import Installer
         try:
             Installer(args.ini_file, user=args.user, python=args.python,
-                      symlink=args.symlink, deps=args.deps, pth=args.pth_file).install()
+                      symlink=args.symlink, deps=args.deps, extras=args.extras,
+                      pth=args.pth_file).install()
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'installfrom':

@@ -34,6 +34,7 @@ metadata_allowed_fields = {
     'dist-name',
     'entry-points-file',
     'description-file',
+    'requires-extra',
 } | metadata_list_fields
 
 metadata_required_fields = {
@@ -231,6 +232,16 @@ def _prep_metadata(md_sect, path):
             if not all(isinstance(a, str) for a in value):
                 raise ConfigError('Expected a list of strings for {} field'
                                     .format(key))
+        elif key == 'requires-extra':
+            if not isinstance(value, dict):
+                raise ConfigError('Expected a dict for requires-extra field, found {!r}'
+                                    .format(value))
+            if not all(isinstance(e, list) for e in value.values()):
+                raise ConfigError('Expected a dict of lists for requires-extra field')
+            for e, reqs in value.items():
+                if not all(isinstance(a, str) for a in reqs):
+                    raise ConfigError('Expected a string list for requires-extra. (extra {})'
+                                        .format(e))
         else:
             if not isinstance(value, str):
                 raise ConfigError('Expected a string for {} field, found {!r}'

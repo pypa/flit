@@ -227,20 +227,31 @@ class Metadata:
     requires_external = ()
     provides_extra = ()
 
-    metadata_version="2.1"
-
-    # this is part of metadata spec 2, we are using it for installation but it
-    # doesn't actually get written to the metadata file
-    dev_requires = ()
+    metadata_version = "2.1"
 
     def __init__(self, data):
         self.name = data.pop('name')
         self.version = data.pop('version')
         self.author_email = data.pop('author_email')
         self.summary = data.pop('summary')
+        requires_extra = data.pop('requires_extra', {})
+        dev_requires = data.pop('dev_requires', None)
+        if dev_requires is not None:
+            if 'dev' in requires_extra:
+                raise ValueError('Ambiguity: Encountered dev-requires together with its replacement requires-extra.dev.')
+            log.warning('“dev-requires = ...” is obsolete. Use “requires-extra = {"dev" = ...}” instead.')
+            requires_extra.setdefault('dev', []).extend(dev_requires)
+        explicit_extras = data.pop('provides_extra', ())
+        self.provides_extra = list(set(explicit_extras) | requires_extra.keys())
         for k, v in data.items():
             assert hasattr(self, k), "data does not have attribute '{}'".format(k)
             setattr(self, k, v)
+        if requires_extra:
+            self.requires_dist = list(self.requires_dist) + [
+                '{}; extra == "{}"'.format(d, e)
+                for e, ds in requires_extra.items()
+                for d in ds
+            ]
 
     def _normalise_name(self, n):
         return n.lower().replace('-', '_')

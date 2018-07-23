@@ -5,10 +5,11 @@ import tempfile
 from unittest import TestCase, SkipTest
 from unittest.mock import patch
 
+import pytest
 from testpath import assert_isfile, assert_isdir, assert_islink, MockCommand
 
 from flit import install
-from flit.install import Installer, _requires_dist_to_pip_requirement
+from flit.install import Installer, _requires_dist_to_pip_requirement, DependencyError
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 
@@ -116,6 +117,43 @@ class InstallTests(TestCase):
         calls = mockpy.get_calls()
         assert len(calls) == 1
         assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
+
+    def test_extras_error(self):
+        with pytest.raises(DependencyError):
+            Installer(samples_dir / 'requires-requests.toml',
+                            user=False, deps='none', extras='dev')
+
+@pytest.mark.parametrize(('deps', 'extras', 'installed'), [
+    ('none', [], set()),
+    ('develop', [], {'pytest;'}),  # TODO: why not also normal reqs, i.e. toml?
+    ('production', [], {'toml;'}),
+    ('all', [], {'toml;', 'pytest;', 'requests;'}),
+])
+def test_install_requires_extra(deps, extras, installed):
+    it = InstallTests()
+    try:
+        it.setUp()
+        ins = Installer(samples_dir / 'extras.toml', python='mock_python',
+                        user=False, deps=deps, extras=extras)
+
+        cmd = MockCommand('mock_python')
+        get_reqs = (
+            "#!{python}\n"
+            "import sys\n"
+            "with open({recording_file!r}, 'wb') as w, open(sys.argv[-1], 'rb') as r:\n"
+            "    w.write(r.read())"
+        ).format(python=sys.executable, recording_file=cmd.recording_file)
+        cmd.content = get_reqs
+
+        with cmd as mock_py:
+            ins.install_requirements()
+        with open(mock_py.recording_file) as f:
+            str_deps = f.read()
+        deps = str_deps.split('\n') if str_deps else []
+
+        assert set(deps) == installed
+    finally:
+        it.tearDown()
 
 def test_requires_dist_to_pip_requirement():
     rd = 'pathlib2 (>=2.3); python_version == "2.7"'

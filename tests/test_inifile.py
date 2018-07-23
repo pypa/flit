@@ -1,11 +1,11 @@
 import logging
-import pathlib
+from pathlib import Path
 
 import pytest
 
-from flit.inifile import read_pkg_ini, ConfigError, flatten_entrypoints
+from flit.inifile import read_pkg_ini, ConfigError, flatten_entrypoints, _prep_metadata
 
-samples_dir = pathlib.Path(__file__).parent / 'samples'
+samples_dir = Path(__file__).parent / 'samples'
 
 def test_invalid_classifier():
     with pytest.raises(ConfigError):
@@ -18,13 +18,9 @@ def test_classifiers_with_space():
     """
     read_pkg_ini(samples_dir / 'classifiers_with_space.ini')
 
-@pytest.mark.parametrize(('filename', 'key', 'expected'), [
-    ('requires_with_empty_lines.ini', 'requires_dist', ['foo', 'bar']),
-    ('dev_requires_with_empty_lines.ini', 'dev_requires', ['foo']),
-])
-def test_requires_with_empty_lines(filename, key, expected):
-    ini_info = read_pkg_ini(samples_dir / filename)
-    assert ini_info['metadata'][key] == expected
+def test_requires_with_empty_lines():
+    ini_info = read_pkg_ini(samples_dir / 'requires_with_empty_lines.ini')
+    assert ini_info['metadata']['requires_dist'] == ['foo', 'bar']
 
 def test_missing_entrypoints():
     with pytest.raises(FileNotFoundError):
@@ -56,3 +52,13 @@ def test_bad_description_extension(caplog):
     assert info['metadata']['description_content_type'] is None
     assert any((r.levelno == logging.WARN and "Unknown extension" in r.msg)
                 for r in caplog.records)
+
+@pytest.mark.parametrize(('erroneous', 'match'), [
+    ({'requires-extra': None}, r'Expected a dict for requires-extra field'),
+    ({'requires-extra': dict(dev=None)}, r'Expected a dict of lists for requires-extra field'),
+    ({'requires-extra': dict(dev=[1])}, r'Expected a string list for requires-extra'),
+])
+def test_faulty_requires_extra(erroneous, match):
+    metadata = {'module': 'mymod', 'author': '', 'author-email': ''}
+    with pytest.raises(ConfigError, match=match):
+        _prep_metadata(dict(metadata, **erroneous), None)
