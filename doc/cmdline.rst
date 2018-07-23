@@ -85,6 +85,12 @@ Install the package on your system.
    or ``none``. ``all`` and ``develop`` install the extras ``test``, ``docs``,
    and ``dev``. Default ``all``.
 
+.. option:: --extras <extra[,extra,...]>
+
+   Which named extra features to install dependencies for. Specify ``all`` to
+   install all optional dependencies, or a comma-separated list of extras.
+   Default depends on ``--deps``.
+
 .. option:: --user
 
    Do a user-local installation. This is the default if flit is not in a

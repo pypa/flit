@@ -197,8 +197,9 @@ class Installer(object):
 
     def _extras_to_install(self):
         extras_to_install = set(self.extras)
-        if self.deps == 'all':
+        if self.deps == 'all' or 'all' in extras_to_install:
             extras_to_install |= set(self.extra_reqs.keys())
+            # We don’t remove 'all' from the set because there might be an extra called “all”.
         elif self.deps == 'develop':
             extras_to_install |= {'dev', 'doc', 'test'}
         log.info("Extras to install for deps %r: %s", self.deps, extras_to_install)
