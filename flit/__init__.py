@@ -25,7 +25,7 @@ def add_shared_install_options(parser):
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='pyproject.toml')
-    ap.add_argument('--version', action='version', version='Flit '+__version__)
+    ap.add_argument('-V', '--version', action='version', version='Flit '+__version__)
     ap.add_argument('--repository',
         help="Name of the repository to upload to (must be in ~/.pypirc)"
     )
