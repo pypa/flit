@@ -63,8 +63,9 @@ requires
 
   .. code-block:: toml
 
-      requires = ["requests (>=2.6)",
-            "configparser; python_version == '2.7'"
+      requires = [
+          "requests (>=2.6)",
+          "configparser; python_version == '2.7'",
       ]
 
 requires-extra
@@ -76,7 +77,10 @@ requires-extra
   .. code-block:: toml
 
       [tool.flit.metadata.requires-extra]
-      test = ["pytest>=2.7.3", "pytest-cov"]
+      test = [
+          "pytest>=2.7.3", 
+          "pytest-cov",
+      ]
       doc = ["sphinx"]
 
 description-file
@@ -111,14 +115,16 @@ Here's the full metadata section from flit itself:
     author="Thomas Kluyver"
     author-email="thomas@kluyver.me.uk"
     home-page="https://github.com/takluyver/flit"
-    requires=["requests",
+    requires=[
+        "requests",
         "docutils",
         "requests_download",
         "pytoml",
     ]
     requires-python="3"
     description-file="README.rst"
-    classifiers=["Intended Audience :: Developers",
+    classifiers=[
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3",
         "Topic :: Software Development :: Libraries :: Python Modules",
