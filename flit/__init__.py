@@ -4,7 +4,7 @@ import logging
 import pathlib
 import sys
 
-from . import common
+from . import common, errors
 from .log import enable_colourful_output
 
 __version__ = '1.0'
@@ -105,7 +105,7 @@ def main(argv=None):
         from .build import main
         try:
             main(args.ini_file, formats=set(args.format or []))
-        except(common.NoDocstringError) as e:
+        except(errors.NoDocstringError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'publish':
         from .upload import main
@@ -117,7 +117,7 @@ def main(argv=None):
             Installer(args.ini_file, user=args.user, python=args.python,
                       symlink=args.symlink, deps=args.deps, extras=args.extras,
                       pth=args.pth_file).install()
-        except (common.NoDocstringError, common.NoVersionError) as e:
+        except (errors.NoDocstringError, errors.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'installfrom':
         from .installfrom import installfrom

@@ -2,9 +2,10 @@ from pathlib import Path
 from unittest import TestCase
 import pytest
 
-from flit.common import (Module, get_info_from_module, InvalidVersion, NoVersionError,
+from flit.common import (Module, get_info_from_module,
      check_version, normalize_file_permissions
 )
+from flit.errors import InvalidVersion, NoVersionError
 
 samples_dir = Path(__file__).parent / 'samples'
 

@@ -4,10 +4,15 @@ import hashlib
 from importlib.machinery import SourceFileLoader
 import logging
 from pathlib import Path
+import re
+
+from .errors import (
+    NoDocstringError, NoVersionError,
+    VCSError,
+    InvalidVersion,
+)
 
 log = logging.getLogger(__name__)
-
-import re
 
 class Module(object):
     """This represents the module/package that we are going to distribute
@@ -36,18 +41,6 @@ class Module(object):
         else:
             return self.path
 
-class ProblemInModule(ValueError): pass
-class NoDocstringError(ProblemInModule): pass
-class NoVersionError(ProblemInModule): pass
-class InvalidVersion(ProblemInModule): pass
-
-class VCSError(Exception):
-    def __init__(self, msg, directory):
-        self.msg = msg
-        self.directory = directory
-
-    def __str__(self):
-        return self.msg + ' ({})'.format(self.directory)
 
 
 @contextmanager
