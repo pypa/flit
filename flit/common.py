@@ -4,20 +4,27 @@ import hashlib
 from importlib.machinery import SourceFileLoader
 import logging
 from pathlib import Path
+import re
+
+from .errors import (
+    NoDocstringError, NoVersionError,
+    VCSError,
+    InvalidVersion,
+)
+from .vcs import get_version_from_scm
 
 log = logging.getLogger(__name__)
-
-import re
 
 class Module(object):
     """This represents the module/package that we are going to distribute
     """
     def __init__(self, name, directory='.'):
         self.name = name
+        self._project_dir = Path(directory)
 
         # It must exist either as a .py file or a directory, but not both
-        pkg_dir = Path(directory, name)
-        py_file = Path(directory, name+'.py')
+        pkg_dir = self._project_dir / name
+        py_file = self._project_dir / (name + '.py')
         if pkg_dir.is_dir() and py_file.is_file():
             raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
         elif pkg_dir.is_dir():
@@ -36,18 +43,9 @@ class Module(object):
         else:
             return self.path
 
-class ProblemInModule(ValueError): pass
-class NoDocstringError(ProblemInModule): pass
-class NoVersionError(ProblemInModule): pass
-class InvalidVersion(ProblemInModule): pass
-
-class VCSError(Exception):
-    def __init__(self, msg, directory):
-        self.msg = msg
-        self.directory = directory
-
-    def __str__(self):
-        return self.msg + ' ({})'.format(self.directory)
+    @property
+    def project_dir(self):
+        return self._project_dir
 
 
 @contextmanager
@@ -114,6 +112,13 @@ def get_info_from_module(target):
         raise NoDocstringError('Flit cannot package module without docstring, or empty docstring. '
                                'Please add a docstring to your module.')
 
+    try:
+        if not version:
+            version = get_version_from_scm(target.project_dir)
+    except:
+        log.debug(
+            "Failed to retrieve a version from source control"
+        )
 
     version = check_version(version)
 

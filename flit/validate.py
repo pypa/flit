@@ -7,7 +7,7 @@ import re
 import requests
 import sys
 
-from .common import InvalidVersion
+from .errors import InvalidVersion
 
 log = logging.getLogger(__name__)
 

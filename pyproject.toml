@@ -1,6 +1,8 @@
 [build-system]
 requires = ["intreehooks", "requests", "docutils", "pytoml",
-            "zipfile36; python_version in '3.3 3.4 3.5'",]
+            "zipfile36; python_version in '3.3 3.4 3.5'",
+            "setuptools_scm",
+]
 build-backend = "intreehooks:loader"
 
 [tool.intreehooks]
@@ -16,6 +18,7 @@ requires=["requests",
     "requests_download",
     "pytoml",
     "zipfile36; python_version in '3.3 3.4 3.5'",
+    "setuptools_scm",
 ]
 requires-python=">=3"
 description-file="README.rst"

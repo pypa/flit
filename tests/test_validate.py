@@ -1,5 +1,5 @@
 import pytest
-from flit.common import InvalidVersion
+from flit.errors import InvalidVersion
 from flit import validate as fv
 
 def test_validate_entrypoints():
