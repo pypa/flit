@@ -1,6 +1,17 @@
 Release history
 ===============
 
+Version 1.1
+-----------
+
+- Packages can now have 'extras', specified as ``requires-extra`` in the
+  :doc:`pyproject.toml file <pyproject_toml>`. These are additional dependencies
+  for optional features.
+- The ``home-page`` metadata field is no longer required.
+- Additional project URLs are now validated.
+- ``flit -V`` is now equivalent to ``flit --version``.
+- Various improvements to documentation.
+
 Version 1.0
 -----------
 

@@ -83,6 +83,8 @@ requires-extra
       ]
       doc = ["sphinx"]
 
+  .. versionadded:: 1.1
+
 description-file
   A path (relative to the .toml file) to a file containing a longer description
   of your package to show on PyPI. This should be written in `reStructuredText
