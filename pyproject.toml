@@ -34,7 +34,7 @@ test = [
 	"pytest-cov",
 ]
 doc = [
-	"pygments-github-lexers",  # TOML highlighting
+    "pygments-github-lexers",  # TOML highlighting
     "sphinx",
 ]
 
