@@ -35,6 +35,7 @@ test = [
 ]
 doc = [
 	"pygments-github-lexers",  # TOML highlighting
+    "sphinx",
 ]
 
 [tool.flit.metadata.urls]

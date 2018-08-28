@@ -12,8 +12,8 @@ matrix:
       sudo: true
 
 install:
-  - pip install --upgrade pytest
-  - pip install -r requirements-test.txt
+  - pip install --upgrade pip flit
+  - flit install --deps develop
   - pip install codecov
 script:
   - py.test --cov=flit
