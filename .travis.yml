@@ -12,9 +12,12 @@ matrix:
       sudo: true
 
 install:
-  - pip install --upgrade pytest
-  - pip install -r requirements-test.txt
-  - pip install codecov
-script: py.test --cov=flit
+  - python3 -m pip install --upgrade pip
+  - python3 -m pip install --upgrade -r requirements-test.txt
+  - python3 -m flit install --deps develop
+  - python3 -m pip install codecov
+script:
+  - py.test --cov=flit
+  - sphinx-build -b html -d _build/doctrees doc _build/html
 after_success: codecov
 sudo: false

@@ -60,7 +60,7 @@ Using environment variables
 You can specify a server to upload to with :envvar:`FLIT_INDEX_URL`, and
 pass credentials with :envvar:`FLIT_USERNAME` and :envvar:`FLIT_PASSWORD`.
 Environment variables take precedence over the config file, except if you use
-the :option:`--repository` option to explicitly pick a server from the config file.
+the :option:`flit --repository` option to explicitly pick a server from the config file.
 
 This can make it easier to automate uploads, for example to release packages
 from a continuous integration job.
