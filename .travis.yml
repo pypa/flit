@@ -12,7 +12,7 @@ matrix:
       sudo: true
 
 install:
-  - python3 -m pip install --upgrade pip flit
+  - python3 -m pip install --upgrade pip docutils requests pytoml
   - python3 -m flit install --deps develop
   - python3 -m pip install codecov
 script:
