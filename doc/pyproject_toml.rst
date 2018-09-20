@@ -55,16 +55,16 @@ The remaining fields are optional:
 home-page
   A URL for the project, such as its Github repository.
 requires
-  A list of other packages from PyPI that this package needs. Each package
-  may be followed by a version specifier in
-  parentheses, like ``(>=4.1)``, and/or an `environment marker
+  A list of other packages from PyPI that this package needs. Each package may
+  be followed by a version specifier like ``(>=4.1)`` or ``>=4.1``, and/or an
+  `environment marker
   <https://www.python.org/dev/peps/pep-0345/#environment-markers>`_
   after a semicolon. For example:
 
   .. code-block:: toml
 
       requires = [
-          "requests (>=2.6)",
+          "requests >=2.6",
           "configparser; python_version == '2.7'",
       ]
 
@@ -78,7 +78,7 @@ requires-extra
 
       [tool.flit.metadata.requires-extra]
       test = [
-          "pytest>=2.7.3", 
+          "pytest >=2.7.3",
           "pytest-cov",
       ]
       doc = ["sphinx"]
