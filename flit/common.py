@@ -97,7 +97,7 @@ def get_docstring_and_version_via_import(target):
     version = m.__dict__.get('__version__', None)
     return docstring, version
 
-def get_info_from_module(target):
+def get_info_from_module(target: Module):
     """Load the module/package, get its docstring and __version__
     """
     log.debug("Loading module %s", target.file)
@@ -111,9 +111,9 @@ def get_info_from_module(target):
         docstring, version = get_docstring_and_version_via_import(target)
 
     if (not docstring) or not docstring.strip():
-        raise NoDocstringError('Flit cannot package module without docstring, or empty docstring. '
-                               'Please add a docstring to your module.')
-
+        raise NoDocstringError('Flit cannot package module without docstring, '
+                'or empty docstring. Please add a docstring to your module '
+                '({}).'.format(target.file))
 
     version = check_version(version)
 

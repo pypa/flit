@@ -49,6 +49,7 @@ def test_build_module_no_docstring():
                 python=sys.executable, module='no_docstring.py')):
             with pytest.raises(ValueError) as exc_info:
                 build.main(pyproject)
-            assert str(
-                exc_info.value) == ('Flit cannot package module without docstring, or empty docstring. '
-                                    'Please add a docstring to your module.')
+            assert str(exc_info.value).startswith('Flit cannot package module '
+                    'without docstring, or empty docstring. Please add a '
+                    'docstring to your module')
+            assert 'no_docstring.py' in str(exc_info.value)
