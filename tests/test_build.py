@@ -5,7 +5,7 @@ import sys
 from tempfile import TemporaryDirectory
 from testpath import assert_isdir, MockCommand
 
-from flit import build
+from flit import build, common
 
 samples_dir = Path(__file__).parent / 'samples'
 
@@ -47,12 +47,6 @@ def test_build_module_no_docstring():
 
         with MockCommand('git', LIST_FILES_TEMPLATE.format(
                 python=sys.executable, module='no_docstring.py')):
-            with pytest.raises(ValueError) as exc_info:
+            with pytest.raises(common.NoDocstringError) as exc_info:
                 build.main(pyproject)
-            errmsg_head, errmsg_tail = str(exc_info.value).split('(')
-            errmsg_head_shouldbe = ('Flit cannot package module without '
-            'docstring, or empty docstring. Please add a docstring to your '
-            'module ')
-            errmsg_tail_shouldbe = str(Path(td, 'no_docstring.py')) + ').'
-            assert errmsg_head == errmsg_head_shouldbe
-            assert errmsg_tail == errmsg_tail_shouldbe
+            assert 'no_docstring.py' in str(exc_info.value)
