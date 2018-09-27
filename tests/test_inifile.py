@@ -71,6 +71,10 @@ def test_extras_dev_warning(caplog):
     assert '“dev-requires = ...” is obsolete' in caplog.text
     assert set(info['metadata']['requires_dist']) == {'apackage; extra == "dev"'}
 
+def test_requires_extra_env_marker():
+    info = read_pkg_ini(samples_dir / 'requires-extra-envmark.toml')
+    assert info['module']['requires_dist'][0].startswith('pathlib2;')
+
 @pytest.mark.parametrize(('erroneous', 'match'), [
     ({'requires-extra': None}, r'Expected a dict for requires-extra field'),
     ({'requires-extra': dict(dev=None)}, r'Expected a dict of lists for requires-extra field'),
