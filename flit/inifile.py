@@ -271,11 +271,7 @@ def _prep_metadata(md_sect, path):
 
     # Process requires-extra
     re = md_dict.pop('requires_extra', {})
-    req_dist_extra = [
-        '{}; extra == "{}"'.format(d, e)
-        for e, ds in re.items()
-        for d in ds
-    ]
+    req_dist_extra = list(_expand_requires_extra(re))
     if 'requires_dist' in md_dict:
         re['.none'] = md_dict['requires_dist'].copy()
         md_dict['requires_dist'].extend(req_dist_extra)
@@ -286,6 +282,15 @@ def _prep_metadata(md_sect, path):
     )
 
     return md_dict, module, re
+
+def _expand_requires_extra(re):
+    for extra, reqs in re.items():
+        for req in reqs:
+            if ';' in req:
+                name, envmark = req.split(';', 1)
+                yield '{}; extra == "{}" and ({})'.format(name, extra, envmark)
+            else:
+                yield '{}; extra == "{}"'.format(req, extra)
 
 def _validate_config(cp, path):
     """Validate and process config loaded from a flit.ini file.
