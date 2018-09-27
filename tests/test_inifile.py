@@ -53,6 +53,24 @@ def test_bad_description_extension(caplog):
     assert any((r.levelno == logging.WARN and "Unknown extension" in r.msg)
                 for r in caplog.records)
 
+def test_extras():
+    info = read_pkg_ini(samples_dir / 'extras.toml')
+    requires_dist = set(info['metadata']['requires_dist'])
+    assert requires_dist == {
+        'toml',
+        'pytest; extra == "test"',
+        'requests; extra == "custom"',
+    }
+
+def test_extras_dev_conflict():
+    with pytest.raises(ValueError, match=r'Ambiguity'):
+        read_pkg_ini(samples_dir / 'extras-dev-conflict.toml')
+
+def test_extras_dev_warning(caplog):
+    info = read_pkg_ini(samples_dir / 'requires-dev.toml')
+    assert '“dev-requires = ...” is obsolete' in caplog.text
+    assert set(info['metadata']['requires_dist']) == {'apackage; extra == "dev"'}
+
 @pytest.mark.parametrize(('erroneous', 'match'), [
     ({'requires-extra': None}, r'Expected a dict for requires-extra field'),
     ({'requires-extra': dict(dev=None)}, r'Expected a dict of lists for requires-extra field'),
