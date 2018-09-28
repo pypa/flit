@@ -293,14 +293,16 @@ class Installer(object):
 
         src = str(self.module.path)
         if self.symlink:
+            target = self.module.path
             if self.module.path != self.module.pkg_dir:
                 ns_dir = os.path.join(dst, str(self.module.pkg_dir.parent.relative_to(self.module.path)))
                 if not os.path.exists(ns_dir):
                     os.makedirs(ns_dir)
                 src = str(self.module.pkg_dir)
+                target = self.module.pkg_dir
                 dst = os.path.join(dst, str(self.module.pkg_dir.relative_to(self.module.path)))
             log.info("Symlinking %s -> %s", src, dst)
-            os.symlink(src, dst)
+            os.symlink(str(target.resolve()), dst)
             self.installed_files.append(dst)
         elif self.pth:
             # .pth points to the the folder containing the module (which is
