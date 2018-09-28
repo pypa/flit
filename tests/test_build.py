@@ -36,6 +36,27 @@ def test_build_main():
         assert_isdir(Path(td, 'dist'))
 
 
+def test_build_ns_main():
+    with TemporaryDirectory() as td:
+        pyproject = Path(td, 'pyproject.toml')
+        shutil.copy(str(samples_dir / 'ns1-pkg' / 'ns1-pkg.toml'), str(pyproject))
+        ns = Path(td, 'ns1')
+        ns.mkdir()
+        pkg = ns / 'pkg'
+        pkg.mkdir()
+        shutil.copy(str(samples_dir / 'ns1-pkg' / 'ns1' / 'pkg' / '__init__.py'), pkg)
+        shutil.copy(str(samples_dir / 'ns1-pkg' / 'EG_README.rst'), td)
+        Path(td, '.git').mkdir()   # Fake a git repo
+
+        with MockCommand('git', LIST_FILES_TEMPLATE.format(
+                python=sys.executable, module='ns1/pkg/__init__.py')):
+            res = build.main(pyproject)
+        assert res.wheel.file.suffix == '.whl'
+        assert res.sdist.file.name.endswith('.tar.gz')
+
+        assert_isdir(Path(td, 'dist'))
+
+
 def test_build_module_no_docstring():
     with TemporaryDirectory() as td:
         pyproject = Path(td, 'pyproject.toml')

@@ -36,6 +36,11 @@ def test_wheel_package():
     wheel_main(samples_dir / 'package1-pkg.ini')
     assert_isfile(samples_dir / 'dist/package1-0.1-py2.py3-none-any.whl')
 
+def test_wheel_ns_package():
+    clear_samples_dist()
+    wheel_main(samples_dir / 'ns1-pkg/ns1-pkg.toml')
+    assert_isfile(samples_dir / 'ns1-pkg/dist/ns1.pkg-0.1-py2.py3-none-any.whl')
+
 def test_dist_name():
     clear_samples_dist()
     wheel_main(samples_dir / 'altdistname.ini')
