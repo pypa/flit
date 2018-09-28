@@ -137,3 +137,13 @@ def test_make_setup_py_package_dir_src():
     builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'packageinsrc' / 'pyproject.toml')
     ns = get_setup_assigns(builder.make_setup_py())
     assert ns['package_dir'] == {'': 'src'}
+
+def test_make_ns_setup_py():
+    builder = sdist.SdistBuilder(samples_dir / 'ns1-pkg/ns1-pkg.toml')
+    setup = builder.make_setup_py()
+    setup_ast = ast.parse(setup)
+    # Select only assignment statements
+    setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
+    ns = {}
+    exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
+    assert ns['packages'] == ['ns1', 'ns1.pkg']
