@@ -10,7 +10,7 @@ samples_dir = Path(__file__).parent / 'samples'
 
 class ModuleTests(TestCase):
     def test_ns_package_importable(self):
-        i = Module('ns1.pkg', os.path.join(samples_dir, 'ns1-pkg'))
+        i = Module('ns1.pkg', samples_dir / 'ns1-pkg')
         assert i.path == Path(samples_dir, 'ns1-pkg', 'ns1')
         assert i.file == Path(samples_dir, 'ns1-pkg', 'ns1', 'pkg', '__init__.py')
         assert i.is_package
