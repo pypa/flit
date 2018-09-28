@@ -63,7 +63,7 @@ def test_build_ns_main():
         ns.mkdir()
         pkg = ns / 'pkg'
         pkg.mkdir()
-        shutil.copy(str(samples_dir / 'ns1-pkg' / 'ns1' / 'pkg' / '__init__.py'), pkg)
+        shutil.copy(str(samples_dir / 'ns1-pkg' / 'ns1' / 'pkg' / '__init__.py'), str(pkg))
         shutil.copy(str(samples_dir / 'ns1-pkg' / 'EG_README.rst'), td)
         Path(td, '.git').mkdir()   # Fake a git repo
 
