@@ -14,18 +14,19 @@ from .versionno import normalise_version
 class Module(object):
     """This represents the module/package that we are going to distribute
     """
+    in_namespace_package = False
+    namespace_package_name = None
+
     def __init__(self, name, directory=Path()):
         self.name = name
         self.directory = directory
 
         # It must exist either as a .py file or a directory, but not both
-        name = (name + ".").split(".", 1)[0]
-        top_level_pkg = name.split(".")[0]
-        top_level_pkg_dir = Path(directory, top_level_pkg)
-        pkg_dir = directory / name
-        py_file = directory / (name+'.py')
-        src_pkg_dir = directory / 'src' / name
-        src_py_file = directory / 'src' / (name+'.py')
+        name_as_path = name.replace('.', os.sep)
+        pkg_dir = directory / name_as_path
+        py_file = directory / (name_as_path+'.py')
+        src_pkg_dir = directory / 'src' / name_as_path
+        src_py_file = directory / 'src' / (name_as_path+'.py')
 
         existing = set()
 
@@ -39,8 +40,7 @@ class Module(object):
             self.is_namespace_package = True
             self.is_package = True
         elif pkg_dir.is_dir():
-            self.path = top_level_pkg_dir
-            self.pkg_dir = pkg_dir
+            self.path = pkg_dir
             self.is_package = True
             self.prefix = ''
             existing.add(pkg_dir)
@@ -68,6 +68,12 @@ class Module(object):
         elif not existing:
             raise ValueError("No file/folder found for module {}".format(name))
 
+        self.relpath = self.path.relative_to(directory)
+
+        if '.' in name:
+            self.namespace_package_name = name.rpartition('.')[0]
+            self.in_namespace_package = True
+
     @property
     def source_dir(self):
         """Path of folder containing the module (src/ or project root)"""
@@ -76,7 +82,7 @@ class Module(object):
     @property
     def file(self):
         if self.is_package:
-            return self.pkg_dir / '__init__.py'
+            return self.path / '__init__.py'
         else:
             return self.path
 

@@ -287,8 +287,8 @@ class Installer(object):
         os.makedirs(dirs['purelib'], exist_ok=True)
         os.makedirs(dirs['scripts'], exist_ok=True)
 
-        dst = osp.join(dirs['purelib'], self.module.path.name)
-        if osp.lexists(dst) and self.module.path == self.module.pkg_dir:
+        dst = osp.join(dirs['purelib'], str(self.module.relpath))
+        if osp.lexists(dst):
             if osp.isdir(dst) and not osp.islink(dst):
                 shutil.rmtree(dst)
             else:
@@ -305,13 +305,10 @@ class Installer(object):
         src = str(self.module.path)
         if self.symlink:
             target = self.module.path
-            if self.module.path != self.module.pkg_dir:
-                ns_dir = os.path.join(dst, str(self.module.pkg_dir.parent.relative_to(self.module.path)))
-                if not os.path.exists(ns_dir):
-                    os.makedirs(ns_dir)
-                src = str(self.module.pkg_dir)
-                target = self.module.pkg_dir
-                dst = os.path.join(dst, str(self.module.pkg_dir.relative_to(self.module.path)))
+            if self.module.in_namespace_package:
+                ns_dir = os.path.dirname(dst)
+                os.makedirs(ns_dir, exist_ok=True)
+
             log.info("Symlinking %s -> %s", src, dst)
             os.symlink(str(target.resolve()), dst)
             self.installed_files.append(dst)
