@@ -42,15 +42,27 @@ Author: {author}
 Author-email: {author_email}
 """
 
+def namespace_packages(module: common.Module):
+    """Get parent package names"""
+    name_parts = []
+    for part in module.namespace_package_name.split('.'):
+        name_parts.append(part)
+        yield '.'.join(name_parts)
 
-def auto_packages(pkgdir: str):
+def auto_packages(module: common.Module):
     """Discover subpackages and package_data"""
-    pkgdir = os.path.normpath(pkgdir)
-    pkg_name = os.path.basename(pkgdir)
+    pkgdir = os.path.normpath(module.path)
+    pkg_name = os.path.basename(module.name)
+
+    packages = []
+    if module.in_namespace_package:
+        packages.extend(namespace_packages(module))
+    packages.append(pkg_name)
+
     pkg_data = defaultdict(list)
     # Undocumented distutils feature: the empty string matches all package names
     pkg_data[''].append('*')
-    packages = [pkg_name]
+
     subpkg_paths = set()
 
     def find_nearest_pkg(rel_path):
@@ -185,13 +197,17 @@ class SdistBuilder:
     def make_setup_py(self):
         before, extra = [], []
         if self.module.is_package:
-            packages, package_data = auto_packages(str(self.module.path))
+            packages, package_data = auto_packages(self.module)
             before.append("packages = \\\n%s\n" % pformat(sorted(packages)))
             before.append("package_data = \\\n%s\n" % pformat(package_data))
             extra.append("packages=packages,")
             extra.append("package_data=package_data,")
         else:
             extra.append("py_modules={!r},".format([self.module.name]))
+            if self.module.in_namespace_package:
+                packages = list(namespace_packages(self.module))
+                before.append("packages = \\\n%s\n" % pformat(packages))
+                extra.append("packages=packages,")
 
         install_reqs, extra_reqs = convert_requires(self.ini_info['reqs_by_extra'])
         if install_reqs:
