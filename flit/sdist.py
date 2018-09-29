@@ -109,17 +109,25 @@ def _parse_req(requires_dist):
 
     return name_version, env_mark
 
-def convert_requires(metadata):
-    install_reqs = []
-    extra_reqs = defaultdict(list)
-    for req in metadata.requires_dist:
-        name_version, env_mark = _parse_req(req)
-        if env_mark is None:
-            install_reqs.append(name_version)
-        else:
-            extra_reqs[':'+env_mark].append(name_version)
+def convert_requires(reqs_by_extra):
+    """Regroup requirements by (extra, env_mark)"""
+    grouping = defaultdict(list)
+    for extra, reqs in reqs_by_extra.items():
+        for req in reqs:
+            name_version, env_mark = _parse_req(req)
+            grouping[(extra, env_mark)].append(name_version)
 
-    return install_reqs, dict(extra_reqs)
+    install_reqs = grouping.pop(('.none',  None), [])
+    extra_reqs = {}
+    for (extra, env_mark), reqs in grouping.items():
+        if extra == '.none':
+            extra = ''
+        if env_mark is None:
+            extra_reqs[extra] = reqs
+        else:
+            extra_reqs[extra + ':' + env_mark] = reqs
+
+    return install_reqs, extra_reqs
 
 def include_path(p):
     return not (p.startswith('dist' + os.sep)
@@ -185,7 +193,7 @@ class SdistBuilder:
         else:
             extra.append("py_modules={!r},".format([self.module.name]))
 
-        install_reqs, extra_reqs = convert_requires(self.metadata)
+        install_reqs, extra_reqs = convert_requires(self.ini_info['reqs_by_extra'])
         if install_reqs:
             before.append("install_requires = \\\n%s\n" % pformat(install_reqs))
             extra.append("install_requires=install_requires,")

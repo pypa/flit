@@ -87,7 +87,7 @@ def prep_toml_config(d, path):
     if 'metadata' not in d:
         raise ConfigError('[tool.flit.metadata] section is required')
 
-    md_dict, module = _prep_metadata(d['metadata'], path)
+    md_dict, module, reqs_by_extra = _prep_metadata(d['metadata'], path)
 
     if 'scripts' in d:
         scripts_dict = dict(d['scripts'])
@@ -103,6 +103,7 @@ def prep_toml_config(d, path):
     return {
         'module': module,
         'metadata': md_dict,
+        'reqs_by_extra': reqs_by_extra,
         'scripts': scripts_dict,
         'entrypoints': entrypoints,
         'raw_config': d,
@@ -256,7 +257,40 @@ def _prep_metadata(md_sect, path):
     if 'dist_name' in md_dict:
         md_dict['name'] = md_dict.pop('dist_name')
 
-    return md_dict, module
+    # Move dev-requires into requires-extra
+    dev_requires = md_dict.pop('dev_requires', None)
+    if dev_requires is not None:
+        re = md_dict.setdefault('requires_extra', {})
+        if 'dev' in re:
+            raise ValueError(
+                'Ambiguity: Encountered dev-requires together with its replacement requires-extra.dev.')
+        else:
+            log.warning(
+                '“dev-requires = ...” is obsolete. Use “requires-extra = {"dev" = ...}” instead.')
+            re['dev'] = dev_requires
+
+    # Process requires-extra
+    re = md_dict.pop('requires_extra', {})
+    req_dist_extra = list(_expand_requires_extra(re))
+    if 'requires_dist' in md_dict:
+        re['.none'] = md_dict['requires_dist'].copy()
+        md_dict['requires_dist'].extend(req_dist_extra)
+    else:
+        md_dict['requires_dist'] = req_dist_extra
+    md_dict['provides_extra'] = sorted(
+        set(md_dict.get('provides_extra', [])) | re.keys()
+    )
+
+    return md_dict, module, re
+
+def _expand_requires_extra(re):
+    for extra, reqs in re.items():
+        for req in reqs:
+            if ';' in req:
+                name, envmark = req.split(';', 1)
+                yield '{}; extra == "{}" and ({})'.format(name, extra, envmark)
+            else:
+                yield '{}; extra == "{}"'.format(req, extra)
 
 def _validate_config(cp, path):
     """Validate and process config loaded from a flit.ini file.
@@ -296,7 +330,7 @@ def _validate_config(cp, path):
     else:
         entrypoints = {}
 
-    md_dict, module = _prep_metadata(md_sect, path)
+    md_dict, module, reqs_by_extra = _prep_metadata(md_sect, path)
 
     # Scripts ---------------
     if cp.has_section('scripts'):
@@ -309,6 +343,7 @@ def _validate_config(cp, path):
     return {
         'module': module,
         'metadata': md_dict,
+        'reqs_by_extra': reqs_by_extra,
         'scripts': scripts_dict,
         'entrypoints': entrypoints,
         'raw_config': cp,

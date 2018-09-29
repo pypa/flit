@@ -191,17 +191,16 @@ class Installer(object):
             for f in files:
                 self.installed_files.append(os.path.join(dirpath, f))
 
-    @property
-    def extra_reqs(self):
-        return self.ini_info['metadata'].get('requires_extra', {})
-
     def _extras_to_install(self):
         extras_to_install = set(self.extras)
         if self.deps == 'all' or 'all' in extras_to_install:
-            extras_to_install |= set(self.extra_reqs.keys())
+            extras_to_install |= set(self.ini_info['reqs_by_extra'].keys())
             # We don’t remove 'all' from the set because there might be an extra called “all”.
         elif self.deps == 'develop':
             extras_to_install |= {'dev', 'doc', 'test'}
+        elif self.deps == 'production':
+            # '.none' is an internal token for normal requirements
+            extras_to_install.add('.none')
         log.info("Extras to install for deps %r: %s", self.deps, extras_to_install)
         return extras_to_install
 
@@ -215,11 +214,9 @@ class Installer(object):
 
         if self.deps == 'none':
             return
-        if self.deps in ('all', 'production'):
-            requirements.extend(self.ini_info['metadata'].get('requires_dist', []))
 
         for extra in self._extras_to_install():
-            requirements.extend(self.extra_reqs.get(extra, []))
+            requirements.extend(self.ini_info['reqs_by_extra'].get(extra, []))
 
         # there aren't any requirements, so return
         if len(requirements) == 0:
