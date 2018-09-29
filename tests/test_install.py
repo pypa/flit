@@ -59,12 +59,6 @@ class InstallTests(TestCase):
                       to=str(samples_dir / 'ns1-pkg2' / 'ns1' / 'pkg2'))
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1.pkg2-0.1.dist-info')
 
-    def test_install_ns_package_pkgutil(self):
-        Installer(samples_dir / 'ns2-pkg.toml').install_directly()
-        assert_isdir(self.tmpdir / 'site-packages' / 'ns2')
-        assert_isfile(self.tmpdir / 'site-packages' / 'ns2' / '__init__.py')
-        assert_isdir(self.tmpdir / 'site-packages' / 'ns2.pkg-0.1.dist-info')
-
     def test_symlink_package(self):
         if os.name == 'nt':
             raise SkipTest("symlink")
