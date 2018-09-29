@@ -191,10 +191,6 @@ class Installer(object):
             for f in files:
                 self.installed_files.append(os.path.join(dirpath, f))
 
-    @property
-    def extra_reqs(self):
-        return
-
     def _extras_to_install(self):
         extras_to_install = set(self.extras)
         if self.deps == 'all' or 'all' in extras_to_install:
