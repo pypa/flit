@@ -51,8 +51,8 @@ def namespace_packages(module: common.Module):
 
 def auto_packages(module: common.Module):
     """Discover subpackages and package_data"""
-    pkgdir = os.path.normpath(module.path)
-    pkg_name = os.path.basename(module.name)
+    pkgdir = os.path.normpath(str(module.path))
+    pkg_name = module.name
 
     packages = []
     if module.in_namespace_package:
