@@ -1,6 +1,17 @@
 Release history
 ===============
 
+Version 1.2
+-----------
+
+- Fixes for packages specifying ``requires-extra``: sdists should now work, and
+  environment markers can be used together with ``requires-extra``.
+- Fix running ``flit installfrom`` without a config file present in the
+  working directory.
+- The error message for a missing or empty docstring tells you what file
+  the docstring should be in.
+- Improvements to documentation on version selectors for requirements.
+
 Version 1.1
 -----------
 
