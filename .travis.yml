@@ -12,6 +12,7 @@ matrix:
       sudo: true
 
 install:
+  - pip install --upgrade pip
   - pip install --upgrade pytest
   - pip install -r requirements-test.txt
   - pip install codecov
