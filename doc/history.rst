@@ -1,6 +1,16 @@
 Release history
 ===============
 
+Version 1.2.1
+-------------
+
+- Fix for installing packages with ``flit install``.
+- Make ``requests_download`` an extra dependency, to avoid a circular build
+  dependency. To use ``flit installfrom``, you can install with
+  ``pip install flit[installfrom]``. Note that the ``installfrom`` subcommand
+  is deprecated, as it will soon be possible to use pip to install Flit projects
+  directly from a VCS URL.
+
 Version 1.2
 -----------
 
