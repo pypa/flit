@@ -331,6 +331,7 @@ class Installer(object):
             renamed_whl = os.path.join(td, wb.wheel_filename)
             os.rename(temp_whl, renamed_whl)
             extras = self._extras_to_install()
+            extras.discard('.none')
             whl_with_extras = '{}[{}]'.format(renamed_whl, ','.join(extras)) \
                 if extras else renamed_whl
 
