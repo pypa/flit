@@ -13,7 +13,6 @@ author-email="thomas@kluyver.me.uk"
 home-page="https://github.com/takluyver/flit"
 requires=["requests",
     "docutils",
-    "requests_download",
     "pytoml",
     "zipfile36; python_version in '3.3 3.4 3.5'",
 ]
@@ -34,6 +33,9 @@ test = [
 ]
 doc = [
 	"pygments-github-lexers",  # TOML highlighting
+]
+installfrom = [
+    "requests_download",
 ]
 
 [tool.flit.metadata.urls]
