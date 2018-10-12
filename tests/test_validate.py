@@ -82,11 +82,11 @@ def test_validate_environment_marker():
 
     res = vem("""()))))()extra == "test"(((((((""")  # No chained comparisons
     assert len(res) == 1
-    assert res[0] == 'Validation Error incorrect parentheses'
+    assert res[0] == 'Invalid expression. incorrect parentheses'
 
     res = vem("""extra == "test" and or (os_name == "nt" or python_version == "2.7")""")  # No chained comparisons
     assert len(res) == 1
-    assert res[0] == """<class 'list'>: ['Invalid expression "and or"']"""
+    assert res[0] == "Invalid expression \"and or\""
 
     assert len(vem('os.name == "linux\'')) == 2
 

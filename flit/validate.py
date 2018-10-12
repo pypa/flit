@@ -215,6 +215,8 @@ def validate_environment_marker(em):
             else:
                 if idx > 1:
                     if MARKER_OP.match(stk[-1]):
+                        if stk[-2] == "EXP":
+                            raise Exception("Invalid expression")
                         l, op, r = token[idx - 2:idx + 1]
                         verify_statement(l, op, r)
                         stk.append(token[idx])
