@@ -59,6 +59,10 @@ def test_validate_environment_marker():
     vem = fv.validate_environment_marker
 
     assert vem('python_version >= "3" and os_name == \'posix\'') == []
+    assert vem("""extra == "test" and (os_name == "nt" or python_version == "2.7")""") == []
+    assert vem("""(extra == "test") and (os_name == "nt" or python_version == "2.7")""") == []
+    assert vem("""(extra == "test" and (os_name == "nt" or python_version == "2.7"))""") == []
+    assert vem("""((((((((((extra == "test"))))))))))""") == []
 
     res = vem('python_version >= "3')  # Unclosed string
     assert len(res) == 1
@@ -75,6 +79,14 @@ def test_validate_environment_marker():
     res = vem("'2' < python_version < '4'")  # No chained comparisons
     assert len(res) == 1
     assert res[0].startswith("Invalid expression")
+
+    res = vem("""()))))()extra == "test"(((((((""")  # No chained comparisons
+    assert len(res) == 1
+    assert res[0] == 'Validation Error incorrect parentheses'
+
+    res = vem("""extra == "test" and or (os_name == "nt" or python_version == "2.7")""")  # No chained comparisons
+    assert len(res) == 1
+    assert res[0] == """<class 'list'>: ['Invalid expression "and or"']"""
 
     assert len(vem('os.name == "linux\'')) == 2
 
