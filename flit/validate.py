@@ -11,6 +11,7 @@ from .common import InvalidVersion
 
 log = logging.getLogger(__name__)
 
+
 def get_cache_dir() -> Path:
     """Locate a platform-appropriate cache directory for flit to use
 
@@ -32,6 +33,7 @@ def get_cache_dir() -> Path:
         local = os.environ.get('LOCALAPPDATA', None) \
                 or os.path.expanduser('~\\AppData\\Local')
         return Path(local, 'flit')
+
 
 def _verify_classifiers_cached(classifiers):
     """Check classifiers against the downloaded list of known classifiers"""
@@ -125,16 +127,18 @@ def validate_entrypoints(entrypoints):
                                 '{} = {}'.format(groupname, k, v))
     return problems
 
+
 # Distribution name, not quite the same as a Python identifier
 NAME = re.compile(r'^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$', re.IGNORECASE)
 r''
 VERSION_SPEC = re.compile(r'(~=|===?|!=|<=?|>=?)\s*[A-Z0-9\-_.*+!]+$', re.IGNORECASE)
 REQUIREMENT = re.compile(NAME.pattern[:-1] +  # Trim '$'
-     r"""\s*(?P<extras>\[.*\])?
+                         r"""\s*(?P<extras>\[.*\])?
          \s*(?P<version>[(=~<>!][^;]*)?
          \s*(?P<envmark>;.*)?
      $""", re.IGNORECASE | re.VERBOSE)
 MARKER_OP = re.compile(r'(~=|===?|!=|<=?|>=?|\s+in\s+|\s+not in\s+)')
+
 
 def validate_name(metadata):
     name = metadata.get('name', None)
@@ -149,11 +153,13 @@ def _valid_version_specifier(s):
             return False
     return True
 
+
 def validate_requires_python(metadata):
     spec = metadata.get('requires_python', None)
     if spec is None or _valid_version_specifier(spec):
         return []
     return ['Invalid requires-python: {!r}'.format(spec)]
+
 
 MARKER_VARS = {
     'python_version', 'python_full_version', 'os_name', 'sys_platform',
@@ -162,23 +168,70 @@ MARKER_VARS = {
     'implementation_version', 'extra',
 }
 
+
 def validate_environment_marker(em):
-    clauses = re.split(r'\s+(?:and|or)\s+', em)
-    problems = []
-    for c in clauses:
-        # TODO: validate parentheses properly. They're allowed by PEP 508.
-        parts = MARKER_OP.split(c.strip('()'))
-        if len(parts) != 3:
-            problems.append("Invalid expression in environment marker: {!r}".format(c))
-            continue
-        l, op, r = parts
+
+    def reduce_expression():
+        # EXP OPS EXP -> EXP
+        stk.pop()
+        stk.pop()
+        stk.pop()
+        stk.append("EXP")
+
+    def verify_statement(l, op, r):
         for var in (l.strip(), r.strip()):
             if var[:1] in {'"', "'"}:
                 if len(var) < 2 or var[-1:] != var[:1]:
                     problems.append("Invalid string in environment marker: {}".format(var))
             elif var not in MARKER_VARS:
                 problems.append("Invalid variable name in environment marker: {!r}".format(var))
+
+    em = em.replace("(", " ( ").replace(")", " ) ").split(" ")
+    token = list('(') + list(filter(lambda k: k != "", em)) + list(')')
+    problems = []
+    idx = 0
+    stk = []
+    try:
+        while idx < len(token):
+            if token[idx] == '(':
+                stk.append('(')
+            elif token[idx] == ')':
+                if '(' not in stk:
+                    raise Exception("Validation Error incorrect parentheses")
+                while stk[-1] != '(' and len(stk) > 0:
+                    if stk[-1] == "EXP":
+                        if stk[-2] in {"and", "or"} and stk[-3] in {"and", "or"}:
+                            raise Exception("Validation Error \"{} {}\"".format(stk[-3], stk[-2]))
+                        if len(stk) > 3 and stk[-2] in {"and", "or"}:
+                            reduce_expression()
+                        elif stk[-2] == '(':
+                            stk.pop()
+                        else:
+                            raise Exception("Validation don't know operation \"{}\"".format(stk[-2]))
+                    else:
+                        raise Exception("Validation don't know \"{}\"".format(stk[-1]))
+                stk.pop()
+                stk.append("EXP")
+            else:
+                if idx > 1:
+                    if MARKER_OP.match(stk[-1]):
+                        l, op, r = token[idx - 2:idx + 1]
+                        verify_statement(l, op, r)
+                        stk.append(token[idx])
+                        reduce_expression()
+                        if len(stk) > 1 and stk[-1] in {"and", "or"}:
+                            reduce_expression()
+                    else:
+                        stk.append(token[idx])
+                else:
+                    stk.append(token[idx])
+            idx += 1
+        if len(stk) != 1 or stk[-1] != "EXP":
+            problems.append("Invalid environment markers syntax")
+    except Exception as e:
+        problems.append(str(e))
     return problems
+
 
 def validate_requires_dist(metadata):
     probs = []
@@ -203,6 +256,7 @@ def validate_requires_dist(metadata):
             probs.extend(validate_environment_marker(envmark[1:]))
     return probs
 
+
 def validate_url(url):
     if url is None:
         return []
@@ -213,6 +267,7 @@ def validate_url(url):
     elif not url.split('//', 1)[1]:
         probs.append("URL missing address")
     return probs
+
 
 def validate_project_urls(metadata):
     probs = []
@@ -228,6 +283,7 @@ def validate_project_urls(metadata):
 
     return probs
 
+
 def validate_config(config_info):
     i = config_info
     problems = sum([
@@ -238,11 +294,12 @@ def validate_config(config_info):
         validate_requires_dist(i['metadata']),
         validate_url(i['metadata'].get('home_page', None)),
         validate_project_urls(i['metadata']),
-                   ], [])
+    ], [])
 
     for p in problems:
         log.error(p)
     return problems
+
 
 # Regex below from packaging, via PEP 440. BSD License:
 # Copyright (c) Donald Stufft and individual contributors.
@@ -304,6 +361,7 @@ pre_spellings = {
     'b': 'b', 'beta': 'b',
     'rc': 'rc', 'c': 'rc', 'pre': 'rc', 'preview': 'rc',
 }
+
 
 def normalise_version(orig_version):
     """Normalise version number according to rules in PEP 440
