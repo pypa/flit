@@ -197,19 +197,19 @@ def validate_environment_marker(em):
                 stk.append('(')
             elif token[idx] == ')':
                 if '(' not in stk:
-                    raise Exception("Validation Error incorrect parentheses")
+                    raise Exception("Invalid expression. incorrect parentheses")
                 while stk[-1] != '(' and len(stk) > 0:
                     if stk[-1] == "EXP":
                         if stk[-2] in {"and", "or"} and stk[-3] in {"and", "or"}:
-                            raise Exception("Validation Error \"{} {}\"".format(stk[-3], stk[-2]))
+                            raise Exception("Invalid expression \"{} {}\"".format(stk[-3], stk[-2]))
                         if len(stk) > 3 and stk[-2] in {"and", "or"}:
                             reduce_expression()
                         elif stk[-2] == '(':
                             stk.pop()
                         else:
-                            raise Exception("Validation don't know operation \"{}\"".format(stk[-2]))
+                            raise Exception("Invalid expression \"{}\"".format(stk[-2]))
                     else:
-                        raise Exception("Validation don't know \"{}\"".format(stk[-1]))
+                        raise Exception("Invalid expression \"{}\"".format(stk[-1]))
                 stk.pop()
                 stk.append("EXP")
             else:
