@@ -110,7 +110,7 @@ def fetch(address_type, location):
 
 def install_local(path, user=False, python=sys.executable):
     p = pathlib.Path(path)
-    ininames = ['pyproject.toml', 'flitx.ini']
+    ininames = ['pyproject.toml', 'flit.ini']
     for ininame in ininames:
         try:
             return Installer(p / ininame, user=user, python=python,
