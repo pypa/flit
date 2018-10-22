@@ -112,13 +112,10 @@ def install_local(path, user=False, python=sys.executable):
     p = pathlib.Path(path)
     ininames = ['pyproject.toml', 'flit.ini']
     for ininame in ininames:
-        try:
-            return Installer(p / ininame, user=user, python=python,
-                             deps='production').install()
-        except FileNotFoundError as e:
-            exc = e
-            continue
-    raise FileNotFoundError('Neither {} found.'.format(' nor '.join(ininames))) from exc
+        inipath = p / ininame
+        if inipath.is_file():
+            return Installer(inipath, user=user, python=python, deps='production').install()
+    raise FileNotFoundError('Neither {} found in {}'.format(' nor '.join(ininames), p))
 
 
 def installfrom(address, user=None, python=sys.executable):
