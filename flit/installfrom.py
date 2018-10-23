@@ -110,8 +110,12 @@ def fetch(address_type, location):
 
 def install_local(path, user=False, python=sys.executable):
     p = pathlib.Path(path)
-    Installer(p / 'flit.ini', user=user, python=sys.executable,
-              deps='production').install()
+    ininames = ['pyproject.toml', 'flit.ini']
+    for ininame in ininames:
+        inipath = p / ininame
+        if inipath.is_file():
+            return Installer(inipath, user=user, python=python, deps='production').install()
+    raise FileNotFoundError('Neither {} found in {}'.format(' nor '.join(ininames), p))
 
 
 def installfrom(address, user=None, python=sys.executable):
