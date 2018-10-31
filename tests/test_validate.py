@@ -62,7 +62,7 @@ def test_validate_environment_marker():
 
     res = vem('python_version >= "3')  # Unclosed string
     assert len(res) == 1
-    assert res[0].startswith("Invalid string")
+    assert res[0].startswith("environment marker syntax is invalid")
 
     res = vem('python_verson >= "3"')  # Misspelled name
     assert len(res) == 1
@@ -70,13 +70,13 @@ def test_validate_environment_marker():
 
     res = vem("os_name is 'posix'")  # No 'is' comparisons
     assert len(res) == 1
-    assert res[0].startswith("Invalid expression")
+    assert res[0].startswith("environment marker syntax is invalid")
 
     res = vem("'2' < python_version < '4'")  # No chained comparisons
     assert len(res) == 1
-    assert res[0].startswith("Invalid expression")
+    assert res[0].startswith("environment marker syntax is invalid")
 
-    assert len(vem('os.name == "linux\'')) == 2
+    assert len(vem('wrongMarkerVar == "linux" and wrongMarkerVar2 == \'some_value\'')) == 2
 
 def test_validate_url():
     vurl = fv.validate_url

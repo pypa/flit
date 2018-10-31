@@ -134,7 +134,8 @@ REQUIREMENT = re.compile(NAME.pattern[:-1] +  # Trim '$'
          \s*(?P<version>[(=~<>!][^;]*)?
          \s*(?P<envmark>;.*)?
      $""", re.IGNORECASE | re.VERBOSE)
-MARKER_OP = re.compile(r'(~=|===?|!=|<=?|>=?|\s+in\s+|\s+not in\s+)')
+MARKER_OP_PATTERN = r'(?:~=|===?|!=|<=?|>=?|\s+in\s+|\s+not in\s+)'
+MARKER_OP = re.compile(MARKER_OP_PATTERN)
 
 def validate_name(metadata):
     name = metadata.get('name', None)
@@ -163,21 +164,35 @@ MARKER_VARS = {
 }
 
 def validate_environment_marker(em):
-    clauses = re.split(r'\s+(?:and|or)\s+', em)
     problems = []
-    for c in clauses:
-        # TODO: validate parentheses properly. They're allowed by PEP 508.
-        parts = MARKER_OP.split(c.strip('()'))
-        if len(parts) != 3:
-            problems.append("Invalid expression in environment marker: {!r}".format(c))
+    marker_var_ops_value_pattern = r"""\b\S+\b """ + MARKER_OP_PATTERN + r""" (?:"\b\S+\b"|'\b\S+\b')"""
+
+    # check pattern "VAR OPS VALUE"
+    var_value_pair = re.findall(marker_var_ops_value_pattern, em)
+    for var_value in var_value_pair:
+        parts = re.compile(MARKER_OP_PATTERN).split(var_value)
+        if len(parts) != 2:
+            problems.append("Invalid expression in environment marker")
             continue
-        l, op, r = parts
-        for var in (l.strip(), r.strip()):
-            if var[:1] in {'"', "'"}:
-                if len(var) < 2 or var[-1:] != var[:1]:
-                    problems.append("Invalid string in environment marker: {}".format(var))
-            elif var not in MARKER_VARS:
-                problems.append("Invalid variable name in environment marker: {!r}".format(var))
+        l, r = parts
+        if l.strip() not in MARKER_VARS:
+            problems.append("Invalid variable name in environment marker: {!r}".format(l))
+
+    # check grammars and parentheses
+    expressions_str = re.sub(marker_var_ops_value_pattern, '$', em)
+    prev_exp_str = expressions_str.replace(" ", "")
+    done_reduced = False
+    curr_exp_str = ""
+    while not done_reduced:  # reduce parse tree
+        curr_exp_str = prev_exp_str \
+            .replace("$and$", "$") \
+            .replace("$or$", "$") \
+            .replace("($)", "$")
+        if len(prev_exp_str) == len(curr_exp_str): # no change so reduce is done
+            done_reduced = True
+        prev_exp_str = curr_exp_str
+    if curr_exp_str != "$":
+        problems.append("environment marker syntax is invalid")
     return problems
 
 def validate_requires_dist(metadata):
