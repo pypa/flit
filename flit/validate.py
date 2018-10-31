@@ -191,6 +191,8 @@ def validate_environment_marker(em):
         if len(prev_exp_str) == len(curr_exp_str): # no change so reduce is done
             done_reduced = True
         prev_exp_str = curr_exp_str
+    if '(' in curr_exp_str or ')' in curr_exp_str:
+        problems.append("parentheses are not balanced or occur in the incorrect places")
     if curr_exp_str != "$":
         problems.append("environment marker syntax is invalid")
     return problems

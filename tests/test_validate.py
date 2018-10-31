@@ -60,9 +60,11 @@ def test_validate_environment_marker():
 
     assert vem('python_version >= "3" and os_name == \'posix\'') == []
 
+    assert vem("""extra == "test" and (os_name == "nt" or python_version == "2.7")""") == []
+
     res = vem('python_version >= "3')  # Unclosed string
     assert len(res) == 1
-    assert res[0].startswith("environment marker syntax is invalid")
+    assert res[0] == "environment marker syntax is invalid"
 
     res = vem('python_verson >= "3"')  # Misspelled name
     assert len(res) == 1
@@ -70,11 +72,21 @@ def test_validate_environment_marker():
 
     res = vem("os_name is 'posix'")  # No 'is' comparisons
     assert len(res) == 1
-    assert res[0].startswith("environment marker syntax is invalid")
+    assert res[0] == "environment marker syntax is invalid"
 
     res = vem("'2' < python_version < '4'")  # No chained comparisons
     assert len(res) == 1
-    assert res[0].startswith("environment marker syntax is invalid")
+    assert res[0] == "environment marker syntax is invalid"
+
+    res = vem("(python_version < '4'))")  # No chained comparisons
+    assert len(res) == 2
+    assert "parentheses are not balanced or occur in the incorrect places" in res
+
+    res = vem("((python_version < '4') or (python_version < '8')")  # No chained comparisons
+    assert len(res) == 2
+    assert "parentheses are not balanced or occur in the incorrect places" in res
+
+    assert len(vem('(wrongMarkerVar < \'4\'))')) == 3
 
     assert len(vem('wrongMarkerVar == "linux" and wrongMarkerVar2 == \'some_value\'')) == 2
 
