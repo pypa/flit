@@ -67,6 +67,9 @@ class IniterBase:
         # Properly validating an email address is much more complex
         return bool(re.match(r'.+@.+', s))
 
+    def validate_homepage(self, s):
+        return not s or s.startswith(('http://', 'https://'))
+
     def guess_module_name(self):
         packages, modules = [], []
         for p in self.directory.iterdir():
@@ -87,7 +90,7 @@ class IniterBase:
             return modules[0]
         else:
             return None
-    
+
     def update_defaults(self, author, author_email, module, home_page, license):
         new_defaults = {'author': author, 'author_email': author_email,
                         'license': license}
@@ -111,7 +114,7 @@ class IniterBase:
 
 
 class TerminalIniter(IniterBase):
-    def prompt_text(self, prompt, default, validator):
+    def prompt_text(self, prompt, default, validator, retry_msg="Try again."):
         if default is not None:
             p = "{} [{}]: ".format(prompt, default)
         else:
@@ -123,7 +126,7 @@ class TerminalIniter(IniterBase):
             if validator(response):
                 return response
 
-            print("Try again.")
+            print(retry_msg)
 
     def prompt_options(self, prompt, options, default=None):
         default_ix = None
@@ -165,8 +168,8 @@ class TerminalIniter(IniterBase):
                                                         '{modulename}', module)
         else:
             home_page_default = None
-        home_page = self.prompt_text('Home page', home_page_default,
-                                     lambda s: s != '')
+        home_page = self.prompt_text('Home page', home_page_default, self.validate_homepage,
+                                     retry_msg="Should start with http:// or https:// - try again.")
         license = self.prompt_options('Choose a license (see http://choosealicense.com/ for more info)',
                     license_choices, self.defaults.get('license'))
 
@@ -177,8 +180,9 @@ class TerminalIniter(IniterBase):
             ('module', module),
             ('author', author),
             ('author-email', author_email),
-            ('home-page', home_page),
         ])
+        if home_page:
+            metadata['home-page'] = home_page
         if license != 'skip':
             metadata['classifiers'] = [license_names_to_classifiers[license]]
             self.write_license(license, author)
