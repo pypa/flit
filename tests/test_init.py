@@ -5,6 +5,8 @@ from tempfile import TemporaryDirectory
 from testpath import assert_isfile
 from unittest.mock import patch
 
+import pytoml
+
 from flit import init
 
 
@@ -77,8 +79,8 @@ def test_write_license():
 
 def test_init():
     responses = ['foo', # Module name
-                 'Thomas Kluyver',      # Author
-                 'thomas@example.com',  # Author email
+                 'Test Author',      # Author
+                 'test@example.com',  # Author email
                  'http://example.com/', # Home page
                  '1'    # License (1 -> MIT)
                 ]
@@ -87,5 +89,13 @@ def test_init():
           faking_input(responses):
         ti = init.TerminalIniter(td)
         ti.initialise()
-        assert_isfile('pyproject.toml')
-        assert_isfile('LICENSE')
+        generated = Path(td) / 'pyproject.toml'
+        assert_isfile(generated)
+        data = pytoml.loads(generated.read_text())
+        assert data['tool']['flit']['metadata']['author-email'] == "test@example.com"
+        license = Path(td) / 'LICENSE'
+        assert_isfile(license)
+        license_text = license.read_text()
+        assert license_text.startswith("The MIT License (MIT)")
+        assert "{year}" not in license_text
+        assert "Test Author" in license_text
