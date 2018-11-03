@@ -91,11 +91,13 @@ def test_init():
         ti.initialise()
         generated = Path(td) / 'pyproject.toml'
         assert_isfile(generated)
-        data = pytoml.loads(generated.read_text())
+        with generated.open() as f:
+            data = pytoml.load(f)
         assert data['tool']['flit']['metadata']['author-email'] == "test@example.com"
         license = Path(td) / 'LICENSE'
         assert_isfile(license)
-        license_text = license.read_text()
+        with license.open() as f:
+            license_text = f.read()
         assert license_text.startswith("The MIT License (MIT)")
         assert "{year}" not in license_text
         assert "Test Author" in license_text
