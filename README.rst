@@ -81,4 +81,4 @@ To install the development version of Flit from Github::
 You may want to use the ``--symlink`` or ``--pth-file`` options so you can test
 changes without reinstalling it.
 
-To run the tests, run ``py.test``.
+To run the tests, run ``pytest``.

@@ -16,6 +16,6 @@ install:
   - pip install --upgrade pytest
   - pip install -r requirements-test.txt
   - pip install codecov
-script: py.test --cov=flit
+script: pytest --cov=flit
 after_success: codecov
 sudo: false
