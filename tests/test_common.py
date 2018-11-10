@@ -72,3 +72,21 @@ class ModuleTests(TestCase):
 def test_normalize_file_permissions():
     assert normalize_file_permissions(0o100664) == 0o100644 # regular file
     assert normalize_file_permissions(0o40775) == 0o40755   # directory
+
+@pytest.mark.parametrize(
+    ("requires_python", "expected_result"),
+    [
+        ("", True),
+        (">2.7", True),
+        ("3", False),
+        (">= 3.7", False),
+        ("<4, > 3.2", False),
+        ('>3.4', False),
+    ],
+)
+def test_supports_py2(requires_python, expected_result):
+    from flit.common import Metadata
+    metadata = object.__new__(Metadata)
+    metadata.requires_python = requires_python
+    result = metadata.supports_py2
+    assert result == expected_result

@@ -4,6 +4,7 @@ import hashlib
 from importlib.machinery import SourceFileLoader
 import logging
 from pathlib import Path
+import re
 
 log = logging.getLogger(__name__)
 
@@ -285,6 +286,15 @@ class Metadata:
 
         if self.description is not None:
             fp.write('\n' + self.description + '\n')
+
+    @property
+    def supports_py2(self) -> bool:
+        """Return True if Requires-Python indicates Python 2 support."""
+        for part in (self.requires_python or "").split(","):
+            if re.search(r"^\s*(>\s*(=\s*)?)?[3-9]", part):
+                return False
+        return True
+
 
 def make_metadata(module, ini_info):
     md_dict = {'name': module.name, 'provides': [module.name]}
