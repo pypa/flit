@@ -30,10 +30,8 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
                      dist_info_name(metadata.name, metadata.version))
     dist_info.mkdir()
 
-    supports_py2 = not (metadata.requires_python or '')\
-                                .startswith(('3', '>3', '>=3'))
     with (dist_info / 'WHEEL').open('w') as f:
-        _write_wheel_file(f, supports_py2=supports_py2)
+        _write_wheel_file(f, supports_py2=metadata.supports_py2)
 
     with (dist_info / 'METADATA').open('w') as f:
         metadata.write_metadata_file(f)

@@ -69,7 +69,7 @@ class WheelBuilder:
 
     @property
     def wheel_filename(self):
-        tag = ('py2.' if self.supports_py2 else '') + 'py3-none-any'
+        tag = ('py2.' if self.metadata.supports_py2 else '') + 'py3-none-any'
         return '{}-{}-{}.whl'.format(
                 re.sub("[^\w\d.]+", "_", self.metadata.name, flags=re.UNICODE),
                 re.sub("[^\w\d.]+", "_", self.metadata.version, flags=re.UNICODE),
@@ -94,7 +94,7 @@ class WheelBuilder:
         else:
             # Set timestamps in zipfile for reproducible build
             zinfo = zipfile.ZipInfo(rel_path, self.source_time_stamp)
-        
+
         # Normalize permission bits to either 755 (executable) or 644
         st_mode = os.stat(full_path).st_mode
         new_mode = common.normalize_file_permissions(st_mode)
@@ -149,11 +149,6 @@ class WheelBuilder:
         else:
             self._add_file(str(self.module.path), self.module.path.name)
 
-    @property
-    def supports_py2(self):
-        return not (self.metadata.requires_python or '')\
-                                    .startswith(('3', '>3', '>=3', '~=3'))
-
     def write_metadata(self):
         log.info('Writing metadata files')
 
@@ -166,7 +161,7 @@ class WheelBuilder:
                 self._add_file(path, '%s/%s' % (self.dist_info, path.name))
 
         with self._write_to_zip(self.dist_info + '/WHEEL') as f:
-            _write_wheel_file(f, supports_py2=self.supports_py2)
+            _write_wheel_file(f, supports_py2=self.metadata.supports_py2)
 
         with self._write_to_zip(self.dist_info + '/METADATA') as f:
             self.metadata.write_metadata_file(f)
