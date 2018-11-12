@@ -5,6 +5,8 @@ from tempfile import TemporaryDirectory
 from testpath import assert_isfile
 from unittest.mock import patch
 
+import pytoml
+
 from flit import init
 
 
@@ -89,3 +91,48 @@ def test_init():
         ti.initialise()
         assert_isfile('pyproject.toml')
         assert_isfile('LICENSE')
+
+def test_init_homepage_and_license_are_optional():
+    responses = ['test_module_name',
+                 'Test Author',
+                 'test_email@example.com',
+                 '',   # Home page omitted
+                 '4',  # Skip - choose a license later
+                ]
+    with TemporaryDirectory() as td, \
+          patch_data_dir(), \
+          faking_input(responses):
+        ti = init.TerminalIniter(td)
+        ti.initialise()
+        with Path(td, 'pyproject.toml').open() as f:
+            data = pytoml.load(f)
+        assert not Path(td, 'LICENSE').exists()
+    metadata = data['tool']['flit']['metadata']
+    assert metadata == {
+        'author': 'Test Author',
+        'author-email': 'test_email@example.com',
+        'module': 'test_module_name',
+    }
+
+def test_init_homepage_validator():
+    responses = ['test_module_name',
+                 'Test Author',
+                 'test_email@example.com',
+                 'www.uh-oh-spagghetti-o.com',  # fails validation
+                 'https://www.example.org',  # passes
+                 '4',  # Skip - choose a license later
+                ]
+    with TemporaryDirectory() as td, \
+          patch_data_dir(), \
+          faking_input(responses):
+        ti = init.TerminalIniter(td)
+        ti.initialise()
+        with Path(td, 'pyproject.toml').open() as f:
+            data = pytoml.load(f)
+    metadata = data['tool']['flit']['metadata']
+    assert metadata == {
+        'author': 'Test Author',
+        'author-email': 'test_email@example.com',
+        'home-page': 'https://www.example.org',
+        'module': 'test_module_name',
+    }
