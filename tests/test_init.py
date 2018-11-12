@@ -79,8 +79,8 @@ def test_write_license():
 
 def test_init():
     responses = ['foo', # Module name
-                 'Thomas Kluyver',      # Author
-                 'thomas@example.com',  # Author email
+                 'Test Author',      # Author
+                 'test@example.com',  # Author email
                  'http://example.com/', # Home page
                  '1'    # License (1 -> MIT)
                 ]
@@ -89,8 +89,20 @@ def test_init():
           faking_input(responses):
         ti = init.TerminalIniter(td)
         ti.initialise()
-        assert_isfile('pyproject.toml')
-        assert_isfile('LICENSE')
+
+        generated = Path(td) / 'pyproject.toml'
+        assert_isfile(generated)
+        with generated.open() as f:
+            data = pytoml.load(f)
+        assert data['tool']['flit']['metadata'][
+                   'author-email'] == "test@example.com"
+        license = Path(td) / 'LICENSE'
+        assert_isfile(license)
+        with license.open() as f:
+            license_text = f.read()
+        assert license_text.startswith("The MIT License (MIT)")
+        assert "{year}" not in license_text
+        assert "Test Author" in license_text
 
 def test_init_homepage_and_license_are_optional():
     responses = ['test_module_name',
