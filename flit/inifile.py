@@ -185,8 +185,13 @@ def _prep_metadata(md_sect, path):
     # Description file
     if 'description-file' in md_sect:
         description_file = path.parent / md_sect.get('description-file')
-        with description_file.open(encoding='utf-8') as f:
-            raw_desc =  f.read()
+        try:
+            with description_file.open(encoding='utf-8') as f:
+                raw_desc = f.read()
+        except FileNotFoundError:
+            raise ConfigError(
+                "Description file {} does not exist".format(description_file)
+            )
         ext = description_file.suffix
         try:
             mimetype = readme_ext_to_content_type[ext]
