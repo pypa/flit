@@ -110,6 +110,16 @@ Install the package on your system.
    that is running Flit. Using this option, you can install a module for Python
    2, for instance.
 
+.. note::
+
+   Flit calls pip to do the installation. You can set any of pip's options
+   `using its environment variables
+   <https://pip.pypa.io/en/stable/user_guide/#environment-variables>`__.
+
+   When you use the :option:`--symlink` or :option:`--pth-file` options, pip
+   is used to install dependencies. Otherwise, Flit builds a wheel and then
+   calls pip to install that.
+
 
 ``flit init``
 -------------
