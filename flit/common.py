@@ -68,7 +68,8 @@ def get_docstring_and_version_via_ast(target):
     Return a tuple like (docstring, version) for the given module,
     extracted by parsing its AST.
     """
-    with target.file.open() as f:
+    # read as bytes to enable custom encodings
+    with target.file.open('rb') as f:
         node = ast.parse(f.read())
     for child in node.body:
         # Only use the version from the given module if it's a simple
