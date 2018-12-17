@@ -76,7 +76,7 @@ def main(argv=None):
     add_shared_install_options(parser_installfrom)
 
     parser_init = subparsers.add_parser('init',
-        help="Prepare flit.ini for a new package"
+        help="Prepare pyproject.toml for a new package"
     )
 
     args = ap.parse_args(argv)
