@@ -9,7 +9,6 @@ matrix:
   include:
     - python: "3.7"
       dist: xenial
-      sudo: true
 
 install:
   - pip install --upgrade pip
@@ -18,4 +17,3 @@ install:
   - pip install codecov
 script: pytest --cov=flit
 after_success: codecov
-sudo: false
