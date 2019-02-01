@@ -51,7 +51,6 @@ def test_description_file():
 def test_missing_description_file():
     with pytest.raises(ConfigError, match=r"Description file .* does not exist"):
         read_pkg_ini(samples_dir / 'missing-description-file.toml')
-    assert re.search(r"Description file .* does not exist", str(error))
 
 def test_bad_description_extension(caplog):
     info = read_pkg_ini(samples_dir / 'bad-description-ext.toml')
