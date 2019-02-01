@@ -1,4 +1,5 @@
 import logging
+import re
 from pathlib import Path
 
 import pytest
@@ -46,6 +47,10 @@ def test_description_file():
     assert info['metadata']['description'] == \
         "Sample description for test.\n"
     assert info['metadata']['description_content_type'] == 'text/x-rst'
+
+def test_missing_description_file():
+    with pytest.raises(ConfigError, match=r"Description file .* does not exist"):
+        read_pkg_ini(samples_dir / 'missing-description-file.toml')
 
 def test_bad_description_extension(caplog):
     info = read_pkg_ini(samples_dir / 'bad-description-ext.toml')
