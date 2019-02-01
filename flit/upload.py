@@ -210,7 +210,7 @@ def build_post_data(action, metadata:Metadata):
     return {k:v for k,v in d.items() if v}
 
 def upload_file(file:Path, metadata:Metadata, repo):
-    """Upload a file to the PyPI server.
+    """Upload a file to an index server, given the index server details.
     """
     data = build_post_data('file_upload', metadata)
     data['protocol_version'] = '1'
@@ -247,21 +247,10 @@ def verify(metadata:Metadata, repo_name):
     log.info('Verification succeeded')
 
 def do_upload(file:Path, metadata:Metadata, repo_name=None):
-    """Upload a file, registering a new package if necessary.
+    """Upload a file to an index server.
     """
     repo = get_repository(repo_name)
-    try:
-        upload_file(file, metadata, repo)
-    except requests.HTTPError as e:
-        if (not repo['is_warehouse']) and e.response.status_code == 403:
-            # 403 can happen if the package is not already on PyPI - try
-            # registering it and uploading again. This only applies to legacy
-            # PyPI: Warehouse has no separate registration step.
-            log.warning('Uploading forbidden; trying to register and upload again')
-            register(metadata, repo)
-            upload_file(file, metadata, repo)
-        else:
-            raise
+    upload_file(file, metadata, repo)
 
     if repo['is_warehouse']:
         domain = urlparse(repo['url']).netloc
