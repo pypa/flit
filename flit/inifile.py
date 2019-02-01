@@ -268,8 +268,8 @@ def _prep_metadata(md_sect, path):
     dev_requires = md_dict.pop('dev_requires', None)
     if dev_requires is not None:
         if 'dev' in reqs_by_extra:
-            raise ValueError(
-                'Ambiguity: Encountered dev-requires together with its replacement requires-extra.dev.')
+            raise ConfigError(
+                'dev-requires occurs together with its replacement requires-extra.dev.')
         else:
             log.warning(
                 '“dev-requires = ...” is obsolete. Use “requires-extra = {"dev" = ...}” instead.')
