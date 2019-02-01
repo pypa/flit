@@ -263,30 +263,28 @@ def _prep_metadata(md_sect, path):
         md_dict['name'] = md_dict.pop('dist_name')
 
     # Move dev-requires into requires-extra
+    reqs_noextra = md_dict.pop('requires_dist', [])
+    reqs_by_extra = md_dict.pop('requires_extra', {})
     dev_requires = md_dict.pop('dev_requires', None)
     if dev_requires is not None:
-        re = md_dict.setdefault('requires_extra', {})
-        if 'dev' in re:
+        if 'dev' in reqs_by_extra:
             raise ValueError(
                 'Ambiguity: Encountered dev-requires together with its replacement requires-extra.dev.')
         else:
             log.warning(
                 '“dev-requires = ...” is obsolete. Use “requires-extra = {"dev" = ...}” instead.')
-            re['dev'] = dev_requires
+            reqs_by_extra['dev'] = dev_requires
 
-    # Process requires-extra
-    re = md_dict.pop('requires_extra', {})
-    req_dist_extra = list(_expand_requires_extra(re))
-    if 'requires_dist' in md_dict:
-        re['.none'] = md_dict['requires_dist'].copy()
-        md_dict['requires_dist'].extend(req_dist_extra)
-    else:
-        md_dict['requires_dist'] = req_dist_extra
-    md_dict['provides_extra'] = sorted(
-        set(md_dict.get('provides_extra', [])) | re.keys()
-    )
+    # Add requires-extra requirements into requires_dist
+    md_dict['requires_dist'] = \
+        reqs_noextra + list(_expand_requires_extra(reqs_by_extra))
 
-    return md_dict, module, re
+    md_dict['provides_extra'] = sorted(reqs_by_extra.keys())
+
+    # For internal use, record the main requirements as a '.none' extra.
+    reqs_by_extra['.none'] = reqs_noextra
+
+    return md_dict, module, reqs_by_extra
 
 def _expand_requires_extra(re):
     for extra, reqs in re.items():

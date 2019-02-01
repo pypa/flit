@@ -66,6 +66,7 @@ def test_extras():
         'pytest; extra == "test"',
         'requests; extra == "custom"',
     }
+    assert set(info['metadata']['provides_extra']) == {'test', 'custom'}
 
 def test_extras_dev_conflict():
     with pytest.raises(ValueError, match=r'Ambiguity'):
