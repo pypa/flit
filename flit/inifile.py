@@ -215,7 +215,7 @@ def _prep_metadata(md_sect, path):
 
     if 'urls' in md_sect:
         project_urls = md_dict['project_urls'] = []
-        for label, url in md_sect.pop('urls').items():
+        for label, url in sorted(md_sect.pop('urls').items()):
             project_urls.append("{}, {}".format(label, url))
 
     for key, value in md_sect.items():
@@ -287,7 +287,7 @@ def _prep_metadata(md_sect, path):
     return md_dict, module, reqs_by_extra
 
 def _expand_requires_extra(re):
-    for extra, reqs in re.items():
+    for extra, reqs in sorted(re.items()):
         for req in reqs:
             if ';' in req:
                 name, envmark = req.split(';', 1)
