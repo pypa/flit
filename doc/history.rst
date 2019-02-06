@@ -1,6 +1,20 @@
 Release history
 ===============
 
+Version 1.3
+-----------
+
+- Fix for building sdists from a subdirectory in a Mercurial repository.
+- Fix for getting the docstring and version from modules using encoding hacks.
+- Fix for installing packages with ``flit installfrom``.
+- Packages with requirements no longer get a spurious ``Provides-Extra: .none``
+  metadata entry.
+- Better check of whether ``python-requires`` includes any Python 2 version.
+- Better check of home page URLs in ``flit init``.
+- Better error message when the description file is not found.
+- Updated a help message to refer to ``pyproject.toml``.
+- Improve tests of ``flit init``.
+
 Version 1.2.1
 -------------
 
