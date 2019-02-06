@@ -30,7 +30,10 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinxcontrib_github_alt',
 ]
+
+github_project_url = "https://github.com/takluyver/flit"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
