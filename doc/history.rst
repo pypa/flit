@@ -6,7 +6,7 @@ Version 1.3
 
 - Fix for building sdists from a subdirectory in a Mercurial repository
   (:ghpull:`233`).
-- Fix for getting the docstring and version from modules using encoding hacks
+- Fix for getting the docstring and version from modules defining their encoding
   (:ghpull:`239`).
 - Fix for installing packages with ``flit installfrom`` (:ghpull:`221`).
 - Packages with requirements no longer get a spurious ``Provides-Extra: .none``
