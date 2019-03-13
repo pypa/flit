@@ -108,7 +108,7 @@ def main(argv=None):
         from .build import main
         try:
             main(args.ini_file, formats=set(args.format or []))
-        except(common.NoDocstringError) as e:
+        except(common.NoDocstringError, common.VCSError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'publish':
         from .upload import main
