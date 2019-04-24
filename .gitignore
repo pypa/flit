@@ -8,3 +8,5 @@ __pycache__/
 /.coverage
 /.pytest_cache
 /.tox
+.idea/
+venv/
