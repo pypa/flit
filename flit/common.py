@@ -19,13 +19,24 @@ class Module(object):
         # It must exist either as a .py file or a directory, but not both
         pkg_dir = Path(directory, name)
         py_file = Path(directory, name+'.py')
+        src_dir = Path(directory) / 'src'
+        src_pkg_dir = Path(src_dir, name)
+        src_py_file = Path(src_dir, name+'.py')
         if pkg_dir.is_dir() and py_file.is_file():
             raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
+        if (py_file.is_file() or pkg_dir.is_dir()) and src_dir.is_dir():
+            raise ValueError("Both src and non-src versions of {} exist".format(name))
         elif pkg_dir.is_dir():
             self.path = pkg_dir
             self.is_package = True
         elif py_file.is_file():
             self.path = py_file
+            self.is_package = False
+        elif src_pkg_dir.is_dir():
+            self.path = src_pkg_dir
+            self.is_package = True
+        elif src_py_file.is_file():
+            self.path = src_py_file
             self.is_package = False
         else:
             raise ValueError("No file/folder found for module {}".format(name))
