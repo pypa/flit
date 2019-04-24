@@ -24,7 +24,10 @@ class Module(object):
         src_py_file = Path(src_dir, name+'.py')
         if pkg_dir.is_dir() and py_file.is_file():
             raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
-        if (py_file.is_file() or pkg_dir.is_dir()) and src_dir.is_dir():
+        if src_pkg_dir.is_dir() and src_py_file.is_file():
+            raise ValueError("Both {} and {} exist".format(src_pkg_dir, src_py_file))
+        if ((py_file.is_file() or pkg_dir.is_dir()) and
+            (src_py_file.is_file() or src_pkg_dir.is_dir())):
             raise ValueError("Both src and non-src versions of {} exist".format(name))
         elif pkg_dir.is_dir():
             self.path = pkg_dir
