@@ -4,6 +4,7 @@ This module contains the implementation of the "installfrom" subcommand.
 
 import sys
 
+from ..installfrom import installfrom
 from .install import add_shared_install_options
 
 NAME = 'installfrom'
@@ -19,6 +20,5 @@ def setup(parser):
 
 
 def run(args):
-    from ..installfrom import installfrom
     returncode = installfrom(args.location, user=args.user, python=args.python)
     return returncode
