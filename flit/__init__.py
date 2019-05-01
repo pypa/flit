@@ -79,6 +79,14 @@ def main(argv=None):
         help="Prepare pyproject.toml for a new package"
     )
 
+    parser_info = subparsers.add_parser('info',
+        help="Retrieve metadata information from the project",
+    )
+    parser_info.add_argument(
+        '--version', default=False, action='store_true', dest='show_version',
+        help="Print the version number of the project to stdout"
+    )
+
     args = ap.parse_args(argv)
 
     cf = args.ini_file
@@ -98,6 +106,11 @@ def main(argv=None):
     enable_colourful_output(logging.DEBUG if args.debug else logging.INFO)
 
     log.debug("Parsed arguments %r", args)
+
+    if args.subcmd == 'info' and args.show_version:
+        from .info import get_version
+        print(get_version(args.ini_file))
+        sys.exit(0)
 
     if args.logo:
         from .logo import clogo

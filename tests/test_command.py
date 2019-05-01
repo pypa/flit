@@ -11,3 +11,12 @@ def test_flit_usage():
     out, _ = p.communicate()
     assert 'Build wheel' in out.decode('utf-8', 'replace')
     assert p.poll() == 1
+
+def test_flit_version():
+    import flit
+    version = flit.__version__
+
+    p = Popen([sys.executable, '-m', 'flit', 'info', '--version'],
+               stdout=PIPE, stderr=STDOUT)
+    out, _ = p.communicate()
+    assert out.decode('utf-8', 'replace').strip() == version
