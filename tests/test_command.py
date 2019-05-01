@@ -17,6 +17,6 @@ def test_flit_version():
     version = flit.__version__
 
     p = Popen([sys.executable, '-m', 'flit', 'info', '--version'],
-               stdout=PIPE, stderr=STDOUT)
+               stdout=PIPE, stderr=PIPE)
     out, _ = p.communicate()
     assert out.decode('utf-8', 'replace').strip() == version
