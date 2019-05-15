@@ -16,6 +16,7 @@ Documentation contents
    pyproject_toml
    cmdline
    upload
+   packages
    reproducible
    history
 
