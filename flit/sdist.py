@@ -126,6 +126,15 @@ def convert_requires(reqs_by_extra):
 
 
 class SdistBuilder(SdistBuilderCore):
+    """Build a complete sdist
+
+    This extends the minimal sdist-building in flit_core:
+
+    - Include any files tracked in version control, such as docs sources and
+      tests.
+    - Add a generated setup.py for compatibility with tools which don't yet know
+      about PEP 517.
+    """
     def select_files(self):
         vcs_mod = identify_vcs(self.srcdir)
         untracked_deleted = vcs_mod.list_untracked_deleted_files(self.srcdir)

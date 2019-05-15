@@ -44,6 +44,12 @@ def clean_tarinfo(ti, mtime=None):
 
 
 class SdistBuilder:
+    """Builds a minimal sdist
+
+    These minimal sdists should work for PEP 517.
+    The class is extended in flit.sdist to make a more 'full fat' sdist,
+    which is what should normally be published to PyPI.
+    """
     def __init__(self, ini_path=Path('flit.ini')):
         self.ini_path = ini_path
         self.ini_info = inifile.read_pkg_ini(ini_path)
