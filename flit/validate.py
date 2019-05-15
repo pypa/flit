@@ -1,5 +1,6 @@
 """Validate various pieces of packaging data"""
 
+import io
 import logging
 import os
 from pathlib import Path
@@ -8,6 +9,7 @@ import requests
 import sys
 
 from .common import InvalidVersion
+from .vendorized.readme.rst import render
 
 log = logging.getLogger(__name__)
 
@@ -228,6 +230,27 @@ def validate_project_urls(metadata):
 
     return probs
 
+
+def validate_readme_rst(metadata):
+    mimetype = metadata.get('description_content_type', '')
+
+    if mimetype != 'text/x-rst':
+        return []
+
+    # rst check
+    raw_desc = metadata.get('description', '')
+    stream = io.StringIO()
+    res = render(raw_desc, stream)
+    if not res:
+        return [
+            ("The file description seems not to be valid rst for PyPI;"
+             " it will be interpreted as plain text"),
+            stream.getvalue(),
+        ]
+
+    return []  # rst rendered OK
+
+
 def validate_config(config_info):
     i = config_info
     problems = sum([
@@ -238,6 +261,7 @@ def validate_config(config_info):
         validate_requires_dist(i['metadata']),
         validate_url(i['metadata'].get('home_page', None)),
         validate_project_urls(i['metadata']),
+        validate_readme_rst(i['metadata'])
                    ], [])
 
     for p in problems:

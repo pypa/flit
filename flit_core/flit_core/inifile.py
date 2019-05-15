@@ -1,14 +1,8 @@
 import configparser
 import difflib
 import logging
-import os
 from pathlib import Path
-
 import pytoml as toml
-
-from flit.validate import validate_config
-from flit.vendorized.readme.rst import render
-import io
 
 log = logging.getLogger(__name__)
 
@@ -50,18 +44,12 @@ def read_pkg_ini(path: Path):
     if path.suffix == '.toml':
         with path.open() as f:
             d = toml.load(f)
-        res = prep_toml_config(d, path)
+        return prep_toml_config(d, path)
     else:
         # Treat all other extensions as the older flit.ini format
         cp = _read_pkg_ini(path)
-        res = _validate_config(cp, path)
+        return _validate_config(cp, path)
 
-    if validate_config(res):
-        if os.environ.get('FLIT_ALLOW_INVALID'):
-            log.warning("Allowing invalid data (FLIT_ALLOW_INVALID set). Uploads may still fail.")
-        else:
-            raise ConfigError("Invalid config values (see log)")
-    return res
 
 class EntryPointsConflict(ConfigError):
     def __str__(self):
@@ -200,15 +188,6 @@ def _prep_metadata(md_sect, path):
             log.warning("  Recognised extensions: %s",
                         " ".join(readme_ext_to_content_type))
             mimetype = None
-
-        if mimetype == 'text/x-rst':
-            # rst check
-            stream = io.StringIO()
-            res = render(raw_desc, stream)
-            if not res:
-                log.warning("The file description seems not to be valid rst for PyPI;"
-                        " it will be interpreted as plain text")
-                log.warning(stream.getvalue())
 
         md_dict['description'] =  raw_desc
         md_dict['description_content_type'] = mimetype
