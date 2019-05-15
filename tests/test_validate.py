@@ -1,6 +1,7 @@
 import pytest
 from flit.common import InvalidVersion
 from flit import validate as fv
+from flit_core.versionno import normalise_version
 
 def test_validate_entrypoints():
     assert fv.validate_entrypoints(
@@ -103,7 +104,7 @@ def test_validate_project_urls():
     assert len(check('Supercalifragilisticexpialidocious, https://flit.readthedocs.io/')) == 1
 
 def test_normalise_version():
-    nv = fv.normalise_version
+    nv = normalise_version
     assert nv('4.3.1') == '4.3.1'
     assert nv('1.0b2') == '1.0b2'
     assert nv('2!1.3') == '2!1.3'

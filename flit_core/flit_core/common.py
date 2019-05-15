@@ -8,7 +8,7 @@ import re
 
 log = logging.getLogger(__name__)
 
-import re
+from .versionno import normalise_version
 
 class Module(object):
     """This represents the module/package that we are going to distribute
@@ -142,7 +142,6 @@ def check_version(version):
                                 .format(type(version)))
 
     # Import here to avoid circular import
-    from .validate import normalise_version
     version = normalise_version(version)
 
     return version
