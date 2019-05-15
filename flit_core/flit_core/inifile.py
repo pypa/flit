@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytoml as toml
 
-from .validate import validate_config
-from .vendorized.readme.rst import render
+from flit.validate import validate_config
+from flit.vendorized.readme.rst import render
 import io
 
 log = logging.getLogger(__name__)

@@ -9,8 +9,8 @@ from posixpath import join as pjoin
 from pprint import pformat
 import tarfile
 
-from flit import common, inifile
-from flit.common import VCSError
+from . import common, inifile
+from .common import VCSError
 from flit.vcs import identify_vcs
 
 log = logging.getLogger(__name__)
