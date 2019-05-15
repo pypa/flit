@@ -75,12 +75,6 @@ class WheelBuilder:
                 re.sub("[^\w\d.]+", "_", self.metadata.version, flags=re.UNICODE),
                 tag)
 
-    def _include(self, path):
-        name = os.path.basename(path)
-        if (name == '__pycache__') or name.endswith('.pyc'):
-            return False
-        return True
-
     def _add_file(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)
         full_path, rel_path = str(full_path), str(rel_path)
@@ -135,19 +129,10 @@ class WheelBuilder:
 
     def copy_module(self):
         log.info('Copying package file(s) from %s', self.module.path)
-        if self.module.is_package:
-            # Walk the tree and compress it, sorting everything so the order
-            # is stable.
-            for dirpath, dirs, files in os.walk(str(self.module.path)):
-                reldir = os.path.relpath(dirpath, str(self.directory))
-                for file in sorted(files):
-                    full_path = os.path.join(dirpath, file)
-                    if self._include(full_path):
-                        self._add_file(full_path, os.path.join(reldir, file))
 
-                dirs[:] = [d for d in sorted(dirs) if self._include(d)]
-        else:
-            self._add_file(str(self.module.path), self.module.path.name)
+        for rel_path in self.module.iter_files():
+            full_path = os.path.join(self.directory, rel_path)
+            self._add_file(full_path, rel_path)
 
     def write_metadata(self):
         log.info('Writing metadata files')

@@ -75,7 +75,7 @@ def prep_toml_config(d, path):
     if 'metadata' not in d:
         raise ConfigError('[tool.flit.metadata] section is required')
 
-    md_dict, module, reqs_by_extra = _prep_metadata(d['metadata'], path)
+    md_dict, module, reqs_by_extra, refd_files = _prep_metadata(d['metadata'], path)
 
     if 'scripts' in d:
         scripts_dict = dict(d['scripts'])
@@ -94,6 +94,7 @@ def prep_toml_config(d, path):
         'reqs_by_extra': reqs_by_extra,
         'scripts': scripts_dict,
         'entrypoints': entrypoints,
+        'referenced_files': refd_files,
         'raw_config': d,
     }
 
@@ -169,10 +170,13 @@ def _prep_metadata(md_sect, path):
         raise ConfigError("Module name %r is not a valid identifier" % module)
 
     md_dict = {}
+    refd_files = []
 
     # Description file
     if 'description-file' in md_sect:
-        description_file = path.parent / md_sect.get('description-file')
+        desc_path = md_sect.get('description-file')
+        refd_files.append(desc_path)
+        description_file = path.parent / desc_path
         try:
             with description_file.open(encoding='utf-8') as f:
                 raw_desc = f.read()
@@ -263,7 +267,7 @@ def _prep_metadata(md_sect, path):
     # For internal use, record the main requirements as a '.none' extra.
     reqs_by_extra['.none'] = reqs_noextra
 
-    return md_dict, module, reqs_by_extra
+    return md_dict, module, reqs_by_extra, refd_files
 
 def _expand_requires_extra(re):
     for extra, reqs in sorted(re.items()):
@@ -294,8 +298,12 @@ def _validate_config(cp, path):
         else:
             md_sect[k] = v
 
+    refd_files = []
+
     if 'entry-points-file' in md_sect:
-        entry_points_file = path.parent / md_sect.pop('entry-points-file')
+        ep_rel_path = md_sect.pop('entry-points-file')
+        refd_files.append(ep_rel_path)
+        entry_points_file = path.parent / ep_rel_path
         if not entry_points_file.is_file():
             raise FileNotFoundError(entry_points_file)
     else:
@@ -312,7 +320,7 @@ def _validate_config(cp, path):
     else:
         entrypoints = {}
 
-    md_dict, module, reqs_by_extra = _prep_metadata(md_sect, path)
+    md_dict, module, reqs_by_extra, refd_files2 = _prep_metadata(md_sect, path)
 
     # Scripts ---------------
     if cp.has_section('scripts'):
@@ -328,5 +336,6 @@ def _validate_config(cp, path):
         'reqs_by_extra': reqs_by_extra,
         'scripts': scripts_dict,
         'entrypoints': entrypoints,
+        'referenced_files': refd_files + refd_files2,
         'raw_config': cp,
     }

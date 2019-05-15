@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import hashlib
 from importlib.machinery import SourceFileLoader
 import logging
+import os
 from pathlib import Path
 import re
 
@@ -36,6 +37,35 @@ class Module(object):
             return self.path / '__init__.py'
         else:
             return self.path
+
+    def iter_files(self):
+        """Iterate over the files contained in this module.
+
+        Yields relative paths from the source directory.
+        Excludes any __pycache__ and *.pyc files.
+        """
+        def _include(path):
+            name = os.path.basename(path)
+            if (name == '__pycache__') or name.endswith('.pyc'):
+                return False
+            return True
+
+        if self.is_package:
+            res = []
+
+            # Ensure we sort all files and directories so the order is stable
+            for dirpath, dirs, files in os.walk(str(self.path)):
+                reldir = os.path.relpath(dirpath, str(self.path.parent))
+                for file in sorted(files):
+                    full_path = os.path.join(dirpath, file)
+                    if _include(full_path):
+                        yield os.path.join(reldir, file)
+
+                dirs[:] = [d for d in sorted(dirs) if _include(d)]
+
+            return res
+        else:
+            yield self.path.name
 
 class ProblemInModule(ValueError): pass
 class NoDocstringError(ProblemInModule): pass

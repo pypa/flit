@@ -10,6 +10,7 @@ from tempfile import TemporaryDirectory
 from testpath import assert_isfile, MockCommand
 
 from flit import sdist
+import flit_core.sdist as sdist_core
 
 samples_dir = Path(__file__).parent / 'samples'
 
@@ -53,7 +54,7 @@ def test_get_files_list_git():
         (td / '.git').mkdir()
         builder = sdist.SdistBuilder(td / 'module1-pkg.ini')
         with MockCommand('git', LIST_FILES):
-            files = builder.find_tracked_files()
+            files = builder.select_files()
 
         assert set(files) == {
             'foo', pjoin('dir1', 'bar'), pjoin('dir1', 'subdir', 'qux'),
@@ -70,7 +71,7 @@ def test_get_files_list_hg():
         (td / '.hg').mkdir()
         builder = sdist.SdistBuilder(dir1 / 'module1-pkg.ini')
         with MockCommand('hg', LIST_FILES):
-            files = builder.find_tracked_files()
+            files = builder.select_files()
 
         assert set(files) == {
             'bar', pjoin('subdir', 'qux')
@@ -113,7 +114,7 @@ def test_make_setup_py_reqs_extra_envmark():
 def test_clean_tarinfo():
     with tarfile.open(mode='w', fileobj=BytesIO()) as tf:
         ti = tf.gettarinfo(str(samples_dir / 'module1.py'))
-    cleaned = sdist.clean_tarinfo(ti, mtime=42)
+    cleaned = sdist_core.clean_tarinfo(ti, mtime=42)
     assert cleaned.uid == 0
     assert cleaned.uname == ''
     assert cleaned.mtime == 42
