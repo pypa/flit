@@ -8,3 +8,6 @@ __pycache__/
 /.coverage
 /.pytest_cache
 /.tox
+*.dblite
+*.egg-info
+PKG-INFO
