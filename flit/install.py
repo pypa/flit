@@ -325,7 +325,7 @@ class Installer(object):
         with tempfile.TemporaryDirectory() as td:
             temp_whl = os.path.join(td, 'temp.whl')
             with open(temp_whl, 'w+b') as fp:
-                wb = WheelBuilder(self.ini_path, fp)
+                wb = WheelBuilder.from_ini_path(self.ini_path, fp)
                 wb.build()
 
             renamed_whl = os.path.join(td, wb.wheel_filename)

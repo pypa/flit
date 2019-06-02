@@ -36,15 +36,13 @@ def _write_wheel_file(f, *, supports_py2=False):
 
 
 class WheelBuilder:
-    def __init__(self, ini_path, target_fp):
+    def __init__(self, directory, module, metadata, entrypoints, target_fp):
         """Build a wheel from a module/package
         """
-        self.ini_path = ini_path
-        self.directory = ini_path.parent
-
-        self.ini_info = inifile.read_pkg_ini(ini_path)
-        self.module = common.Module(self.ini_info['module'], ini_path.parent)
-        self.metadata = common.make_metadata(self.module, self.ini_info)
+        self.directory = directory
+        self.module = module
+        self.metadata = metadata
+        self.entrypoints = entrypoints
 
         self.records = []
         try:
@@ -62,6 +60,15 @@ class WheelBuilder:
         # Open the zip file ready to write
         self.wheel_zip = zipfile.ZipFile(target_fp, 'w',
                              compression=zipfile.ZIP_DEFLATED)
+
+    @classmethod
+    def from_ini_path(cls, ini_path, target_fp):
+        directory = ini_path.parent
+        ini_info = inifile.read_pkg_ini(ini_path)
+        entrypoints = ini_info['entrypoints']
+        module = common.Module(ini_info['module'], ini_path.parent)
+        metadata = common.make_metadata(module, ini_info)
+        return cls(directory, module, metadata, entrypoints, target_fp)
 
     @property
     def dist_info(self):
@@ -137,9 +144,9 @@ class WheelBuilder:
     def write_metadata(self):
         log.info('Writing metadata files')
 
-        if self.ini_info['entrypoints']:
+        if self.entrypoints:
             with self._write_to_zip(self.dist_info + '/entry_points.txt') as f:
-                common.write_entry_points(self.ini_info['entrypoints'], f)
+                common.write_entry_points(self.entrypoints, f)
 
         for base in ('COPYING', 'LICENSE'):
             for path in sorted(self.directory.glob(base + '*')):
@@ -174,7 +181,7 @@ def make_wheel_in(ini_path, wheel_directory):
     (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
     try:
         with open(fd, 'w+b') as fp:
-            wb = WheelBuilder(ini_path, fp)
+            wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build()
 
         wheel_path = wheel_directory / wb.wheel_filename

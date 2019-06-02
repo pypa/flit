@@ -66,7 +66,7 @@ def test_wheel_builder():
     with tempfile.TemporaryDirectory() as td:
         target = Path(td, 'sample.whl')
         with target.open('wb') as f:
-            wb = WheelBuilder(samples_dir / 'package1-pkg.ini', f)
+            wb = WheelBuilder.from_ini_path(samples_dir / 'package1-pkg.ini', f)
             wb.build()
 
         assert zipfile.is_zipfile(str(target))
