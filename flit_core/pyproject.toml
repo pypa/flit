@@ -1,0 +1,3 @@
+[build-system]
+requires = []
+build-backend = "flit_core.build_thyself"
