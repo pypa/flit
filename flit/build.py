@@ -37,8 +37,8 @@ def main(ini_file: Path, formats=None):
 
     try:
         if 'sdist' in formats:
-            sb = SdistBuilder(ini_file)
-            sdist_file = sb.build()
+            sb = SdistBuilder.from_ini_path(ini_file)
+            sdist_file = sb.build(ini_file.parent / 'dist')
             sdist_info = SimpleNamespace(builder=sb, file=sdist_file)
             # When we're building both, build the wheel from the unpacked sdist.
             # This helps ensure that the sdist contains all the necessary files.

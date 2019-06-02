@@ -170,7 +170,7 @@ class SdistBuilder(SdistBuilderCore):
         else:
             extra.append("py_modules={!r},".format([self.module.name]))
 
-        install_reqs, extra_reqs = convert_requires(self.ini_info['reqs_by_extra'])
+        install_reqs, extra_reqs = convert_requires(self.reqs_by_extra)
         if install_reqs:
             before.append("install_requires = \\\n%s\n" % pformat(install_reqs))
             extra.append("install_requires=install_requires,")

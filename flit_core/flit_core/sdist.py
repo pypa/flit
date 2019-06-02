@@ -50,17 +50,31 @@ class SdistBuilder:
     The class is extended in flit.sdist to make a more 'full fat' sdist,
     which is what should normally be published to PyPI.
     """
-    def __init__(self, ini_path=Path('flit.ini')):
-        self.ini_path = ini_path
-        self.ini_info = inifile.read_pkg_ini(ini_path)
-        self.module = common.Module(self.ini_info['module'], ini_path.parent)
-        self.metadata = common.make_metadata(self.module, self.ini_info)
-        self.srcdir = ini_path.parent
+    def __init__(self, module, metadata, srcdir, reqs_by_extra, entrypoints,
+                 extra_files):
+        self.module = module
+        self.metadata = metadata
+        self.srcdir = srcdir
+        self.reqs_by_extra = reqs_by_extra
+        self.entrypoints = entrypoints
+        self.extra_files = extra_files
+
+    @classmethod
+    def from_ini_path(cls, ini_path):
+        ini_info = inifile.read_pkg_ini(ini_path)
+        module = common.Module(ini_info['module'], ini_path.parent)
+        metadata = common.make_metadata(module, ini_info)
+        srcdir = ini_path.parent
+        extra_files = [ini_path.name] + ini_info['referenced_files']
+        return cls(
+            module, metadata, srcdir, ini_info['reqs_by_extra'],
+            ini_info['entrypoints'], extra_files
+        )
 
     def prep_entry_points(self):
         # Reformat entry points from dict-of-dicts to dict-of-lists
         res = defaultdict(list)
-        for groupname, group in self.ini_info['entrypoints'].items():
+        for groupname, group in self.entrypoints.items():
             for name, ep in sorted(group.items()):
                 res[groupname].append('{} = {}'.format(name, ep))
 
@@ -72,8 +86,7 @@ class SdistBuilder:
         This is overridden in flit itself to use information from a VCS to
         include tests, docs, etc. for a 'gold standard' sdist.
         """
-        return list(self.module.iter_files()) + [self.ini_path.name] \
-              + self.ini_info['referenced_files']
+        return list(self.module.iter_files()) + self.extra_files
 
     def add_setup_py(self, files_to_add, target_tarfile):
         """No-op here; overridden in flit to generate setup.py"""
@@ -83,9 +96,7 @@ class SdistBuilder:
     def dir_name(self):
         return '{}-{}'.format(self.metadata.name, self.metadata.version)
 
-    def build(self, target_dir:Path =None):
-        if target_dir is None:
-            target_dir = self.ini_path.parent / 'dist'
+    def build(self, target_dir: Path):
         if not target_dir.exists():
             target_dir.mkdir(parents=True)
         target = target_dir / '{}-{}.tar.gz'.format(
