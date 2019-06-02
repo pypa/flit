@@ -78,8 +78,8 @@ class WheelBuilder:
     def wheel_filename(self):
         tag = ('py2.' if self.metadata.supports_py2 else '') + 'py3-none-any'
         return '{}-{}-{}.whl'.format(
-                re.sub("[^\w\d.]+", "_", self.metadata.name, flags=re.UNICODE),
-                re.sub("[^\w\d.]+", "_", self.metadata.version, flags=re.UNICODE),
+                re.sub(r"[^\w\d.]+", "_", self.metadata.name, flags=re.UNICODE),
+                re.sub(r"[^\w\d.]+", "_", self.metadata.version, flags=re.UNICODE),
                 tag)
 
     def _add_file(self, full_path, rel_path):

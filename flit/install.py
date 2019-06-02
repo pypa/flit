@@ -178,7 +178,7 @@ class Installer(object):
 
             if sys.platform == 'win32':
                 cmd_file = script_file.with_suffix('.cmd')
-                cmd = '"{python}" "%~dp0\{script}" %*\r\n'.format(
+                cmd = '"{python}" "%~dp0\\{script}" %*\r\n'.format(
                             python=sys.executable, script=name)
                 log.debug("Writing script wrapper to %s", cmd_file)
                 with cmd_file.open('w') as f:
