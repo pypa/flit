@@ -11,10 +11,15 @@ import sys
 import tempfile
 from types import SimpleNamespace
 
+HAVE_ZIPFILE36 = True
 if sys.version_info >= (3, 6):
     import zipfile
 else:
-    import zipfile36 as zipfile
+    try:
+        import zipfile36 as zipfile
+    except ImportError:
+        import zipfile
+        HAVE_ZIPFILE36 = False
 
 from flit import __version__
 from . import common
@@ -49,7 +54,13 @@ class WheelBuilder:
             # If SOURCE_DATE_EPOCH is set (e.g. by Debian), it's used for
             # timestamps inside the zip file.
             d = datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
-            log.info("Zip timestamps will be from SOURCE_DATE_EPOCH: %s", d)
+            if HAVE_ZIPFILE36:
+                log.info("Zip timestamps will be from SOURCE_DATE_EPOCH: %s", d)
+            else:
+                log.warning(
+                    "Can't use timestamp from SOURCE_DATE_EPOCH: "
+                    "Need Python >= 3.6 or the zipfile36 backport for this."
+                )
             # zipfile expects a 6-tuple, not a datetime object
             self.source_time_stamp = (d.year, d.month, d.day, d.hour, d.minute, d.second)
         except (KeyError, ValueError):
@@ -82,7 +93,30 @@ class WheelBuilder:
                 re.sub(r"[^\w\d.]+", "_", self.metadata.version, flags=re.UNICODE),
                 tag)
 
-    def _add_file(self, full_path, rel_path):
+    def _add_file_old(self, full_path, rel_path):
+        log.debug("Adding %s to zip file", full_path)
+        full_path, rel_path = str(full_path), str(rel_path)
+        if os.sep != '/':
+            # We always want to have /-separated paths in the zip file and in
+            # RECORD
+            rel_path = rel_path.replace(os.sep, '/')
+
+        self.wheel_zip.write(full_path, arcname=rel_path)
+
+        hashsum = hashlib.sha256()
+        with open(full_path, 'rb') as src:
+            while True:
+                buf = src.read(1024 * 8)
+                if not buf:
+                    break
+                hashsum.update(buf)
+
+        size = os.stat(full_path).st_size
+        hash_digest = urlsafe_b64encode(hashsum.digest()).decode(
+            'ascii').rstrip('=')
+        self.records.append((rel_path, hash_digest, size))
+
+    def _add_file_zf36(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)
         full_path, rel_path = str(full_path), str(rel_path)
         if os.sep != '/':
@@ -116,6 +150,8 @@ class WheelBuilder:
         size = os.stat(full_path).st_size
         hash_digest = urlsafe_b64encode(hashsum.digest()).decode('ascii').rstrip('=')
         self.records.append((rel_path, hash_digest, size))
+
+    _add_file = _add_file_zf36 if HAVE_ZIPFILE36 else _add_file_old
 
     @contextlib.contextmanager
     def _write_to_zip(self, rel_path):
