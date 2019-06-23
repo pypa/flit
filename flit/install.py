@@ -379,13 +379,13 @@ class Installer(object):
                 if path.is_symlink() or path.suffix in {'.pyc', '.pyo'}:
                     hash, size = '', ''
                 else:
-                    hash = 'sha256=' + common.hash_file(path)
+                    hash = 'sha256=' + common.hash_file(str(path))
                     size = path.stat().st_size
                 try:
                     path = path.relative_to(site_pkgs)
                 except ValueError:
                     pass
-                cf.writerow((path, hash, size))
+                cf.writerow((str(path), hash, size))
 
             cf.writerow(((dist_info / 'RECORD').relative_to(site_pkgs), '', ''))
 
