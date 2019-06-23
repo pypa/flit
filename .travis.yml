@@ -13,7 +13,8 @@ matrix:
       env: EXTRA_PYTEST_ARGS="--pyargs flit_core"
 
 env:
-  - PYTHONPATH=flit_core
+  global:
+    - PYTHONPATH=flit_core
 
 install:
   - pip install --upgrade pip
