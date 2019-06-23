@@ -1,14 +1,16 @@
 language: python
-python:
-  - "3.6"
-  - "3.5"
-  - "3.4"
 
-# 3.7 needs Xenial image because of https://github.com/travis-ci/travis-ci/issues/9069
 matrix:
   include:
+    # 3.7 needs Xenial image because of https://github.com/travis-ci/travis-ci/issues/9069
     - python: "3.7"
       dist: xenial
+    - python: "3.6"
+    - python: "3.5"
+
+    # Only flit_core is supported on < 3.5
+    - python: "3.4"
+      env: EXTRA_PYTEST_ARGS="--pyargs flit_core"
 
 env:
   - PYTHONPATH=flit_core
@@ -18,5 +20,5 @@ install:
   - pip install --upgrade pytest
   - pip install -r requirements-test.txt
   - pip install codecov
-script: pytest --cov=flit --cov=flit_core/flit_core
+script: pytest --cov=flit --cov=flit_core/flit_core ${EXTRA_PYTEST_ARGS}
 after_success: codecov
