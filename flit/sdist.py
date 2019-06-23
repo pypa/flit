@@ -202,3 +202,6 @@ class SdistBuilder(SdistBuilderCore):
             url=self.metadata.home_page,
             extra='\n      '.join(extra),
         ).encode('utf-8')
+
+    def build(self, target_dir):
+        return super().build(str(target_dir))
