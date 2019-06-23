@@ -2,7 +2,7 @@ import os.path as osp
 from unittest import TestCase
 import pytest
 
-from flit.common import (Module, get_info_from_module, InvalidVersion, NoVersionError,
+from flit_core.common import (Module, get_info_from_module, InvalidVersion, NoVersionError,
      check_version, normalize_file_permissions
 )
 

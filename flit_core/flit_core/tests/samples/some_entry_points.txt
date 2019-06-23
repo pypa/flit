@@ -1,0 +1,2 @@
+[myplugins]
+package1=package1:main
