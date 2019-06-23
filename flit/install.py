@@ -2,6 +2,7 @@
 """
 import logging
 import os
+import os.path as osp
 import csv
 import pathlib
 import random
@@ -59,7 +60,7 @@ def _test_writable_dir_win(path):
     alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
     for i in range(10):
         name = basename + ''.join(random.choice(alphabet) for _ in range(6))
-        file = os.path.join(path, name)
+        file = osp.join(path, name)
         try:
             with open(file, mode='xb'):
                 pass
@@ -189,7 +190,7 @@ class Installer(object):
     def _record_installed_directory(self, path):
         for dirpath, dirnames, files in os.walk(path):
             for f in files:
-                self.installed_files.append(os.path.join(dirpath, f))
+                self.installed_files.append(osp.join(dirpath, f))
 
     def _extras_to_install(self):
         extras_to_install = set(self.extras)
@@ -265,7 +266,7 @@ class Installer(object):
             return get_dirs(user=user)
         else:
             import json
-            path = os.path.join(os.path.dirname(__file__), '_get_dirs.py')
+            path = osp.join(osp.dirname(__file__), '_get_dirs.py')
             args = ['--user'] if user else []
             return json.loads(self._run_python(file=path, extra_args=args))
 
@@ -276,9 +277,9 @@ class Installer(object):
         os.makedirs(dirs['purelib'], exist_ok=True)
         os.makedirs(dirs['scripts'], exist_ok=True)
 
-        dst = os.path.join(dirs['purelib'], self.module.path.name)
-        if os.path.lexists(dst):
-            if os.path.isdir(dst) and not os.path.islink(dst):
+        dst = osp.join(dirs['purelib'], osp.basename(self.module.path))
+        if osp.lexists(dst):
+            if osp.isdir(dst) and not osp.islink(dst):
                 shutil.rmtree(dst)
             else:
                 os.unlink(dst)
@@ -294,18 +295,18 @@ class Installer(object):
         src = str(self.module.path)
         if self.symlink:
             log.info("Symlinking %s -> %s", src, dst)
-            os.symlink(str(self.module.path.resolve()), dst)
+            os.symlink(osp.abspath(self.module.path), dst)
             self.installed_files.append(dst)
         elif self.pth:
             # .pth points to the the folder containing the module (which is
             # added to sys.path)
-            pth_target = str(self.module.path.resolve().parent)
+            pth_target = osp.dirname(osp.abspath(self.module.path))
             pth_file = pathlib.Path(dst).with_suffix('.pth')
             log.info("Adding .pth file %s for %s", pth_file, pth_target)
             with pth_file.open("w") as f:
                 f.write(pth_target)
             self.installed_files.append(pth_file)
-        elif self.module.path.is_dir():
+        elif self.module.is_package:
             log.info("Copying directory %s -> %s", src, dst)
             shutil.copytree(src, dst)
             self._record_installed_directory(dst)
@@ -323,12 +324,12 @@ class Installer(object):
         self.install_reqs_my_python_if_needed()
 
         with tempfile.TemporaryDirectory() as td:
-            temp_whl = os.path.join(td, 'temp.whl')
+            temp_whl = osp.join(td, 'temp.whl')
             with open(temp_whl, 'w+b') as fp:
                 wb = WheelBuilder.from_ini_path(self.ini_path, fp)
                 wb.build()
 
-            renamed_whl = os.path.join(td, wb.wheel_filename)
+            renamed_whl = osp.join(td, wb.wheel_filename)
             os.rename(temp_whl, renamed_whl)
             extras = self._extras_to_install()
             extras.discard('.none')

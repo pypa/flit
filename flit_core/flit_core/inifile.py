@@ -1,7 +1,7 @@
 import configparser
 import difflib
 import logging
-from pathlib import Path
+import os.path as osp
 import pytoml as toml
 
 log = logging.getLogger(__name__)
@@ -38,11 +38,11 @@ metadata_required_fields = {
 }
 
 
-def read_pkg_ini(path: Path):
+def read_pkg_ini(path: str):
     """Read and check the `pyproject.toml` or `flit.ini` file with data about the package.
     """
-    if path.suffix == '.toml':
-        with path.open() as f:
+    if path.endswith('.toml'):
+        with open(path, 'r', encoding='utf-8') as f:
             d = toml.load(f)
         return prep_toml_config(d, path)
     else:
@@ -56,7 +56,7 @@ class EntryPointsConflict(ConfigError):
         return ('Please specify console_scripts entry points, or [scripts] in '
             'flit config, not both.')
 
-def prep_toml_config(d, path):
+def prep_toml_config(d, path: str):
     """Validate config loaded from pyproject.toml and prepare common metadata
     
     Returns a dictionary with keys: module, metadata, scripts, entrypoints,
@@ -142,7 +142,7 @@ def _read_pkg_ini(path):
     """Reads old-style flit.ini
     """
     cp = configparser.ConfigParser()
-    with path.open(encoding='utf-8') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         cp.read_file(f)
 
     return cp
@@ -153,7 +153,7 @@ readme_ext_to_content_type = {
     '.txt': 'text/plain',
 }
 
-def _prep_metadata(md_sect, path):
+def _prep_metadata(md_sect, path: str):
     """Process & verify the metadata from a config file
     
     - Pull out the module name we're packaging.
@@ -176,15 +176,15 @@ def _prep_metadata(md_sect, path):
     if 'description-file' in md_sect:
         desc_path = md_sect.get('description-file')
         refd_files.append(desc_path)
-        description_file = path.parent / desc_path
+        description_file = osp.join(osp.dirname(path), desc_path)
         try:
-            with description_file.open(encoding='utf-8') as f:
+            with open(description_file, 'r', encoding='utf-8') as f:
                 raw_desc = f.read()
         except FileNotFoundError:
             raise ConfigError(
                 "Description file {} does not exist".format(description_file)
             )
-        ext = description_file.suffix
+        _, ext = osp.splitext(description_file)
         try:
             mimetype = readme_ext_to_content_type[ext]
         except KeyError:
@@ -278,7 +278,7 @@ def _expand_requires_extra(re):
             else:
                 yield '{}; extra == "{}"'.format(req, extra)
 
-def _validate_config(cp, path):
+def _validate_config(cp, path: str):
     """Validate and process config loaded from a flit.ini file.
     
     Returns a dict with keys: module, metadata, scripts, entrypoints, raw_config
@@ -303,17 +303,17 @@ def _validate_config(cp, path):
     if 'entry-points-file' in md_sect:
         ep_rel_path = md_sect.pop('entry-points-file')
         refd_files.append(ep_rel_path)
-        entry_points_file = path.parent / ep_rel_path
-        if not entry_points_file.is_file():
+        entry_points_file = osp.join(osp.dirname(path), ep_rel_path)
+        if not osp.isfile(entry_points_file):
             raise FileNotFoundError(entry_points_file)
     else:
-        entry_points_file = path.parent / 'entry_points.txt'
-        if not entry_points_file.is_file():
+        entry_points_file = osp.join(osp.dirname(path), 'entry_points.txt')
+        if not osp.isfile(entry_points_file):
             entry_points_file = None
 
     if entry_points_file:
         ep_cp = configparser.ConfigParser()
-        with entry_points_file.open() as f:
+        with open(entry_points_file, 'r', encoding='utf-8') as f:
             ep_cp.read_file(f)
         # Convert to regular dict
         entrypoints = {k: dict(v) for k,v in ep_cp.items()}

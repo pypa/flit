@@ -5,7 +5,7 @@ Building any other packages occurs through flit_core.buildapi
 """
 
 import os
-from pathlib import Path
+import os.path as osp
 import tempfile
 
 from .common import Metadata, Module, dist_info_name
@@ -35,17 +35,17 @@ def get_requires_for_build_sdist(config_settings=None):
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     """Creates {metadata_directory}/foo-1.2.dist-info"""
-    dist_info = Path(metadata_directory,
-                     dist_info_name(metadata.name, metadata.version))
-    dist_info.mkdir()
+    dist_info = osp.join(metadata_directory,
+                         dist_info_name(metadata.name, metadata.version))
+    os.mkdir(dist_info)
 
-    with (dist_info / 'WHEEL').open('w') as f:
+    with open(osp.join(dist_info, 'WHEEL'), 'w') as f:
         _write_wheel_file(f, supports_py2=metadata.supports_py2)
 
-    with (dist_info / 'METADATA').open('w') as f:
+    with open(osp.join(dist_info, 'METADATA'), 'w') as f:
         metadata.write_metadata_file(f)
 
-    return dist_info.name
+    return osp.basename(dist_info)
 
 def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     """Builds a wheel, places it in wheel_directory"""
@@ -80,6 +80,6 @@ def build_sdist(sdist_directory, config_settings=None):
         module, metadata, srcdir, reqs_by_extra, entrypoints={},
         extra_files=['pyproject.toml']
     )
-    path = sb.build(Path(sdist_directory))
-    return path.name
+    path = sb.build(sdist_directory)
+    return osp.basename(path)
 

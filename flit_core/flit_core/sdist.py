@@ -4,7 +4,7 @@ from gzip import GzipFile
 import io
 import logging
 import os
-from pathlib import Path
+import os.path as osp
 from posixpath import join as pjoin
 import tarfile
 
@@ -60,12 +60,12 @@ class SdistBuilder:
         self.extra_files = extra_files
 
     @classmethod
-    def from_ini_path(cls, ini_path):
+    def from_ini_path(cls, ini_path: str):
         ini_info = inifile.read_pkg_ini(ini_path)
-        module = common.Module(ini_info['module'], ini_path.parent)
+        srcdir = osp.dirname(ini_path)
+        module = common.Module(ini_info['module'], srcdir)
         metadata = common.make_metadata(module, ini_info)
-        srcdir = ini_path.parent
-        extra_files = [ini_path.name] + ini_info['referenced_files']
+        extra_files = [osp.basename(ini_path)] + ini_info['referenced_files']
         return cls(
             module, metadata, srcdir, ini_info['reqs_by_extra'],
             ini_info['entrypoints'], extra_files
@@ -96,11 +96,13 @@ class SdistBuilder:
     def dir_name(self):
         return '{}-{}'.format(self.metadata.name, self.metadata.version)
 
-    def build(self, target_dir: Path):
-        if not target_dir.exists():
-            target_dir.mkdir(parents=True)
-        target = target_dir / '{}-{}.tar.gz'.format(
-                        self.metadata.name, self.metadata.version)
+    def build(self, target_dir: str):
+        if not osp.isdir(target_dir):
+            os.makedirs(target_dir)
+        target = osp.join(
+            target_dir, '{}-{}.tar.gz'.format(
+                self.metadata.name, self.metadata.version
+        ))
         source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
         mtime = int(source_date_epoch) if source_date_epoch else None
         gz = GzipFile(str(target), mode='wb', mtime=mtime)
@@ -111,12 +113,12 @@ class SdistBuilder:
             files_to_add = self.select_files()
 
             for relpath in files_to_add:
-                path = self.srcdir / relpath
-                ti = tf.gettarinfo(str(path), arcname=pjoin(self.dir_name, relpath))
+                path = osp.join(self.srcdir, relpath)
+                ti = tf.gettarinfo(path, arcname=pjoin(self.dir_name, relpath))
                 ti = clean_tarinfo(ti, mtime)
 
                 if ti.isreg():
-                    with path.open('rb') as f:
+                    with open(path, 'rb') as f:
                         tf.addfile(ti, f)
                 else:
                     tf.addfile(ti)  # Symlinks & ?

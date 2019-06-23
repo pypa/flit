@@ -4,7 +4,7 @@ import hashlib
 from importlib.machinery import SourceFileLoader
 import logging
 import os
-from pathlib import Path
+import os.path as osp
 import re
 
 log = logging.getLogger(__name__)
@@ -18,14 +18,14 @@ class Module(object):
         self.name = name
 
         # It must exist either as a .py file or a directory, but not both
-        pkg_dir = Path(directory, name)
-        py_file = Path(directory, name+'.py')
-        if pkg_dir.is_dir() and py_file.is_file():
+        pkg_dir = osp.join(directory, name)
+        py_file = osp.join(directory, name+'.py')
+        if osp.isdir(pkg_dir) and osp.isfile(py_file):
             raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
-        elif pkg_dir.is_dir():
+        elif osp.isdir(pkg_dir):
             self.path = pkg_dir
             self.is_package = True
-        elif py_file.is_file():
+        elif osp.isfile(py_file):
             self.path = py_file
             self.is_package = False
         else:
@@ -34,7 +34,7 @@ class Module(object):
     @property
     def file(self):
         if self.is_package:
-            return self.path / '__init__.py'
+            return osp.join(self.path, '__init__.py')
         else:
             return self.path
 
@@ -55,7 +55,7 @@ class Module(object):
 
             # Ensure we sort all files and directories so the order is stable
             for dirpath, dirs, files in os.walk(str(self.path)):
-                reldir = os.path.relpath(dirpath, str(self.path.parent))
+                reldir = osp.relpath(dirpath, osp.dirname(self.path))
                 for file in sorted(files):
                     full_path = os.path.join(dirpath, file)
                     if _include(full_path):
@@ -65,7 +65,7 @@ class Module(object):
 
             return res
         else:
-            yield self.path.name
+            yield osp.basename(self.path)
 
 class ProblemInModule(ValueError): pass
 class NoDocstringError(ProblemInModule): pass
@@ -93,13 +93,13 @@ def _module_load_ctx():
     finally:
         logging.root.handlers = logging_handlers
 
-def get_docstring_and_version_via_ast(target):
+def get_docstring_and_version_via_ast(target: Module):
     """
     Return a tuple like (docstring, version) for the given module,
     extracted by parsing its AST.
     """
     # read as bytes to enable custom encodings
-    with target.file.open('rb') as f:
+    with open(target.file, 'rb') as f:
         node = ast.parse(f.read())
     for child in node.body:
         # Only use the version from the given module if it's a simple
@@ -122,7 +122,7 @@ def get_docstring_and_version_via_import(target):
     from it.
     """
     log.debug("Loading module %s", target.file)
-    sl = SourceFileLoader(target.name, str(target.file))
+    sl = SourceFileLoader(target.name, target.file)
     with _module_load_ctx():
         m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
@@ -215,7 +215,7 @@ def write_entry_points(d, fp):
         fp.write('\n')
 
 def hash_file(path, algorithm='sha256'):
-    with Path(path).open('rb') as f:
+    with open(path, 'rb') as f:
         h = hashlib.new(algorithm, f.read())
     return h.hexdigest()
 
@@ -334,8 +334,9 @@ def make_metadata(module, ini_info):
 
 def metadata_and_module_from_ini_path(ini_path):
     from . import inifile
+    ini_path = str(ini_path)
     ini_info = inifile.read_pkg_ini(ini_path)
-    module = Module(ini_info['module'], ini_path.parent)
+    module = Module(ini_info['module'], osp.dirname(ini_path))
     metadata = make_metadata(module, ini_info)
     return metadata,module
 

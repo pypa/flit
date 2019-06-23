@@ -2,6 +2,7 @@ from collections import defaultdict
 import io
 import logging
 import os
+from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
 import tarfile
@@ -135,16 +136,21 @@ class SdistBuilder(SdistBuilderCore):
     - Add a generated setup.py for compatibility with tools which don't yet know
       about PEP 517.
     """
+    @classmethod
+    def from_ini_path(cls, ini_path):
+        return super().from_ini_path(str(ini_path))
+
     def select_files(self):
-        vcs_mod = identify_vcs(self.srcdir)
-        untracked_deleted = vcs_mod.list_untracked_deleted_files(self.srcdir)
+        srcdir_path = Path(self.srcdir)
+        vcs_mod = identify_vcs(srcdir_path)
+        untracked_deleted = vcs_mod.list_untracked_deleted_files(srcdir_path)
         if list(filter(include_path, untracked_deleted)):
             raise VCSError(
                 "Untracked or deleted files in the source directory. "
                 "Commit, undo or ignore these files in your VCS.",
                 self.srcdir)
 
-        files = vcs_mod.list_tracked_files(self.srcdir)
+        files = vcs_mod.list_tracked_files(srcdir_path)
         log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
         return sorted(filter(include_path, files))
 

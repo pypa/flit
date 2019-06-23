@@ -2,9 +2,11 @@ from base64 import urlsafe_b64encode
 import contextlib
 from datetime import datetime
 import hashlib
+from glob import glob
 import io
 import logging
 import os
+import os.path as osp
 import re
 import stat
 import sys
@@ -74,10 +76,10 @@ class WheelBuilder:
 
     @classmethod
     def from_ini_path(cls, ini_path, target_fp):
-        directory = ini_path.parent
+        directory = osp.dirname(ini_path)
         ini_info = inifile.read_pkg_ini(ini_path)
         entrypoints = ini_info['entrypoints']
-        module = common.Module(ini_info['module'], ini_path.parent)
+        module = common.Module(ini_info['module'], directory)
         metadata = common.make_metadata(module, ini_info)
         return cls(directory, module, metadata, entrypoints, target_fp)
 
@@ -185,7 +187,7 @@ class WheelBuilder:
                 common.write_entry_points(self.entrypoints, f)
 
         for base in ('COPYING', 'LICENSE'):
-            for path in sorted(self.directory.glob(base + '*')):
+            for path in sorted(glob(osp.join(self.directory, base + '*'))):
                 self._add_file(path, '%s/%s' % (self.dist_info, path.name))
 
         with self._write_to_zip(self.dist_info + '/WHEEL') as f:
@@ -220,7 +222,7 @@ def make_wheel_in(ini_path, wheel_directory):
             wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build()
 
-        wheel_path = wheel_directory / wb.wheel_filename
+        wheel_path = osp.join(wheel_directory, wb.wheel_filename)
         os.replace(temp_path, str(wheel_path))
     except:
         os.unlink(temp_path)
