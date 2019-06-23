@@ -14,7 +14,7 @@ import tempfile
 from subprocess import check_call, check_output
 import sysconfig
 
-from . import common
+from flit_core import common
 from . import inifile
 from .wheel import WheelBuilder
 from ._get_dirs import get_dirs

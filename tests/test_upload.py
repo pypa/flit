@@ -7,7 +7,8 @@ import responses
 from testpath import modified_env
 from unittest.mock import patch
 
-from flit import upload, common, wheel
+from flit_core import common
+from flit import upload, wheel
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 

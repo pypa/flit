@@ -2,8 +2,9 @@ import os.path as osp
 from unittest import TestCase
 import pytest
 
-from flit_core.common import (Module, get_info_from_module, InvalidVersion, NoVersionError,
-     check_version, normalize_file_permissions
+from flit_core.common import (
+    Module, get_info_from_module, InvalidVersion, NoVersionError, check_version,
+    normalize_file_permissions, Metadata
 )
 
 samples_dir = osp.join(osp.dirname(__file__), 'samples')
@@ -86,7 +87,6 @@ def test_normalize_file_permissions():
     ],
 )
 def test_supports_py2(requires_python, expected_result):
-    from flit.common import Metadata
     metadata = object.__new__(Metadata)
     metadata.requires_python = requires_python
     result = metadata.supports_py2

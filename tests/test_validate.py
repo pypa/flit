@@ -1,5 +1,5 @@
 import pytest
-from flit.common import InvalidVersion
+from flit_core.common import InvalidVersion
 from flit import validate as fv
 from flit_core.versionno import normalise_version
 

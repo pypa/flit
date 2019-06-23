@@ -8,7 +8,7 @@ from pprint import pformat
 import tarfile
 
 from flit_core.sdist import SdistBuilder as SdistBuilderCore
-from .common import VCSError
+from flit_core.common import VCSError
 from flit.vcs import identify_vcs
 
 log = logging.getLogger(__name__)

@@ -13,7 +13,7 @@ import requests
 import sys
 from urllib.parse import urlparse
 
-from .common import Metadata
+from flit_core.common import Metadata
 
 log = logging.getLogger(__name__)
 

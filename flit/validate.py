@@ -8,7 +8,6 @@ import re
 import requests
 import sys
 
-from .common import InvalidVersion
 from .vendorized.readme.rst import render
 
 log = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ import logging
 import pathlib
 import sys
 
-from . import common
+from flit_core import common
 from .log import enable_colourful_output
 
 __version__ = '1.3'

@@ -5,7 +5,8 @@ import sys
 from tempfile import TemporaryDirectory
 from testpath import assert_isdir, MockCommand
 
-from flit import build, common
+from flit_core import common
+from flit import build
 
 samples_dir = Path(__file__).parent / 'samples'
 
