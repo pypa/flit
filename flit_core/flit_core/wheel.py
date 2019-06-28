@@ -23,7 +23,7 @@ else:
         import zipfile
         HAVE_ZIPFILE36 = False
 
-from flit import __version__
+from flit_core import __version__
 from . import common
 from . import inifile
 
