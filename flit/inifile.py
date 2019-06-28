@@ -2,7 +2,6 @@ import os
 
 from flit_core.inifile import *
 from flit_core.inifile import read_pkg_ini as _read_pkg_ini_core
-from flit_core.inifile import _prep_metadata
 from .validate import validate_config
 
 def read_pkg_ini(path):
