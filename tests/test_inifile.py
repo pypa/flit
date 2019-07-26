@@ -40,7 +40,7 @@ def test_misspelled_key():
     with pytest.raises(ConfigError) as e_info:
         read_pkg_ini(samples_dir / 'misspelled-key.ini')
 
-    assert 'description-file' in str(e_info)
+    assert 'scription-file' in str(e_info.value)
 
 def test_description_file():
     info = read_pkg_ini(samples_dir / 'package1-pkg.ini')
