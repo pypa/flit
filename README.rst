@@ -60,6 +60,12 @@ or as a directory — and you want to distribute it.
 
        flit publish
 
+Once your package is published, people can install it using *pip* just like
+any other package. In most cases, pip will download a 'wheel' package, a
+standard format it knows how to install. If you specifically ask pip to install
+an 'sdist' package, it will install and use Flit in a temporary environment.
+
+
 To install a package locally for development, run::
 
     flit install [--symlink] [--python path/to/python]
