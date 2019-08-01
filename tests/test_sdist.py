@@ -110,11 +110,3 @@ def test_make_setup_py_reqs_extra_envmark():
     builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'requires-extra-envmark.toml')
     ns = get_setup_assigns(builder.make_setup_py())
     assert ns['extras_require'] == {'test:python_version == "2.7"': ['pathlib2']}
-
-def test_clean_tarinfo():
-    with tarfile.open(mode='w', fileobj=BytesIO()) as tf:
-        ti = tf.gettarinfo(str(samples_dir / 'module1.py'))
-    cleaned = sdist_core.clean_tarinfo(ti, mtime=42)
-    assert cleaned.uid == 0
-    assert cleaned.uname == ''
-    assert cleaned.mtime == 42
