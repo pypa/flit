@@ -1,4 +1,5 @@
 environment:
+  PYTHONPATH: flit_core
   matrix:
     # For Python versions available on Appveyor, see
     # http://www.appveyor.com/docs/installed-software#python
