@@ -3,7 +3,7 @@
 Why Flit
 -------
 * Flit enables you to publish your package to PyPI in a simple 3 step process ``flit init``, ``build`` & ``publish``.
-* Wheels built by flit are [reproducible](https://flit.readthedocs.io/en/latest/reproducible.html): if you build from the same source code, you should be able to make wheels that are exactly identical, byte for byte. This is useful for verifying software. For more details, see reproducible-builds.org.
+* Wheels built by flit are `reproducible <https://flit.readthedocs.io/en/latest/reproducible.html/>`_ : if you build from the same source code, you should be able to make wheels that are exactly identical, byte for byte. This is useful for verifying software. For more details, see reproducible-builds.org.
 
 Install
 -------
