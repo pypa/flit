@@ -29,7 +29,7 @@ def test_misspelled_key():
     with pytest.raises(inifile.ConfigError) as e_info:
         inifile.read_pkg_ini(osp.join(samples_dir, 'misspelled-key.ini'))
 
-    assert 'description-file' in str(e_info)
+    assert 'description-file' in str(e_info.value)
 
 def test_description_file():
     info = inifile.read_pkg_ini(osp.join(samples_dir, 'package1-pkg.ini'))
