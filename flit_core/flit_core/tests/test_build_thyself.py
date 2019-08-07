@@ -26,11 +26,11 @@ def test_prepare_metadata(tmp_path):
 
     assert dist_info.endswith('.dist-info')
     assert dist_info.startswith('flit_core')
-    dist_info = osp.join(tmp_path, dist_info)
+    dist_info = tmp_path / dist_info
     assert_isdir(dist_info)
 
-    assert_isfile(osp.join(dist_info, 'WHEEL'))
-    assert_isfile(osp.join(dist_info, 'METADATA'))
+    assert_isfile(dist_info / 'WHEEL')
+    assert_isfile(dist_info, 'METADATA')
 
 
 def test_wheel(tmp_path, cwd_project):
@@ -38,9 +38,9 @@ def test_wheel(tmp_path, cwd_project):
 
     assert filename.endswith('.whl')
     assert filename.startswith('flit_core')
-    path = osp.join(tmp_path, filename)
+    path = tmp_path / filename
     assert_isfile(path)
-    assert zipfile.is_zipfile(path)
+    assert zipfile.is_zipfile(str(path))
 
 
 def test_sdist(tmp_path, cwd_project):
@@ -48,6 +48,6 @@ def test_sdist(tmp_path, cwd_project):
 
     assert filename.endswith('.tar.gz')
     assert filename.startswith('flit_core')
-    path = osp.join(tmp_path, filename)
+    path = tmp_path / filename
     assert_isfile(path)
-    assert tarfile.is_tarfile(path)
+    assert tarfile.is_tarfile(str(path))
