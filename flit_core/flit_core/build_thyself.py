@@ -18,7 +18,7 @@ metadata = Metadata({
     'author': 'Thomas Kluyver & contributors',
     'author_email': 'thomas@kluyver.me.uk',
     'home_page': 'https://github.com/takluyver/flit',
-    'description': ('Distribution-building parts of Flit. '
+    'summary': ('Distribution-building parts of Flit. '
                     'See flit package for more information'),
     'requires': [
         'pytoml',
