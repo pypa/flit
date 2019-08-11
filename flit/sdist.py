@@ -137,7 +137,7 @@ class SdistBuilder(SdistBuilderCore):
       about PEP 517.
     """
     @classmethod
-    def from_ini_path(cls, ini_path):
+    def from_ini_path(cls, ini_path: Path):
         return super().from_ini_path(str(ini_path))
 
     def select_files(self):
@@ -204,4 +204,4 @@ class SdistBuilder(SdistBuilderCore):
         ).encode('utf-8')
 
     def build(self, target_dir):
-        return super().build(str(target_dir))
+        return Path(super().build(str(target_dir)))

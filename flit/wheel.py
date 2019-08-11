@@ -6,7 +6,9 @@ import flit_core.wheel as core_wheel
 log = logging.getLogger(__name__)
 
 def make_wheel_in(ini_path, wheel_directory):
-    return core_wheel.make_wheel_in(str(ini_path), str(wheel_directory))
+    info = core_wheel.make_wheel_in(str(ini_path), str(wheel_directory))
+    info.file = Path(info.file)
+    return info
 
 def wheel_main(ini_path, upload=False, verify_metadata=False, repo='pypi'):
     """Build a wheel in the dist/ directory, and optionally upload it.
