@@ -31,8 +31,8 @@ def test_build_main():
         with MockCommand('git', LIST_FILES_TEMPLATE.format(
                 python=sys.executable, module='module1.py')):
             res = build.main(pyproject)
-        assert res.wheel.file.endswith('.whl')
-        assert res.sdist.file.endswith('.tar.gz')
+        assert res.wheel.file.suffix == '.whl'
+        assert res.sdist.file.name.endswith('.tar.gz')
 
         assert_isdir(Path(td, 'dist'))
 
