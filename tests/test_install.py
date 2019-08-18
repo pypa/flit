@@ -107,6 +107,8 @@ class InstallTests(TestCase):
         assert_islink(self.tmpdir / 'site-packages2' / 'package1',
                       to=str(samples_dir / 'package1'))
         assert_isfile(self.tmpdir / 'scripts2' / 'pkg_script')
+        with (self.tmpdir / 'scripts2' / 'pkg_script').open() as f:
+            assert f.readline().strip() == "#!mock_python"
 
     def test_install_requires(self):
         ins = Installer(samples_dir / 'requires-requests.toml',
