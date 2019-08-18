@@ -123,6 +123,7 @@ def main(argv=None):
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'installfrom':
+        log.warning("'flit installfrom' is deprecated: use a recent version of pip instead")
         from .installfrom import installfrom
         sys.exit(installfrom(args.location, user=args.user, python=args.python))
     elif args.subcmd == 'init':
