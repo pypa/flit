@@ -47,6 +47,11 @@ def read_pkg_ini(path: str):
         return prep_toml_config(d, path)
     else:
         # Treat all other extensions as the older flit.ini format
+        log.warning(
+            "The flit.ini metadata format is deprecated; "
+            "please use a pyproject.toml file instead. "
+            "Convert with: python3 -m flit.tomlify"
+        )
         cp = _read_pkg_ini(path)
         return _validate_config(cp, path)
 
