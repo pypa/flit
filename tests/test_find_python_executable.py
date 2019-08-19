@@ -1,4 +1,4 @@
-import shutil
+import os
 import sys
 
 from flit import find_python_executable
@@ -17,4 +17,4 @@ def test_abs():
 
 
 def test_find_in_path():
-    assert find_python_executable("python") == shutil.which("python")
+    assert os.path.isabs(find_python_executable("python"))
