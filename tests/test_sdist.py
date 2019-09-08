@@ -1,16 +1,13 @@
 import ast
-from io import BytesIO
 from os.path import join as pjoin
 from pathlib import Path
 import pytest
 from shutil import which, copy
 import sys
-import tarfile
 from tempfile import TemporaryDirectory
 from testpath import assert_isfile, MockCommand
 
 from flit import sdist
-import flit_core.sdist as sdist_core
 
 samples_dir = Path(__file__).parent / 'samples'
 

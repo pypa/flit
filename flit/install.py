@@ -6,7 +6,6 @@ import os.path as osp
 import csv
 import pathlib
 import random
-import re
 import shutil
 import site
 import sys
