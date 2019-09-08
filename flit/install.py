@@ -315,7 +315,7 @@ class Installer(object):
             shutil.copy2(src, dst)
             self.installed_files.append(dst)
 
-        scripts = self.ini_info.scripts
+        scripts = self.ini_info.entrypoints.get('console_scripts', {})
         self.install_scripts(scripts, dirs['scripts'])
 
         self.write_dist_info(dirs['purelib'])

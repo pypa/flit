@@ -136,7 +136,6 @@ class LoadedConfig(object):
         self.module = None
         self.metadata = {}
         self.reqs_by_extra = {}
-        self.scripts = {}
         self.entrypoints = {}
         self.referenced_files = []
 
@@ -146,8 +145,6 @@ class LoadedConfig(object):
                 raise EntryPointsConflict
             else:
                 self.entrypoints['console_scripts'] = scripts_dict
-
-            self.scripts.update(scripts_dict)
 
 readme_ext_to_content_type = {
     '.rst': 'text/x-rst',
