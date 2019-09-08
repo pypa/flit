@@ -63,12 +63,12 @@ class SdistBuilder:
     def from_ini_path(cls, ini_path: str):
         ini_info = inifile.read_pkg_ini(ini_path)
         srcdir = osp.dirname(ini_path)
-        module = common.Module(ini_info['module'], srcdir)
+        module = common.Module(ini_info.module, srcdir)
         metadata = common.make_metadata(module, ini_info)
-        extra_files = [osp.basename(ini_path)] + ini_info['referenced_files']
+        extra_files = [osp.basename(ini_path)] + ini_info.referenced_files
         return cls(
-            module, metadata, srcdir, ini_info['reqs_by_extra'],
-            ini_info['entrypoints'], extra_files
+            module, metadata, srcdir, ini_info.reqs_by_extra,
+            ini_info.entrypoints, extra_files
         )
 
     def prep_entry_points(self):

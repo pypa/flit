@@ -78,8 +78,8 @@ class WheelBuilder:
     def from_ini_path(cls, ini_path, target_fp):
         directory = osp.dirname(ini_path)
         ini_info = inifile.read_pkg_ini(ini_path)
-        entrypoints = ini_info['entrypoints']
-        module = common.Module(ini_info['module'], directory)
+        entrypoints = ini_info.entrypoints
+        module = common.Module(ini_info.module, directory)
         metadata = common.make_metadata(module, ini_info)
         return cls(directory, module, metadata, entrypoints, target_fp)
 

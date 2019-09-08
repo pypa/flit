@@ -105,7 +105,7 @@ class Installer(object):
             raise DependencyError()
 
         self.ini_info = inifile.read_pkg_ini(ini_path)
-        self.module = common.Module(self.ini_info['module'], str(ini_path.parent))
+        self.module = common.Module(self.ini_info.module, str(ini_path.parent))
 
         if (hasattr(os, 'getuid') and (os.getuid() == 0) and
                 (not os.environ.get('FLIT_ROOT_INSTALL'))):
@@ -195,7 +195,7 @@ class Installer(object):
     def _extras_to_install(self):
         extras_to_install = set(self.extras)
         if self.deps == 'all' or 'all' in extras_to_install:
-            extras_to_install |= set(self.ini_info['reqs_by_extra'].keys())
+            extras_to_install |= set(self.ini_info.reqs_by_extra.keys())
             # We don’t remove 'all' from the set because there might be an extra called “all”.
         elif self.deps == 'develop':
             extras_to_install |= {'dev', 'doc', 'test'}
@@ -217,7 +217,7 @@ class Installer(object):
             return
 
         for extra in self._extras_to_install():
-            requirements.extend(self.ini_info['reqs_by_extra'].get(extra, []))
+            requirements.extend(self.ini_info.reqs_by_extra.get(extra, []))
 
         # there aren't any requirements, so return
         if len(requirements) == 0:
@@ -315,7 +315,7 @@ class Installer(object):
             shutil.copy2(src, dst)
             self.installed_files.append(dst)
 
-        scripts = self.ini_info['scripts']
+        scripts = self.ini_info.scripts
         self.install_scripts(scripts, dirs['scripts'])
 
         self.write_dist_info(dirs['purelib'])
@@ -367,9 +367,9 @@ class Installer(object):
         with (dist_info / 'REQUESTED').open('wb'): pass
         self.installed_files.append(dist_info / 'REQUESTED')
 
-        if self.ini_info['entrypoints']:
+        if self.ini_info.entrypoints:
             with (dist_info / 'entry_points.txt').open('w') as f:
-                common.write_entry_points(self.ini_info['entrypoints'], f)
+                common.write_entry_points(self.ini_info.entrypoints, f)
             self.installed_files.append(dist_info / 'entry_points.txt')
 
         with (dist_info / 'RECORD').open('w', encoding='utf-8') as f:

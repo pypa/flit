@@ -253,14 +253,14 @@ def validate_readme_rst(metadata):
 def validate_config(config_info):
     i = config_info
     problems = sum([
-        validate_classifiers(i['metadata'].get('classifiers')),
-        validate_entrypoints(i['entrypoints']),
-        validate_name(i['metadata']),
-        validate_requires_python(i['metadata']),
-        validate_requires_dist(i['metadata']),
-        validate_url(i['metadata'].get('home_page', None)),
-        validate_project_urls(i['metadata']),
-        validate_readme_rst(i['metadata'])
+        validate_classifiers(i.metadata.get('classifiers')),
+        validate_entrypoints(i.entrypoints),
+        validate_name(i.metadata),
+        validate_requires_python(i.metadata),
+        validate_requires_dist(i.metadata),
+        validate_url(i.metadata.get('home_page', None)),
+        validate_project_urls(i.metadata),
+        validate_readme_rst(i.metadata)
                    ], [])
 
     for p in problems:

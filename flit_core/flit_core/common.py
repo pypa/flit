@@ -329,14 +329,14 @@ class Metadata:
 def make_metadata(module, ini_info):
     md_dict = {'name': module.name, 'provides': [module.name]}
     md_dict.update(get_info_from_module(module))
-    md_dict.update(ini_info['metadata'])
+    md_dict.update(ini_info.metadata)
     return Metadata(md_dict)
 
 def metadata_and_module_from_ini_path(ini_path):
     from . import inifile
     ini_path = str(ini_path)
     ini_info = inifile.read_pkg_ini(ini_path)
-    module = Module(ini_info['module'], osp.dirname(ini_path))
+    module = Module(ini_info.module, osp.dirname(ini_path))
     metadata = make_metadata(module, ini_info)
     return metadata,module
 

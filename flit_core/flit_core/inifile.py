@@ -53,7 +53,7 @@ def read_pkg_ini(path: str):
             "Convert with: python3 -m flit.tomlify"
         )
         cp = _read_pkg_ini(path)
-        return _validate_config(cp, path)
+        return prep_ini_config(cp, path)
 
 
 class EntryPointsConflict(ConfigError):
@@ -64,8 +64,7 @@ class EntryPointsConflict(ConfigError):
 def prep_toml_config(d, path: str):
     """Validate config loaded from pyproject.toml and prepare common metadata
     
-    Returns a dictionary with keys: module, metadata, scripts, entrypoints,
-    raw_config.
+    Returns a LoadedConfig object.
     """
     if ('tool' not in d) or ('flit' not in d['tool']) \
             or (not isinstance(d['tool']['flit'], dict)):
@@ -80,28 +79,15 @@ def prep_toml_config(d, path: str):
     if 'metadata' not in d:
         raise ConfigError('[tool.flit.metadata] section is required')
 
-    md_dict, module, reqs_by_extra, refd_files = _prep_metadata(d['metadata'], path)
-
-    if 'scripts' in d:
-        scripts_dict = dict(d['scripts'])
-    else:
-        scripts_dict = {}
+    loaded_cfg = _prep_metadata(d['metadata'], path)
 
     if 'entrypoints' in d:
-        entrypoints = flatten_entrypoints(d['entrypoints'])
-    else:
-        entrypoints = {}
-    _add_scripts_to_entrypoints(entrypoints, scripts_dict)
+        loaded_cfg.entrypoints = flatten_entrypoints(d['entrypoints'])
 
-    return {
-        'module': module,
-        'metadata': md_dict,
-        'reqs_by_extra': reqs_by_extra,
-        'scripts': scripts_dict,
-        'entrypoints': entrypoints,
-        'referenced_files': refd_files,
-        'raw_config': d,
-    }
+    if 'scripts' in d:
+        loaded_cfg.add_scripts(dict(d['scripts']))
+
+    return loaded_cfg
 
 def flatten_entrypoints(ep):
     """Flatten nested entrypoints dicts.
@@ -135,13 +121,6 @@ def flatten_entrypoints(ep):
         res.update(_flatten(v, k))
     return res
 
-def _add_scripts_to_entrypoints(entrypoints, scripts_dict):
-    if scripts_dict:
-        if 'console_scripts' in entrypoints:
-            raise EntryPointsConflict
-        else:
-            entrypoints['console_scripts'] = scripts_dict
-
 
 def _read_pkg_ini(path):
     """Reads old-style flit.ini
@@ -151,6 +130,24 @@ def _read_pkg_ini(path):
         cp.read_file(f)
 
     return cp
+
+class LoadedConfig(object):
+    def __init__(self):
+        self.module = None
+        self.metadata = {}
+        self.reqs_by_extra = {}
+        self.scripts = {}
+        self.entrypoints = {}
+        self.referenced_files = []
+
+    def add_scripts(self, scripts_dict):
+        if scripts_dict:
+            if 'console_scripts' in self.entrypoints:
+                raise EntryPointsConflict
+            else:
+                self.entrypoints['console_scripts'] = scripts_dict
+
+            self.scripts.update(scripts_dict)
 
 readme_ext_to_content_type = {
     '.rst': 'text/x-rst',
@@ -170,17 +167,18 @@ def _prep_metadata(md_sect, path: str):
         missing = metadata_required_fields - set(md_sect)
         raise ConfigError("Required fields missing: " + '\n'.join(missing))
 
-    module = md_sect.get('module')
-    if not module.isidentifier():
-        raise ConfigError("Module name %r is not a valid identifier" % module)
+    res = LoadedConfig()
 
-    md_dict = {}
-    refd_files = []
+    res.module = md_sect.get('module')
+    if not res.module.isidentifier():
+        raise ConfigError("Module name %r is not a valid identifier" % res.module)
+
+    md_dict = res.metadata
 
     # Description file
     if 'description-file' in md_sect:
         desc_path = md_sect.get('description-file')
-        refd_files.append(desc_path)
+        res.referenced_files.append(desc_path)
         description_file = osp.join(osp.dirname(path), desc_path)
         try:
             with open(description_file, 'r', encoding='utf-8') as f:
@@ -252,27 +250,27 @@ def _prep_metadata(md_sect, path: str):
 
     # Move dev-requires into requires-extra
     reqs_noextra = md_dict.pop('requires_dist', [])
-    reqs_by_extra = md_dict.pop('requires_extra', {})
+    res.reqs_by_extra = md_dict.pop('requires_extra', {})
     dev_requires = md_dict.pop('dev_requires', None)
     if dev_requires is not None:
-        if 'dev' in reqs_by_extra:
+        if 'dev' in res.reqs_by_extra:
             raise ConfigError(
                 'dev-requires occurs together with its replacement requires-extra.dev.')
         else:
             log.warning(
                 '“dev-requires = ...” is obsolete. Use “requires-extra = {"dev" = ...}” instead.')
-            reqs_by_extra['dev'] = dev_requires
+            res.reqs_by_extra['dev'] = dev_requires
 
     # Add requires-extra requirements into requires_dist
     md_dict['requires_dist'] = \
-        reqs_noextra + list(_expand_requires_extra(reqs_by_extra))
+        reqs_noextra + list(_expand_requires_extra(res.reqs_by_extra))
 
-    md_dict['provides_extra'] = sorted(reqs_by_extra.keys())
+    md_dict['provides_extra'] = sorted(res.reqs_by_extra.keys())
 
     # For internal use, record the main requirements as a '.none' extra.
-    reqs_by_extra['.none'] = reqs_noextra
+    res.reqs_by_extra['.none'] = reqs_noextra
 
-    return md_dict, module, reqs_by_extra, refd_files
+    return res
 
 def _expand_requires_extra(re):
     for extra, reqs in sorted(re.items()):
@@ -283,10 +281,10 @@ def _expand_requires_extra(re):
             else:
                 yield '{}; extra == "{}"'.format(req, extra)
 
-def _validate_config(cp, path: str):
+def prep_ini_config(cp, path: str):
     """Validate and process config loaded from a flit.ini file.
     
-    Returns a dict with keys: module, metadata, scripts, entrypoints, raw_config
+    Returns a LoadedConfig object.
     """
     unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
@@ -303,11 +301,8 @@ def _validate_config(cp, path: str):
         else:
             md_sect[k] = v
 
-    refd_files = []
-
     if 'entry-points-file' in md_sect:
         ep_rel_path = md_sect.pop('entry-points-file')
-        refd_files.append(ep_rel_path)
         entry_points_file = osp.join(osp.dirname(path), ep_rel_path)
         if not osp.isfile(entry_points_file):
             raise FileNotFoundError(entry_points_file)
@@ -316,31 +311,18 @@ def _validate_config(cp, path: str):
         if not osp.isfile(entry_points_file):
             entry_points_file = None
 
+    loaded_cfg = _prep_metadata(md_sect, path)
+
     if entry_points_file:
         ep_cp = configparser.ConfigParser()
         with open(entry_points_file, 'r', encoding='utf-8') as f:
             ep_cp.read_file(f)
         # Convert to regular dict
-        entrypoints = {k: dict(v) for k,v in ep_cp.items()}
-    else:
-        entrypoints = {}
-
-    md_dict, module, reqs_by_extra, refd_files2 = _prep_metadata(md_sect, path)
+        loaded_cfg.entrypoints = {k: dict(v) for k, v in ep_cp.items()}
+        loaded_cfg.referenced_files.append(entry_points_file)
 
     # Scripts ---------------
     if cp.has_section('scripts'):
-        scripts_dict = dict(cp['scripts'])
-    else:
-        scripts_dict = {}
+        loaded_cfg.add_scripts(dict(cp['scripts']))
 
-    _add_scripts_to_entrypoints(entrypoints, scripts_dict)
-
-    return {
-        'module': module,
-        'metadata': md_dict,
-        'reqs_by_extra': reqs_by_extra,
-        'scripts': scripts_dict,
-        'entrypoints': entrypoints,
-        'referenced_files': refd_files + refd_files2,
-        'raw_config': cp,
-    }
+    return loaded_cfg

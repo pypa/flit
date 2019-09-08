@@ -16,7 +16,7 @@ pyproj_toml = 'pyproject.toml'
 def get_requires_for_build_wheel(config_settings=None):
     """Returns a list of requirements for building, as strings"""
     info = read_pkg_ini(pyproj_toml)
-    return info['metadata'].get('requires_dist', [])
+    return info.metadata.get('requires_dist', [])
 
 # For now, we require all dependencies to build either a wheel or an sdist.
 get_requires_for_build_sdist = get_requires_for_build_wheel
@@ -24,7 +24,7 @@ get_requires_for_build_sdist = get_requires_for_build_wheel
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     """Creates {metadata_directory}/foo-1.2.dist-info"""
     ini_info = read_pkg_ini(pyproj_toml)
-    module = Module(ini_info['module'], os.getcwd())
+    module = Module(ini_info.module, os.getcwd())
     metadata = make_metadata(module, ini_info)
 
     dist_info = osp.join(metadata_directory,
@@ -37,9 +37,9 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     with open(osp.join(dist_info, 'METADATA'), 'w') as f:
         metadata.write_metadata_file(f)
 
-    if ini_info['entrypoints']:
+    if ini_info.entrypoints:
         with open(osp.join(dist_info, 'entry_points.txt'), 'w') as f:
-            write_entry_points(ini_info['entrypoints'], f)
+            write_entry_points(ini_info.entrypoints, f)
 
     return osp.basename(dist_info)
 
