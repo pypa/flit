@@ -143,16 +143,21 @@ class SdistBuilder(SdistBuilderCore):
     def select_files(self):
         srcdir_path = Path(self.srcdir)
         vcs_mod = identify_vcs(srcdir_path)
-        untracked_deleted = vcs_mod.list_untracked_deleted_files(srcdir_path)
-        if list(filter(include_path, untracked_deleted)):
-            raise VCSError(
-                "Untracked or deleted files in the source directory. "
-                "Commit, undo or ignore these files in your VCS.",
-                self.srcdir)
+        if vcs_mod is not None:
+            untracked_deleted = vcs_mod.list_untracked_deleted_files(srcdir_path)
+            if list(filter(include_path, untracked_deleted)):
+                raise VCSError(
+                    "Untracked or deleted files in the source directory. "
+                    "Commit, undo or ignore these files in your VCS.",
+                    self.srcdir)
 
-        files = vcs_mod.list_tracked_files(srcdir_path)
-        log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
-        return sorted(filter(include_path, files))
+            files = vcs_mod.list_tracked_files(srcdir_path)
+            files = sorted(filter(include_path, files))
+            log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
+        else:
+            files = super().select_files()
+
+        return files
 
     def add_setup_py(self, files_to_add, target_tarfile):
         if 'setup.py' in files_to_add:
