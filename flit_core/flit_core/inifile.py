@@ -38,7 +38,7 @@ metadata_required_fields = {
 }
 
 
-def read_pkg_ini(path: str):
+def read_flit_config(path: str):
     """Read and check the `pyproject.toml` or `flit.ini` file with data about the package.
     """
     if path.endswith('.toml'):

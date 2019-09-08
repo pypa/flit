@@ -61,7 +61,7 @@ class SdistBuilder:
 
     @classmethod
     def from_ini_path(cls, ini_path: str):
-        ini_info = inifile.read_pkg_ini(ini_path)
+        ini_info = inifile.read_flit_config(ini_path)
         srcdir = osp.dirname(ini_path)
         module = common.Module(ini_info.module, srcdir)
         metadata = common.make_metadata(module, ini_info)

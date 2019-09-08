@@ -77,7 +77,7 @@ class WheelBuilder:
     @classmethod
     def from_ini_path(cls, ini_path, target_fp):
         directory = osp.dirname(ini_path)
-        ini_info = inifile.read_pkg_ini(ini_path)
+        ini_info = inifile.read_flit_config(ini_path)
         entrypoints = ini_info.entrypoints
         module = common.Module(ini_info.module, directory)
         metadata = common.make_metadata(module, ini_info)

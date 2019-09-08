@@ -104,7 +104,7 @@ class Installer(object):
         if deps == 'none' and extras:
             raise DependencyError()
 
-        self.ini_info = inifile.read_pkg_ini(ini_path)
+        self.ini_info = inifile.read_flit_config(ini_path)
         self.module = common.Module(self.ini_info.module, str(ini_path.parent))
 
         if (hasattr(os, 'getuid') and (os.getuid() == 0) and

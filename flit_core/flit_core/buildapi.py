@@ -4,7 +4,7 @@ import os
 import os.path as osp
 
 from .common import Module, make_metadata, write_entry_points, dist_info_name
-from .inifile import read_pkg_ini
+from .inifile import read_flit_config
 from .wheel import make_wheel_in, _write_wheel_file
 from .sdist import SdistBuilder
 
@@ -15,7 +15,7 @@ pyproj_toml = 'pyproject.toml'
 
 def get_requires_for_build_wheel(config_settings=None):
     """Returns a list of requirements for building, as strings"""
-    info = read_pkg_ini(pyproj_toml)
+    info = read_flit_config(pyproj_toml)
     return info.metadata.get('requires_dist', [])
 
 # For now, we require all dependencies to build either a wheel or an sdist.
@@ -23,7 +23,7 @@ get_requires_for_build_sdist = get_requires_for_build_wheel
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     """Creates {metadata_directory}/foo-1.2.dist-info"""
-    ini_info = read_pkg_ini(pyproj_toml)
+    ini_info = read_flit_config(pyproj_toml)
     module = Module(ini_info.module, os.getcwd())
     metadata = make_metadata(module, ini_info)
 
