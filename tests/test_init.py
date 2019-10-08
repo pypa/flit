@@ -148,3 +148,25 @@ def test_init_homepage_validator():
         'home-page': 'https://www.example.org',
         'module': 'test_module_name',
     }
+
+def test_author_email_field_is_optional():
+    responses = ['test_module_name',
+                 'Test Author',
+                 '',  # Author-email field is skipped
+                 'https://www.example.org',
+                 '4',
+                ]
+    with TemporaryDirectory() as td, \
+          patch_data_dir(), \
+          faking_input(responses):
+        ti = init.TerminalIniter(td)
+        ti.initialise()
+        with Path(td, 'pyproject.toml').open() as f:
+            data = pytoml.load(f)
+        assert not Path(td, 'LICENSE').exists()
+    metadata = data['tool']['flit']['metadata']
+    assert metadata == {
+        'author': 'Test Author',
+        'module': 'test_module_name',
+        'home-page': 'https://www.example.org',
+    }

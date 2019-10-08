@@ -65,7 +65,7 @@ class IniterBase:
 
     def validate_email(self, s):
         # Properly validating an email address is much more complex
-        return bool(re.match(r'.+@.+', s))
+        return bool(re.match(r'.+@.+', s)) or s == ""
 
     def validate_homepage(self, s):
         return not s or s.startswith(('http://', 'https://'))
@@ -179,8 +179,9 @@ class TerminalIniter(IniterBase):
         metadata = OrderedDict([
             ('module', module),
             ('author', author),
-            ('author-email', author_email),
         ])
+        if author_email:
+            metadata['author-email'] = author_email
         if home_page:
             metadata['home-page'] = home_page
         if license != 'skip':

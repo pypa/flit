@@ -234,7 +234,7 @@ class Metadata:
     def __init__(self, data):
         self.name = data.pop('name')
         self.version = data.pop('version')
-        self.author_email = data.pop('author_email')
+        self.author_email = data.pop('author_email', None)
         self.summary = data.pop('summary')
 
         for k, v in data.items():
