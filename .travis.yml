@@ -1,14 +1,9 @@
 language: python
 python:
+  - "3.7"
   - "3.6"
   - "3.5"
   - "3.4"
-
-# 3.7 needs Xenial image because of https://github.com/travis-ci/travis-ci/issues/9069
-matrix:
-  include:
-    - python: "3.7"
-      dist: xenial
 
 install:
   - pip install --upgrade pip
