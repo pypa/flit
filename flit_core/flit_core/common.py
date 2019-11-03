@@ -20,30 +20,34 @@ class Module(object):
         # It must exist either as a .py file or a directory, but not both
         pkg_dir = osp.join(directory, name)
         py_file = osp.join(directory, name+'.py')
-        src_dir = osp.join(directory, 'src')
-        src_pkg_dir = osp.join(src_dir, name)
-        src_py_file = osp.join(src_dir, name+'.py')
-        if osp.isdir(pkg_dir) and osp.isfile(py_file):
-            raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
-        if osp.isdir(src_pkg_dir) and osp.isfile(src_py_file):
-            raise ValueError("Both {} and {} exist".format(src_pkg_dir, src_py_file))
-        if ((osp.isfile(py_file) or osp.isdir(pkg_dir)) and
-            (osp.isfile(src_py_file) or osp.isdir(src_pkg_dir))):
-            raise ValueError("Both src and non-src versions of {} exist".format(name))
-        elif osp.isdir(pkg_dir):
+        src_pkg_dir = osp.join(directory, 'src', name)
+        src_py_file = osp.join(directory, 'src', name+'.py')
+
+        existing = set()
+        if osp.isdir(pkg_dir):
             self.path = pkg_dir
             self.is_package = True
+            existing.add(pkg_dir)
         elif osp.isfile(py_file):
             self.path = py_file
             self.is_package = False
+            existing.add(py_file)
         elif osp.isdir(src_pkg_dir):
             self.path = src_pkg_dir
             self.is_package = True
+            existing.add(src_pkg_dir)
         elif osp.isfile(src_py_file):
             self.path = src_py_file
             self.is_package = False
+            existing.add(src_py_file)
         else:
             raise ValueError("No file/folder found for module {}".format(name))
+
+        if len(existing) > 1:
+            raise ValueError(
+                "Multiple files or folders could be module {}: {}"
+                .format(name, ", ".join(sorted(existing)))
+            )
 
     @property
     def file(self):
