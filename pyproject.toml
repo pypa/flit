@@ -28,6 +28,8 @@ test = [
 	"pytest-cov",
 ]
 doc = [
+	"sphinx",
+	"sphinxcontrib_github_alt",
 	"pygments-github-lexers",  # TOML highlighting
 ]
 installfrom = [

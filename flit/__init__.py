@@ -1,7 +1,9 @@
 """A simple packaging tool for simple packages."""
 import argparse
 import logging
+import os
 import pathlib
+import subprocess
 import sys
 
 from flit_core import common
@@ -11,6 +13,18 @@ __version__ = '1.3'
 
 log = logging.getLogger(__name__)
 
+
+def find_python_executable(python):
+    if not python:
+        return sys.executable
+    if os.path.isabs(python):  # sys.executable is absolute too
+        return python
+    return subprocess.check_output(
+        [python, "-c", "import sys; print(sys.executable)"],
+        universal_newlines=True,
+    ).strip()
+
+
 def add_shared_install_options(parser):
     parser.add_argument('--user', action='store_true', default=None,
         help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
@@ -18,7 +32,7 @@ def add_shared_install_options(parser):
     parser.add_argument('--env', action='store_false', dest='user',
         help="Install into sys.prefix (default if site.ENABLE_USER_SITE is False, i.e. in virtualenvs)"
     )
-    parser.add_argument('--python', default=sys.executable,
+    parser.add_argument('--python',
         help="Target Python executable, if different from the one running flit"
     )
 
@@ -117,7 +131,8 @@ def main(argv=None):
     elif args.subcmd == 'install':
         from .install import Installer
         try:
-            Installer(args.ini_file, user=args.user, python=args.python,
+            python = find_python_executable(args.python)
+            Installer(args.ini_file, user=args.user, python=python,
                       symlink=args.symlink, deps=args.deps, extras=args.extras,
                       pth=args.pth_file).install()
         except (common.NoDocstringError, common.NoVersionError) as e:
@@ -125,7 +140,8 @@ def main(argv=None):
     elif args.subcmd == 'installfrom':
         log.warning("'flit installfrom' is deprecated: use a recent version of pip instead")
         from .installfrom import installfrom
-        sys.exit(installfrom(args.location, user=args.user, python=args.python))
+        python = find_python_executable(args.python)
+        sys.exit(installfrom(args.location, user=args.user, python=python))
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()

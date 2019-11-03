@@ -4,7 +4,10 @@ __pycache__/
 /doc/_build/
 /tests/samples/build/
 /tests/samples/dist/
+/tests/samples/*/dist/
 /htmlcov/
 /.coverage
 /.pytest_cache
 /.tox
+.idea/
+venv/

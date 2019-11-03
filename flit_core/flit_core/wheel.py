@@ -176,7 +176,7 @@ class WheelBuilder:
         log.info('Copying package file(s) from %s', self.module.path)
 
         for rel_path in self.module.iter_files():
-            full_path = os.path.join(self.directory, rel_path)
+            full_path = os.path.join(self.module.source_dir, rel_path)
             self._add_file(full_path, rel_path)
 
     def write_metadata(self):

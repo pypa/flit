@@ -15,4 +15,3 @@ def test_classifiers_with_space():
     classifiers are stripped
     """
     read_flit_config(samples_dir / 'classifiers_with_space.ini')
-

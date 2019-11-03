@@ -168,7 +168,7 @@ class Installer(object):
             log.info('Writing script to %s', script_file)
             with script_file.open('w', encoding='utf-8') as f:
                 f.write(common.script_template.format(
-                    interpreter=sys.executable,
+                    interpreter=self.python,
                     module=module,
                     func=func
                 ))
@@ -179,7 +179,7 @@ class Installer(object):
             if sys.platform == 'win32':
                 cmd_file = script_file.with_suffix('.cmd')
                 cmd = '"{python}" "%~dp0\\{script}" %*\r\n'.format(
-                            python=sys.executable, script=name)
+                            python=self.python, script=name)
                 log.debug("Writing script wrapper to %s", cmd_file)
                 with cmd_file.open('w') as f:
                     f.write(cmd)

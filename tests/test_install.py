@@ -37,6 +37,8 @@ class InstallTests(TestCase):
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
         assert_isdir(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
+        with (self.tmpdir / 'scripts' / 'pkg_script').open() as f:
+            assert f.readline().strip() == "#!" + sys.executable
 
     def test_symlink_package(self):
         if os.name == 'nt':
@@ -45,6 +47,8 @@ class InstallTests(TestCase):
         assert_islink(self.tmpdir / 'site-packages' / 'package1',
                       to=str(samples_dir / 'package1'))
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
+        with (self.tmpdir / 'scripts' / 'pkg_script').open() as f:
+            assert f.readline().strip() == "#!" + sys.executable
 
     def test_pth_package(self):
         Installer(samples_dir / 'package1-pkg.ini', pth=True).install()
@@ -107,6 +111,8 @@ class InstallTests(TestCase):
         assert_islink(self.tmpdir / 'site-packages2' / 'package1',
                       to=str(samples_dir / 'package1'))
         assert_isfile(self.tmpdir / 'scripts2' / 'pkg_script')
+        with (self.tmpdir / 'scripts2' / 'pkg_script').open() as f:
+            assert f.readline().strip() == "#!mock_python"
 
     def test_install_requires(self):
         ins = Installer(samples_dir / 'requires-requests.toml',
