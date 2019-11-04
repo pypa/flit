@@ -14,7 +14,7 @@ def test_tomlify(copy_sample, monkeypatch):
 
     tomlify.main(argv=[])
 
-    pyproject_toml = Path(td, 'pyproject.toml')
+    pyproject_toml = (td / 'pyproject.toml')
     assert_isfile(pyproject_toml)
 
     with pyproject_toml.open(encoding='utf-8') as f:
