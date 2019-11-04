@@ -38,7 +38,12 @@ def test_wheel_src_module(copy_sample):
 def test_wheel_src_package(copy_sample):
     td = copy_sample('package2')
     wheel_main(td / 'package2-pkg.ini')
-    assert_isfile(td / 'dist/package2-0.1-py2.py3-none-any.whl')
+
+    whl_file = td / 'dist/package2-0.1-py2.py3-none-any.whl'
+    assert_isfile(whl_file)
+    with unpack(whl_file) as unpacked:
+        print(os.listdir(unpacked))
+        assert_isfile(Path(unpacked, 'package2', '__init__.py'))
 
 def test_dist_name(copy_sample):
     td = copy_sample('altdistname')

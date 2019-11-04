@@ -51,6 +51,11 @@ class Module(object):
             )
 
     @property
+    def source_dir(self):
+        """Path of folder containing the module (src/ or project root)"""
+        return osp.dirname(self.path)
+
+    @property
     def file(self):
         if self.is_package:
             return osp.join(self.path, '__init__.py')
@@ -60,7 +65,7 @@ class Module(object):
     def iter_files(self):
         """Iterate over the files contained in this module.
 
-        Yields relative paths from the source directory.
+        Yields absolute paths - caller may want to make them relative.
         Excludes any __pycache__ and *.pyc files.
         """
         def _include(path):
@@ -74,17 +79,16 @@ class Module(object):
 
             # Ensure we sort all files and directories so the order is stable
             for dirpath, dirs, files in os.walk(str(self.path)):
-                reldir = osp.relpath(dirpath, self.directory)
                 for file in sorted(files):
                     full_path = os.path.join(dirpath, file)
                     if _include(full_path):
-                        yield os.path.join(reldir, file)
+                        yield full_path
 
                 dirs[:] = [d for d in sorted(dirs) if _include(d)]
 
             return res
         else:
-            yield osp.relpath(self.path,  self.directory)
+            yield self.path
 
 class ProblemInModule(ValueError): pass
 class NoDocstringError(ProblemInModule): pass

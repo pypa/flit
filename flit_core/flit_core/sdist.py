@@ -86,7 +86,9 @@ class SdistBuilder:
         This is overridden in flit itself to use information from a VCS to
         include tests, docs, etc. for a 'gold standard' sdist.
         """
-        return list(self.module.iter_files()) + self.extra_files
+        return [
+            osp.relpath(p, self.cfgdir) for p in self.module.iter_files()
+        ] + self.extra_files
 
     def add_setup_py(self, files_to_add, target_tarfile):
         """No-op here; overridden in flit to generate setup.py"""

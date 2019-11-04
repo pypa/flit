@@ -174,9 +174,10 @@ class WheelBuilder:
 
     def copy_module(self):
         log.info('Copying package file(s) from %s', self.module.path)
+        source_dir = self.module.source_dir
 
-        for rel_path in self.module.iter_files():
-            full_path = os.path.join(self.directory, rel_path)
+        for full_path in self.module.iter_files():
+            rel_path = osp.relpath(full_path, source_dir)
             self._add_file(full_path, rel_path)
 
     def write_metadata(self):
