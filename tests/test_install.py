@@ -33,7 +33,7 @@ class InstallTests(TestCase):
         assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
 
     def test_install_package(self):
-        Installer(samples_dir / 'package1-pkg.ini').install_directly()
+        Installer(samples_dir / 'package1' / 'flit.ini').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
         assert_isdir(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
@@ -43,18 +43,18 @@ class InstallTests(TestCase):
     def test_symlink_package(self):
         if os.name == 'nt':
             raise SkipTest("symlink")
-        Installer(samples_dir / 'package1-pkg.ini', symlink=True).install()
+        Installer(samples_dir / 'package1' / 'flit.ini', symlink=True).install()
         assert_islink(self.tmpdir / 'site-packages' / 'package1',
-                      to=str(samples_dir / 'package1'))
+                      to=samples_dir / 'package1' / 'package1')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
         with (self.tmpdir / 'scripts' / 'pkg_script').open() as f:
             assert f.readline().strip() == "#!" + sys.executable
 
     def test_pth_package(self):
-        Installer(samples_dir / 'package1-pkg.ini', pth=True).install()
+        Installer(samples_dir / 'package1' / 'flit.ini', pth=True).install()
         assert_isfile(self.tmpdir / 'site-packages' / 'package1.pth')
         with open(str(self.tmpdir / 'site-packages' / 'package1.pth')) as f:
-            assert f.read() == str(samples_dir)
+            assert f.read() == str(samples_dir / 'package1')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
 
     def test_dist_name(self):
@@ -63,11 +63,11 @@ class InstallTests(TestCase):
         assert_isdir(self.tmpdir / 'site-packages' / 'package_dist1-0.1.dist-info')
 
     def test_entry_points(self):
-        Installer(samples_dir / 'entrypoints_valid.ini').install_directly()
+        Installer(samples_dir / 'entrypoints_valid' / 'flit.ini').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info' / 'entry_points.txt')
 
     def test_pip_install(self):
-        ins = Installer(samples_dir / 'package1-pkg.ini', python='mock_python',
+        ins = Installer(samples_dir / 'package1' / 'flit.ini', python='mock_python',
                         user=False)
 
         with MockCommand('mock_python') as mock_py:
@@ -103,13 +103,13 @@ class InstallTests(TestCase):
                            scripts=str(self.tmpdir / 'scripts2'))
 
         with MockCommand('mock_python', content=script1):
-            ins = Installer(samples_dir / 'package1-pkg.ini', python='mock_python',
+            ins = Installer(samples_dir / 'package1' / 'flit.ini', python='mock_python',
                       symlink=True)
         with MockCommand('mock_python', content=script2):
             ins.install()
 
         assert_islink(self.tmpdir / 'site-packages2' / 'package1',
-                      to=str(samples_dir / 'package1'))
+                      to=samples_dir / 'package1' / 'package1')
         assert_isfile(self.tmpdir / 'scripts2' / 'pkg_script')
         with (self.tmpdir / 'scripts2' / 'pkg_script').open() as f:
             assert f.readline().strip() == "#!mock_python"

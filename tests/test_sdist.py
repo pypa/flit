@@ -12,7 +12,7 @@ from flit import sdist
 samples_dir = Path(__file__).parent / 'samples'
 
 def test_auto_packages():
-    packages, pkg_data = sdist.auto_packages(str(samples_dir / 'package1'))
+    packages, pkg_data = sdist.auto_packages(str(samples_dir / 'package1' / 'package1'))
     assert packages == ['package1', 'package1.subpkg', 'package1.subpkg2']
     assert pkg_data == {'': ['*'],
                         'package1': ['data_dir/*'],
@@ -23,7 +23,7 @@ def test_make_sdist():
     # Smoke test of making a complete sdist
     if not which('git'):
         pytest.skip("requires git")
-    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1-pkg.ini')
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1' / 'flit.ini')
     with TemporaryDirectory() as td:
         td = Path(td)
         builder.build(td)
@@ -78,7 +78,7 @@ def get_setup_assigns(setup):
     return ns
 
 def test_make_setup_py():
-    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1-pkg.ini')
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1' / 'flit.ini')
     ns = get_setup_assigns(builder.make_setup_py())
     assert ns['packages'] == ['package1', 'package1.subpkg', 'package1.subpkg2']
     assert 'install_requires' not in ns
