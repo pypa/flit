@@ -259,6 +259,7 @@ class Metadata:
 
     home_page = None
     author = None
+    author_email = None
     maintainer = None
     maintainer_email = None
     license = None
@@ -286,7 +287,6 @@ class Metadata:
     def __init__(self, data):
         self.name = data.pop('name')
         self.version = data.pop('version')
-        self.author_email = data.pop('author_email', None)
         self.summary = data.pop('summary')
 
         for k, v in data.items():
