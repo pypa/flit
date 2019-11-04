@@ -33,7 +33,13 @@ def test_wheel_package(copy_sample):
 def test_wheel_src_module(copy_sample):
     td = copy_sample('module3')
     wheel_main(td / 'flit.ini')
-    assert_isfile(td / 'dist/module3-0.1-py2.py3-none-any.whl')
+
+    whl_file = td / 'dist/module3-0.1-py2.py3-none-any.whl'
+    assert_isfile(whl_file)
+    with unpack(whl_file) as unpacked:
+        assert_isfile(Path(unpacked, 'module3.py'))
+        assert_isdir(Path(unpacked, 'module3-0.1.dist-info'))
+        assert_isfile(Path(unpacked, 'module3-0.1.dist-info', 'LICENSE'))
 
 def test_wheel_src_package(copy_sample):
     td = copy_sample('package2')
