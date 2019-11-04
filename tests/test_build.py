@@ -31,7 +31,7 @@ def test_build_main(copy_sample):
     assert res.wheel.file.suffix == '.whl'
     assert res.sdist.file.name.endswith('.tar.gz')
 
-    assert_isdir(Path(td, 'dist'))
+    assert_isdir(td / 'dist')
 
 
 def test_build_module_no_docstring():
