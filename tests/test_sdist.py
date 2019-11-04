@@ -58,7 +58,7 @@ def test_get_files_list_git(copy_sample):
 
 def test_get_files_list_hg(tmp_path):
     dir1 = tmp_path / 'dir1'
-    copytree(samples_dir / 'module1', dir1)
+    copytree(str(samples_dir / 'module1'), str(dir1))
     (tmp_path / '.hg').mkdir()
     builder = sdist.SdistBuilder.from_ini_path(dir1 / 'flit.ini')
     with MockCommand('hg', LIST_FILES):

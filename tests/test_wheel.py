@@ -80,10 +80,10 @@ def test_wheel_builder():
 def test_permissions_normed(copy_sample):
     td = copy_sample('module1')
 
-    Path(td, 'module1.py').chmod(0o620)
-    wheel_main(Path(td, 'flit.ini'))
+    (td / 'module1.py').chmod(0o620)
+    wheel_main(td / 'flit.ini')
 
-    whl = Path(td, 'dist', 'module1-0.1-py2.py3-none-any.whl')
+    whl = td / 'dist' / 'module1-0.1-py2.py3-none-any.whl'
     assert_isfile(whl)
     with zipfile.ZipFile(str(whl)) as zf:
         info = zf.getinfo('module1.py')
@@ -92,8 +92,8 @@ def test_permissions_normed(copy_sample):
     whl.unlink()
 
     # This time with executable bit set
-    Path(td, 'module1.py').chmod(0o720)
-    wheel_main(Path(td, 'flit.ini'))
+    (td / 'module1.py').chmod(0o720)
+    wheel_main(td / 'flit.ini')
 
     assert_isfile(whl)
     with zipfile.ZipFile(str(whl)) as zf:

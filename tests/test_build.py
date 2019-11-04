@@ -22,7 +22,7 @@ if '--deleted' not in sys.argv:
 
 def test_build_main(copy_sample):
     td = copy_sample('module1_toml')
-    shutil.copy(str(samples_dir / 'EG_README.rst'), td)
+    shutil.copy(str(samples_dir / 'EG_README.rst'), str(td))
     Path(td, '.git').mkdir()   # Fake a git repo
 
     with MockCommand('git', LIST_FILES_TEMPLATE.format(
