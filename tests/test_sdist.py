@@ -2,7 +2,7 @@ import ast
 from os.path import join as pjoin
 from pathlib import Path
 import pytest
-from shutil import which, copy
+from shutil import which, copy, copytree
 import sys
 from tempfile import TemporaryDirectory
 from testpath import assert_isfile, MockCommand
@@ -43,36 +43,30 @@ if '--deleted' not in sys.argv:
 """.format(python=sys.executable)
 
 
-def test_get_files_list_git():
-    with TemporaryDirectory() as td:
-        copy(str(samples_dir / 'module1.py'), td)
-        copy(str(samples_dir / 'module1-pkg.ini'), td)
-        td = Path(td)
-        (td / '.git').mkdir()
-        builder = sdist.SdistBuilder.from_ini_path(td / 'module1-pkg.ini')
-        with MockCommand('git', LIST_FILES):
-            files = builder.select_files()
+def test_get_files_list_git(copy_sample):
+    td = copy_sample('module1')
+    (td / '.git').mkdir()
 
-        assert set(files) == {
-            'foo', pjoin('dir1', 'bar'), pjoin('dir1', 'subdir', 'qux'),
-            pjoin('dir2', 'abc')
-        }
+    builder = sdist.SdistBuilder.from_ini_path(td / 'flit.ini')
+    with MockCommand('git', LIST_FILES):
+        files = builder.select_files()
 
-def test_get_files_list_hg():
-    with TemporaryDirectory() as td:
-        dir1 = Path(td, 'dir1')
-        dir1.mkdir()
-        copy(str(samples_dir / 'module1.py'), str(dir1))
-        copy(str(samples_dir / 'module1-pkg.ini'), str(dir1))
-        td = Path(td)
-        (td / '.hg').mkdir()
-        builder = sdist.SdistBuilder.from_ini_path(dir1 / 'module1-pkg.ini')
-        with MockCommand('hg', LIST_FILES):
-            files = builder.select_files()
+    assert set(files) == {
+        'foo', pjoin('dir1', 'bar'), pjoin('dir1', 'subdir', 'qux'),
+        pjoin('dir2', 'abc')
+    }
 
-        assert set(files) == {
-            'bar', pjoin('subdir', 'qux')
-        }
+def test_get_files_list_hg(tmp_path):
+    dir1 = tmp_path / 'dir1'
+    copytree(samples_dir / 'module1', dir1)
+    (tmp_path / '.hg').mkdir()
+    builder = sdist.SdistBuilder.from_ini_path(dir1 / 'flit.ini')
+    with MockCommand('hg', LIST_FILES):
+        files = builder.select_files()
+
+    assert set(files) == {
+        'bar', pjoin('subdir', 'qux')
+    }
 
 def get_setup_assigns(setup):
     """Parse setup.py, execute assignments, return the namespace"""
@@ -92,18 +86,18 @@ def test_make_setup_py():
            {'console_scripts': ['pkg_script = package1:main']}
 
 def test_make_setup_py_reqs():
-    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'extras.toml')
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'extras' / 'pyproject.toml')
     ns = get_setup_assigns(builder.make_setup_py())
     assert ns['install_requires'] == ['toml']
     assert ns['extras_require'] == {'test': ['pytest'], 'custom': ['requests']}
 
 def test_make_setup_py_reqs_envmark():
-    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'requires-envmark.toml')
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'requires-envmark' / 'pyproject.toml')
     ns = get_setup_assigns(builder.make_setup_py())
     assert ns['install_requires'] == ['requests']
     assert ns['extras_require'] == {":python_version == '2.7'": ['pathlib2']}
 
 def test_make_setup_py_reqs_extra_envmark():
-    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'requires-extra-envmark.toml')
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'requires-extra-envmark' / 'pyproject.toml')
     ns = get_setup_assigns(builder.make_setup_py())
     assert ns['extras_require'] == {'test:python_version == "2.7"': ['pathlib2']}

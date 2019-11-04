@@ -27,33 +27,33 @@ def unpack(path):
     z.extractall(t.name)
     return t
 
-def test_wheel_module():
-    clear_samples_dist()
-    wheel_main(samples_dir / 'module1-pkg.ini')
-    assert_isfile(samples_dir / 'dist/module1-0.1-py2.py3-none-any.whl')
+def test_wheel_module(copy_sample):
+    td = copy_sample('module1')
+    wheel_main(td / 'flit.ini')
+    assert_isfile(td / 'dist/module1-0.1-py2.py3-none-any.whl')
 
 def test_wheel_package():
     clear_samples_dist()
     wheel_main(samples_dir / 'package1-pkg.ini')
     assert_isfile(samples_dir / 'dist/package1-0.1-py2.py3-none-any.whl')
 
-def test_wheel_src_module():
-    clear_samples_dist()
-    wheel_main(samples_dir / 'module3-pkg.ini')
-    assert_isfile(samples_dir / 'dist/module3-0.1-py2.py3-none-any.whl')
+def test_wheel_src_module(copy_sample):
+    td = copy_sample('module3')
+    wheel_main(td / 'flit.ini')
+    assert_isfile(td / 'dist/module3-0.1-py2.py3-none-any.whl')
 
 def test_wheel_src_package(copy_sample):
-    package2 = copy_sample('package2')
-    wheel_main(package2 / 'package2-pkg.ini')
-    assert_isfile(package2 / 'dist/package2-0.1-py2.py3-none-any.whl')
+    td = copy_sample('package2')
+    wheel_main(td / 'package2-pkg.ini')
+    assert_isfile(td / 'dist/package2-0.1-py2.py3-none-any.whl')
 
-def test_dist_name():
-    clear_samples_dist()
-    wheel_main(samples_dir / 'altdistname.ini')
-    res = samples_dir / 'dist/package_dist1-0.1-py2.py3-none-any.whl'
+def test_dist_name(copy_sample):
+    td = copy_sample('altdistname')
+    wheel_main(td / 'flit.ini')
+    res = td / 'dist/package_dist1-0.1-py2.py3-none-any.whl'
     assert_isfile(res)
-    with unpack(res) as td:
-        assert_isdir(Path(td, 'package_dist1-0.1.dist-info'))
+    with unpack(res) as td_unpack:
+        assert_isdir(Path(td_unpack, 'package_dist1-0.1.dist-info'))
 
 def test_entry_points():
     clear_samples_dist()
@@ -84,28 +84,26 @@ def test_wheel_builder():
         assert wb.wheel_filename == 'package1-0.1-py2.py3-none-any.whl'
 
 @skipIf(os.name == 'nt', 'Windows does not preserve necessary permissions')
-def test_permissions_normed():
-    with tempfile.TemporaryDirectory() as td:
-        shutil.copy(str(samples_dir / 'module1.py'), td)
-        shutil.copy(str(samples_dir / 'module1-pkg.ini'), td)
+def test_permissions_normed(copy_sample):
+    td = copy_sample('module1')
 
-        Path(td, 'module1.py').chmod(0o620)
-        wheel_main(Path(td, 'module1-pkg.ini'))
+    Path(td, 'module1.py').chmod(0o620)
+    wheel_main(Path(td, 'flit.ini'))
 
-        whl = Path(td, 'dist', 'module1-0.1-py2.py3-none-any.whl')
-        assert_isfile(whl)
-        with zipfile.ZipFile(str(whl)) as zf:
-            info = zf.getinfo('module1.py')
-            perms = (info.external_attr >> 16) & 0o777
-            assert perms == 0o644, oct(perms)
-        whl.unlink()
+    whl = Path(td, 'dist', 'module1-0.1-py2.py3-none-any.whl')
+    assert_isfile(whl)
+    with zipfile.ZipFile(str(whl)) as zf:
+        info = zf.getinfo('module1.py')
+        perms = (info.external_attr >> 16) & 0o777
+        assert perms == 0o644, oct(perms)
+    whl.unlink()
 
-        # This time with executable bit set
-        Path(td, 'module1.py').chmod(0o720)
-        wheel_main(Path(td, 'module1-pkg.ini'))
+    # This time with executable bit set
+    Path(td, 'module1.py').chmod(0o720)
+    wheel_main(Path(td, 'flit.ini'))
 
-        assert_isfile(whl)
-        with zipfile.ZipFile(str(whl)) as zf:
-            info = zf.getinfo('module1.py')
-            perms = (info.external_attr >> 16) & 0o777
-            assert perms == 0o755, oct(perms)
+    assert_isfile(whl)
+    with zipfile.ZipFile(str(whl)) as zf:
+        info = zf.getinfo('module1.py')
+        perms = (info.external_attr >> 16) & 0o777
+        assert perms == 0o755, oct(perms)

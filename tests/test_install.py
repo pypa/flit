@@ -28,7 +28,7 @@ class InstallTests(TestCase):
         self.get_dirs_patch.stop()
 
     def test_install_module(self):
-        Installer(samples_dir / 'module1-pkg.ini').install_directly()
+        Installer(samples_dir / 'module1' / 'flit.ini').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
         assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
 
@@ -58,7 +58,7 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
 
     def test_dist_name(self):
-        Installer(samples_dir / 'altdistname.ini').install_directly()
+        Installer(samples_dir / 'altdistname' / 'flit.ini').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
         assert_isdir(self.tmpdir / 'site-packages' / 'package_dist1-0.1.dist-info')
 
@@ -139,7 +139,7 @@ def test_install_requires_extra(deps, extras, installed):
     it = InstallTests()
     try:
         it.setUp()
-        ins = Installer(samples_dir / 'extras.toml', python='mock_python',
+        ins = Installer(samples_dir / 'extras' / 'pyproject.toml', python='mock_python',
                         user=False, deps=deps, extras=extras)
 
         cmd = MockCommand('mock_python')
