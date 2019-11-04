@@ -1,6 +1,4 @@
 from collections import defaultdict
-from copy import copy
-from gzip import GzipFile
 import io
 import logging
 import os
@@ -9,8 +7,8 @@ from posixpath import join as pjoin
 from pprint import pformat
 import tarfile
 
-from flit import common, inifile
-from flit.common import VCSError
+from flit_core.sdist import SdistBuilder as SdistBuilderCore
+from flit_core.common import VCSError
 from flit.vcs import identify_vcs
 
 log = logging.getLogger(__name__)
@@ -30,16 +28,6 @@ setup(name={name!r},
       url={url!r},
       {extra}
      )
-"""
-
-PKG_INFO = """\
-Metadata-Version: 1.1
-Name: {name}
-Version: {version}
-Summary: {summary}
-Home-page: {home_page}
-Author: {author}
-Author-email: {author_email}
 """
 
 
@@ -86,6 +74,13 @@ def auto_packages(pkgdir: str):
 
     return sorted(packages), pkg_data
 
+
+def include_path(p):
+    return not (p.startswith('dist' + os.sep)
+                or (os.sep+'__pycache__' in p)
+                or p.endswith('.pyc'))
+
+
 def _parse_req(requires_dist):
     """Parse "Foo (v); python_version == '2.x'" from Requires-Dist
 
@@ -109,6 +104,7 @@ def _parse_req(requires_dist):
 
     return name_version, env_mark
 
+
 def convert_requires(reqs_by_extra):
     """Regroup requirements by (extra, env_mark)"""
     grouping = defaultdict(list)
@@ -129,58 +125,50 @@ def convert_requires(reqs_by_extra):
 
     return install_reqs, extra_reqs
 
-def include_path(p):
-    return not (p.startswith('dist' + os.sep)
-                or (os.sep+'__pycache__' in p)
-                or p.endswith('.pyc'))
 
-def clean_tarinfo(ti, mtime=None):
-    """Clean metadata from a TarInfo object to make it more reproducible.
+class SdistBuilder(SdistBuilderCore):
+    """Build a complete sdist
 
-    - Set uid & gid to 0
-    - Set uname and gname to ""
-    - Normalise permissions to 644 or 755
-    - Set mtime if not None
+    This extends the minimal sdist-building in flit_core:
+
+    - Include any files tracked in version control, such as docs sources and
+      tests.
+    - Add a generated setup.py for compatibility with tools which don't yet know
+      about PEP 517.
     """
-    ti = copy(ti)
-    ti.uid = 0
-    ti.gid = 0
-    ti.uname = ''
-    ti.gname = ''
-    ti.mode = common.normalize_file_permissions(ti.mode)
-    if mtime is not None:
-        ti.mtime = mtime
-    return ti
+    @classmethod
+    def from_ini_path(cls, ini_path: Path):
+        return super().from_ini_path(str(ini_path))
 
+    def select_files(self):
+        cfgdir_path = Path(self.cfgdir)
+        vcs_mod = identify_vcs(cfgdir_path)
+        if vcs_mod is not None:
+            untracked_deleted = vcs_mod.list_untracked_deleted_files(cfgdir_path)
+            if list(filter(include_path, untracked_deleted)):
+                raise VCSError(
+                    "Untracked or deleted files in the source directory. "
+                    "Commit, undo or ignore these files in your VCS.",
+                    self.cfgdir)
 
-class SdistBuilder:
-    def __init__(self, ini_path=Path('flit.ini')):
-        self.ini_path = ini_path
-        self.ini_info = inifile.read_pkg_ini(ini_path)
-        self.module = common.Module(self.ini_info['module'], ini_path.parent)
-        self.metadata = common.make_metadata(self.module, self.ini_info)
-        self.srcdir = ini_path.parent
+            files = vcs_mod.list_tracked_files(cfgdir_path)
+            files = sorted(filter(include_path, files))
+            log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
+        else:
+            files = super().select_files()
 
-    def prep_entry_points(self):
-        # Reformat entry points from dict-of-dicts to dict-of-lists
-        res = defaultdict(list)
-        for groupname, group in self.ini_info['entrypoints'].items():
-            for name, ep in sorted(group.items()):
-                res[groupname].append('{} = {}'.format(name, ep))
+        return files
 
-        return dict(res)
-
-    def find_tracked_files(self):
-        vcs_mod = identify_vcs(self.srcdir)
-        untracked_deleted = vcs_mod.list_untracked_deleted_files(self.srcdir)
-        if list(filter(include_path, untracked_deleted)):
-            raise VCSError("Untracked or deleted files in the source directory. "
-                           "Commit, undo or ignore these files in your VCS.",
-                           self.srcdir)
-
-        files = vcs_mod.list_tracked_files(self.srcdir)
-        log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
-        return sorted(filter(include_path, files))
+    def add_setup_py(self, files_to_add, target_tarfile):
+        if 'setup.py' in files_to_add:
+            log.warning(
+                "Using setup.py from repository, not generating setup.py")
+        else:
+            setup_py = self.make_setup_py()
+            log.info("Writing generated setup.py")
+            ti = tarfile.TarInfo(pjoin(self.dir_name, 'setup.py'))
+            ti.size = len(setup_py)
+            target_tarfile.addfile(ti, io.BytesIO(setup_py))
 
     def make_setup_py(self):
         before, extra = [], []
@@ -193,7 +181,7 @@ class SdistBuilder:
         else:
             extra.append("py_modules={!r},".format([self.module.name]))
 
-        install_reqs, extra_reqs = convert_requires(self.ini_info['reqs_by_extra'])
+        install_reqs, extra_reqs = convert_requires(self.reqs_by_extra)
         if install_reqs:
             before.append("install_requires = \\\n%s\n" % pformat(install_reqs))
             extra.append("install_requires=install_requires,")
@@ -220,59 +208,5 @@ class SdistBuilder:
             extra='\n      '.join(extra),
         ).encode('utf-8')
 
-    def build(self, target_dir:Path =None):
-        if target_dir is None:
-            target_dir = self.ini_path.parent / 'dist'
-        if not target_dir.exists():
-            target_dir.mkdir(parents=True)
-        target = target_dir / '{}-{}.tar.gz'.format(
-                        self.metadata.name, self.metadata.version)
-        source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
-        mtime = int(source_date_epoch) if source_date_epoch else None
-        gz = GzipFile(str(target), mode='wb', mtime=mtime)
-        tf = tarfile.TarFile(str(target), mode='w', fileobj=gz,
-                             format=tarfile.PAX_FORMAT)
-
-        try:
-            tf_dir = '{}-{}'.format(self.metadata.name, self.metadata.version)
-
-            files_to_add = self.find_tracked_files()
-
-            for relpath in files_to_add:
-                path = self.srcdir / relpath
-                ti = tf.gettarinfo(str(path), arcname=pjoin(tf_dir, relpath))
-                ti = clean_tarinfo(ti, mtime)
-
-                if ti.isreg():
-                    with path.open('rb') as f:
-                        tf.addfile(ti, f)
-                else:
-                    tf.addfile(ti)  # Symlinks & ?
-
-            if 'setup.py' in files_to_add:
-                log.warning("Using setup.py from repository, not generating setup.py")
-            else:
-                setup_py = self.make_setup_py()
-                log.info("Writing generated setup.py")
-                ti = tarfile.TarInfo(pjoin(tf_dir, 'setup.py'))
-                ti.size = len(setup_py)
-                tf.addfile(ti, io.BytesIO(setup_py))
-
-            pkg_info = PKG_INFO.format(
-                name=self.metadata.name,
-                version=self.metadata.version,
-                summary=self.metadata.summary,
-                home_page=self.metadata.home_page,
-                author=self.metadata.author,
-                author_email=self.metadata.author_email,
-            ).encode('utf-8')
-            ti = tarfile.TarInfo(pjoin(tf_dir, 'PKG-INFO'))
-            ti.size = len(pkg_info)
-            tf.addfile(ti, io.BytesIO(pkg_info))
-
-        finally:
-            tf.close()
-            gz.close()
-
-        log.info("Built sdist: %s", target)
-        return target
+    def build(self, target_dir):
+        return Path(super().build(str(target_dir)))

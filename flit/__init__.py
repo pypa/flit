@@ -6,7 +6,7 @@ import pathlib
 import subprocess
 import sys
 
-from . import common
+from flit_core import common
 from .log import enable_colourful_output
 
 __version__ = '1.3'
@@ -138,6 +138,7 @@ def main(argv=None):
         except (common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'installfrom':
+        log.warning("'flit installfrom' is deprecated: use a recent version of pip instead")
         from .installfrom import installfrom
         python = find_python_executable(args.python)
         sys.exit(installfrom(args.location, user=args.user, python=python))

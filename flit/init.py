@@ -84,6 +84,20 @@ class IniterBase:
                 if p.stem not in {'setup'} and not p.name.startswith('test_'):
                     modules.append(p.stem)
 
+        src_dir = self.directory / 'src'
+        if src_dir.is_dir():
+            for p in src_dir.iterdir():
+                if not p.stem.isidentifier():
+                    continue
+
+                if p.is_dir() and (p / '__init__.py').is_file():
+                    if p.name not in {'test', 'tests'}:
+                        packages.append(p.name)
+
+                elif p.is_file() and p.suffix == '.py':
+                    if p.stem not in {'setup'} and not p.name.startswith('test_'):
+                        modules.append(p.stem)
+
         if len(packages) == 1:
             return packages[0]
         elif len(packages) == 0 and len(modules) == 1:
@@ -196,8 +210,8 @@ class TerminalIniter(IniterBase):
 
 TEMPLATE = """\
 [build-system]
-requires = ["flit"]
-build-backend = "flit.buildapi"
+requires = ["flit_core >=2,<3"]
+build-backend = "flit_core.buildapi"
 
 [tool.flit.metadata]
 {metadata}

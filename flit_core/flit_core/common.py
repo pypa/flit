@@ -3,39 +3,92 @@ from contextlib import contextmanager
 import hashlib
 from importlib.machinery import SourceFileLoader
 import logging
-from pathlib import Path
+import os
+import os.path as osp
 import re
 
 log = logging.getLogger(__name__)
 
-import re
+from .versionno import normalise_version
 
 class Module(object):
     """This represents the module/package that we are going to distribute
     """
     def __init__(self, name, directory='.'):
         self.name = name
+        self.directory = directory
 
         # It must exist either as a .py file or a directory, but not both
-        pkg_dir = Path(directory, name)
-        py_file = Path(directory, name+'.py')
-        if pkg_dir.is_dir() and py_file.is_file():
-            raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
-        elif pkg_dir.is_dir():
+        pkg_dir = osp.join(directory, name)
+        py_file = osp.join(directory, name+'.py')
+        src_pkg_dir = osp.join(directory, 'src', name)
+        src_py_file = osp.join(directory, 'src', name+'.py')
+
+        existing = set()
+        if osp.isdir(pkg_dir):
             self.path = pkg_dir
             self.is_package = True
-        elif py_file.is_file():
+            existing.add(pkg_dir)
+        elif osp.isfile(py_file):
             self.path = py_file
             self.is_package = False
+            existing.add(py_file)
+        elif osp.isdir(src_pkg_dir):
+            self.path = src_pkg_dir
+            self.is_package = True
+            existing.add(src_pkg_dir)
+        elif osp.isfile(src_py_file):
+            self.path = src_py_file
+            self.is_package = False
+            existing.add(src_py_file)
         else:
             raise ValueError("No file/folder found for module {}".format(name))
+
+        if len(existing) > 1:
+            raise ValueError(
+                "Multiple files or folders could be module {}: {}"
+                .format(name, ", ".join(sorted(existing)))
+            )
+
+    @property
+    def source_dir(self):
+        """Path of folder containing the module (src/ or project root)"""
+        return osp.dirname(self.path)
 
     @property
     def file(self):
         if self.is_package:
-            return self.path / '__init__.py'
+            return osp.join(self.path, '__init__.py')
         else:
             return self.path
+
+    def iter_files(self):
+        """Iterate over the files contained in this module.
+
+        Yields absolute paths - caller may want to make them relative.
+        Excludes any __pycache__ and *.pyc files.
+        """
+        def _include(path):
+            name = os.path.basename(path)
+            if (name == '__pycache__') or name.endswith('.pyc'):
+                return False
+            return True
+
+        if self.is_package:
+            res = []
+
+            # Ensure we sort all files and directories so the order is stable
+            for dirpath, dirs, files in os.walk(str(self.path)):
+                for file in sorted(files):
+                    full_path = os.path.join(dirpath, file)
+                    if _include(full_path):
+                        yield full_path
+
+                dirs[:] = [d for d in sorted(dirs) if _include(d)]
+
+            return res
+        else:
+            yield self.path
 
 class ProblemInModule(ValueError): pass
 class NoDocstringError(ProblemInModule): pass
@@ -63,13 +116,13 @@ def _module_load_ctx():
     finally:
         logging.root.handlers = logging_handlers
 
-def get_docstring_and_version_via_ast(target):
+def get_docstring_and_version_via_ast(target: Module):
     """
     Return a tuple like (docstring, version) for the given module,
     extracted by parsing its AST.
     """
     # read as bytes to enable custom encodings
-    with target.file.open('rb') as f:
+    with open(target.file, 'rb') as f:
         node = ast.parse(f.read())
     for child in node.body:
         # Only use the version from the given module if it's a simple
@@ -92,7 +145,7 @@ def get_docstring_and_version_via_import(target):
     from it.
     """
     log.debug("Loading module %s", target.file)
-    sl = SourceFileLoader(target.name, str(target.file))
+    sl = SourceFileLoader(target.name, target.file)
     with _module_load_ctx():
         m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
@@ -142,7 +195,6 @@ def check_version(version):
                                 .format(type(version)))
 
     # Import here to avoid circular import
-    from .validate import normalise_version
     version = normalise_version(version)
 
     return version
@@ -186,7 +238,7 @@ def write_entry_points(d, fp):
         fp.write('\n')
 
 def hash_file(path, algorithm='sha256'):
-    with Path(path).open('rb') as f:
+    with open(path, 'rb') as f:
         h = hashlib.new(algorithm, f.read())
     return h.hexdigest()
 
@@ -300,13 +352,14 @@ class Metadata:
 def make_metadata(module, ini_info):
     md_dict = {'name': module.name, 'provides': [module.name]}
     md_dict.update(get_info_from_module(module))
-    md_dict.update(ini_info['metadata'])
+    md_dict.update(ini_info.metadata)
     return Metadata(md_dict)
 
 def metadata_and_module_from_ini_path(ini_path):
     from . import inifile
-    ini_info = inifile.read_pkg_ini(ini_path)
-    module = Module(ini_info['module'], ini_path.parent)
+    ini_path = str(ini_path)
+    ini_info = inifile.read_flit_config(ini_path)
+    module = Module(ini_info.module, osp.dirname(ini_path))
     metadata = make_metadata(module, ini_info)
     return metadata,module
 

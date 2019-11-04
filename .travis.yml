@@ -1,15 +1,24 @@
 language: python
-python:
-  - "3.8"
-  - "3.7"
-  - "3.6"
-  - "3.5"
-  - "3.4"
+
+matrix:
+  include:
+    - python: "3.8"
+    - python: "3.7"
+    - python: "3.6"
+    - python: "3.5"
+
+    # Only flit_core is supported on < 3.5
+    - python: "3.4"
+      env: EXTRA_PYTEST_ARGS="--pyargs flit_core"
+
+env:
+  global:
+    - PYTHONPATH=flit_core
 
 install:
   - pip install --upgrade pip
   - pip install --upgrade pytest
   - pip install -r requirements-test.txt
   - pip install codecov
-script: pytest --cov=flit
+script: pytest --cov=flit --cov=flit_core/flit_core ${EXTRA_PYTEST_ARGS}
 after_success: codecov

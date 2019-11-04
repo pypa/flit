@@ -67,7 +67,20 @@ def test_guess_module_name():
         ib = init.IniterBase(td)
         assert ib.guess_module_name() == 'baz'
 
+    with make_dir(['src/foo.py', 'src/foo-bar.py', 'test_foo.py', 'setup.py'],
+                  ['src',]) as td:
+        ib = init.IniterBase(td)
+        assert ib.guess_module_name() == 'foo'
+
+    with make_dir(['src/baz/__init__.py', 'tests/__init__.py'], ['src', 'src/baz', 'tests']) as td:
+        ib = init.IniterBase(td)
+        assert ib.guess_module_name() == 'baz'
+
     with make_dir(['foo.py', 'bar.py']) as td:
+        ib = init.IniterBase(td)
+        assert ib.guess_module_name() is None
+
+    with make_dir(['src/foo.py', 'src/bar.py'], ['src']) as td:
         ib = init.IniterBase(td)
         assert ib.guess_module_name() is None
 

@@ -1,23 +1,24 @@
-from pathlib import Path
+import os.path as osp
 from unittest import TestCase
 import pytest
 
-from flit.common import (Module, get_info_from_module, InvalidVersion, NoVersionError,
-     check_version, normalize_file_permissions
+from flit_core.common import (
+    Module, get_info_from_module, InvalidVersion, NoVersionError, check_version,
+    normalize_file_permissions, Metadata
 )
 
-samples_dir = Path(__file__).parent / 'samples'
+samples_dir = osp.join(osp.dirname(__file__), 'samples')
 
 class ModuleTests(TestCase):
     def test_package_importable(self):
         i = Module('package1', samples_dir)
-        assert i.path == samples_dir / 'package1'
-        assert i.file == samples_dir / 'package1' / '__init__.py'
+        assert i.path == osp.join(samples_dir, 'package1')
+        assert i.file == osp.join(samples_dir, 'package1', '__init__.py')
         assert i.is_package
 
     def test_module_importable(self):
         i = Module('module1', samples_dir)
-        assert i.path == samples_dir / 'module1.py'
+        assert i.path == osp.join(samples_dir, 'module1.py')
         assert not i.is_package
 
     def test_missing_name(self):
@@ -86,7 +87,6 @@ def test_normalize_file_permissions():
     ],
 )
 def test_supports_py2(requires_python, expected_result):
-    from flit.common import Metadata
     metadata = object.__new__(Metadata)
     metadata.requires_python = requires_python
     result = metadata.supports_py2

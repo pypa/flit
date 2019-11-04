@@ -7,7 +7,8 @@ import responses
 from testpath import modified_env
 from unittest.mock import patch
 
-from flit import upload, common, wheel
+from flit_core import common
+from flit import upload, wheel
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 
@@ -21,18 +22,19 @@ repo_settings = {'url': upload.PYPI,
 def test_verify():
     responses.add(responses.POST, upload.PYPI, status=200)
 
-    meta, mod = common.metadata_and_module_from_ini_path(samples_dir / 'module1-pkg.ini')
+    meta, mod = common.metadata_and_module_from_ini_path(samples_dir / 'module1' / 'flit.ini')
     with patch('flit.upload.get_repository', return_value=repo_settings):
         upload.verify(meta, 'pypi')
 
     assert len(responses.calls) == 1
 
 @responses.activate
-def test_upload():
+def test_upload(copy_sample):
     responses.add(responses.POST, upload.PYPI, status=200)
+    td = copy_sample('module1')
 
     with patch('flit.upload.get_repository', return_value=repo_settings):
-        wheel.wheel_main(samples_dir / 'module1-pkg.ini', upload='pypi')
+        wheel.wheel_main(td / 'flit.ini', upload='pypi')
 
     assert len(responses.calls) == 1
 

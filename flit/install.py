@@ -2,10 +2,10 @@
 """
 import logging
 import os
+import os.path as osp
 import csv
 import pathlib
 import random
-import re
 import shutil
 import site
 import sys
@@ -13,7 +13,7 @@ import tempfile
 from subprocess import check_call, check_output
 import sysconfig
 
-from . import common
+from flit_core import common
 from . import inifile
 from .wheel import WheelBuilder
 from ._get_dirs import get_dirs
@@ -59,7 +59,7 @@ def _test_writable_dir_win(path):
     alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
     for i in range(10):
         name = basename + ''.join(random.choice(alphabet) for _ in range(6))
-        file = os.path.join(path, name)
+        file = osp.join(path, name)
         try:
             with open(file, mode='xb'):
                 pass
@@ -103,8 +103,8 @@ class Installer(object):
         if deps == 'none' and extras:
             raise DependencyError()
 
-        self.ini_info = inifile.read_pkg_ini(ini_path)
-        self.module = common.Module(self.ini_info['module'], ini_path.parent)
+        self.ini_info = inifile.read_flit_config(ini_path)
+        self.module = common.Module(self.ini_info.module, str(ini_path.parent))
 
         if (hasattr(os, 'getuid') and (os.getuid() == 0) and
                 (not os.environ.get('FLIT_ROOT_INSTALL'))):
@@ -189,12 +189,12 @@ class Installer(object):
     def _record_installed_directory(self, path):
         for dirpath, dirnames, files in os.walk(path):
             for f in files:
-                self.installed_files.append(os.path.join(dirpath, f))
+                self.installed_files.append(osp.join(dirpath, f))
 
     def _extras_to_install(self):
         extras_to_install = set(self.extras)
         if self.deps == 'all' or 'all' in extras_to_install:
-            extras_to_install |= set(self.ini_info['reqs_by_extra'].keys())
+            extras_to_install |= set(self.ini_info.reqs_by_extra.keys())
             # We don’t remove 'all' from the set because there might be an extra called “all”.
         elif self.deps == 'develop':
             extras_to_install |= {'dev', 'doc', 'test'}
@@ -216,7 +216,7 @@ class Installer(object):
             return
 
         for extra in self._extras_to_install():
-            requirements.extend(self.ini_info['reqs_by_extra'].get(extra, []))
+            requirements.extend(self.ini_info.reqs_by_extra.get(extra, []))
 
         # there aren't any requirements, so return
         if len(requirements) == 0:
@@ -265,7 +265,7 @@ class Installer(object):
             return get_dirs(user=user)
         else:
             import json
-            path = os.path.join(os.path.dirname(__file__), '_get_dirs.py')
+            path = osp.join(osp.dirname(__file__), '_get_dirs.py')
             args = ['--user'] if user else []
             return json.loads(self._run_python(file=path, extra_args=args))
 
@@ -276,9 +276,9 @@ class Installer(object):
         os.makedirs(dirs['purelib'], exist_ok=True)
         os.makedirs(dirs['scripts'], exist_ok=True)
 
-        dst = os.path.join(dirs['purelib'], self.module.path.name)
-        if os.path.lexists(dst):
-            if os.path.isdir(dst) and not os.path.islink(dst):
+        dst = osp.join(dirs['purelib'], osp.basename(self.module.path))
+        if osp.lexists(dst):
+            if osp.isdir(dst) and not osp.islink(dst):
                 shutil.rmtree(dst)
             else:
                 os.unlink(dst)
@@ -294,18 +294,18 @@ class Installer(object):
         src = str(self.module.path)
         if self.symlink:
             log.info("Symlinking %s -> %s", src, dst)
-            os.symlink(str(self.module.path.resolve()), dst)
+            os.symlink(osp.abspath(self.module.path), dst)
             self.installed_files.append(dst)
         elif self.pth:
             # .pth points to the the folder containing the module (which is
             # added to sys.path)
-            pth_target = str(self.module.path.resolve().parent)
+            pth_target = osp.dirname(osp.abspath(self.module.path))
             pth_file = pathlib.Path(dst).with_suffix('.pth')
             log.info("Adding .pth file %s for %s", pth_file, pth_target)
             with pth_file.open("w") as f:
                 f.write(pth_target)
             self.installed_files.append(pth_file)
-        elif self.module.path.is_dir():
+        elif self.module.is_package:
             log.info("Copying directory %s -> %s", src, dst)
             shutil.copytree(src, dst)
             self._record_installed_directory(dst)
@@ -314,7 +314,7 @@ class Installer(object):
             shutil.copy2(src, dst)
             self.installed_files.append(dst)
 
-        scripts = self.ini_info['scripts']
+        scripts = self.ini_info.entrypoints.get('console_scripts', {})
         self.install_scripts(scripts, dirs['scripts'])
 
         self.write_dist_info(dirs['purelib'])
@@ -323,12 +323,12 @@ class Installer(object):
         self.install_reqs_my_python_if_needed()
 
         with tempfile.TemporaryDirectory() as td:
-            temp_whl = os.path.join(td, 'temp.whl')
+            temp_whl = osp.join(td, 'temp.whl')
             with open(temp_whl, 'w+b') as fp:
-                wb = WheelBuilder(self.ini_path, fp)
+                wb = WheelBuilder.from_ini_path(self.ini_path, fp)
                 wb.build()
 
-            renamed_whl = os.path.join(td, wb.wheel_filename)
+            renamed_whl = osp.join(td, wb.wheel_filename)
             os.rename(temp_whl, renamed_whl)
             extras = self._extras_to_install()
             extras.discard('.none')
@@ -366,9 +366,9 @@ class Installer(object):
         with (dist_info / 'REQUESTED').open('wb'): pass
         self.installed_files.append(dist_info / 'REQUESTED')
 
-        if self.ini_info['entrypoints']:
+        if self.ini_info.entrypoints:
             with (dist_info / 'entry_points.txt').open('w') as f:
-                common.write_entry_points(self.ini_info['entrypoints'], f)
+                common.write_entry_points(self.ini_info.entrypoints, f)
             self.installed_files.append(dist_info / 'entry_points.txt')
 
         with (dist_info / 'RECORD').open('w', encoding='utf-8') as f:
@@ -378,13 +378,13 @@ class Installer(object):
                 if path.is_symlink() or path.suffix in {'.pyc', '.pyo'}:
                     hash, size = '', ''
                 else:
-                    hash = 'sha256=' + common.hash_file(path)
+                    hash = 'sha256=' + common.hash_file(str(path))
                     size = path.stat().st_size
                 try:
                     path = path.relative_to(site_pkgs)
                 except ValueError:
                     pass
-                cf.writerow((path, hash, size))
+                cf.writerow((str(path), hash, size))
 
             cf.writerow(((dist_info / 'RECORD').relative_to(site_pkgs), '', ''))
 

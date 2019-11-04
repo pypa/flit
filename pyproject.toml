@@ -1,10 +1,6 @@
 [build-system]
-requires = ["intreehooks", "requests", "docutils", "pytoml",
-            "zipfile36; python_version in '3.3 3.4 3.5'",]
-build-backend = "intreehooks:loader"
-
-[tool.intreehooks]
-build-backend = "flit.buildapi"
+requires = ["flit_core >=2,<3"]
+build-backend = "flit_core.buildapi"
 
 [tool.flit.metadata]
 module="flit"
