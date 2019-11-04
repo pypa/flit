@@ -42,16 +42,10 @@ def test_wheel_src_module():
     wheel_main(samples_dir / 'module3-pkg.ini')
     assert_isfile(samples_dir / 'dist/module3-0.1-py2.py3-none-any.whl')
 
-def clear_package2_dist():
-    try:
-        shutil.rmtree(str(samples_dir / 'package2' /'dist'))
-    except FileNotFoundError:
-        pass
-
-def test_wheel_src_package():
-    wheel_main(samples_dir / 'package2' / 'package2-pkg.ini')
-    assert_isfile(samples_dir / 'package2' / 'dist/package2-0.1-py2.py3-none-any.whl')
-    clear_package2_dist()
+def test_wheel_src_package(copy_sample):
+    package2 = copy_sample('package2')
+    wheel_main(package2 / 'package2-pkg.ini')
+    assert_isfile(package2 / 'dist/package2-0.1-py2.py3-none-any.whl')
 
 def test_dist_name():
     clear_samples_dist()
