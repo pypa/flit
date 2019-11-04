@@ -16,6 +16,7 @@ class Module(object):
     """
     def __init__(self, name, directory='.'):
         self.name = name
+        self.directory = directory
 
         # It must exist either as a .py file or a directory, but not both
         pkg_dir = osp.join(directory, name)
@@ -56,11 +57,6 @@ class Module(object):
         else:
             return self.path
 
-    @property
-    def source_dir(self):
-        """src/ or the project root dir"""
-        return osp.dirname(self.path)
-
     def iter_files(self):
         """Iterate over the files contained in this module.
 
@@ -78,7 +74,7 @@ class Module(object):
 
             # Ensure we sort all files and directories so the order is stable
             for dirpath, dirs, files in os.walk(str(self.path)):
-                reldir = osp.relpath(dirpath, self.source_dir)
+                reldir = osp.relpath(dirpath, self.directory)
                 for file in sorted(files):
                     full_path = os.path.join(dirpath, file)
                     if _include(full_path):
@@ -88,7 +84,7 @@ class Module(object):
 
             return res
         else:
-            yield osp.basename(self.path)
+            yield osp.relpath(self.path,  self.directory)
 
 class ProblemInModule(ValueError): pass
 class NoDocstringError(ProblemInModule): pass

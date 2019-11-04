@@ -141,17 +141,17 @@ class SdistBuilder(SdistBuilderCore):
         return super().from_ini_path(str(ini_path))
 
     def select_files(self):
-        srcdir_path = Path(self.srcdir)
-        vcs_mod = identify_vcs(srcdir_path)
+        cfgdir_path = Path(self.cfgdir)
+        vcs_mod = identify_vcs(cfgdir_path)
         if vcs_mod is not None:
-            untracked_deleted = vcs_mod.list_untracked_deleted_files(srcdir_path)
+            untracked_deleted = vcs_mod.list_untracked_deleted_files(cfgdir_path)
             if list(filter(include_path, untracked_deleted)):
                 raise VCSError(
                     "Untracked or deleted files in the source directory. "
                     "Commit, undo or ignore these files in your VCS.",
-                    self.srcdir)
+                    self.cfgdir)
 
-            files = vcs_mod.list_tracked_files(srcdir_path)
+            files = vcs_mod.list_tracked_files(cfgdir_path)
             files = sorted(filter(include_path, files))
             log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
         else:

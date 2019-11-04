@@ -50,11 +50,11 @@ class SdistBuilder:
     The class is extended in flit.sdist to make a more 'full fat' sdist,
     which is what should normally be published to PyPI.
     """
-    def __init__(self, module, metadata, srcdir, reqs_by_extra, entrypoints,
+    def __init__(self, module, metadata, cfgdir, reqs_by_extra, entrypoints,
                  extra_files):
         self.module = module
         self.metadata = metadata
-        self.srcdir = srcdir
+        self.cfgdir = cfgdir
         self.reqs_by_extra = reqs_by_extra
         self.entrypoints = entrypoints
         self.extra_files = extra_files
@@ -113,7 +113,7 @@ class SdistBuilder:
             files_to_add = self.select_files()
 
             for relpath in files_to_add:
-                path = osp.join(self.srcdir, relpath)
+                path = osp.join(self.cfgdir, relpath)
                 ti = tf.gettarinfo(path, arcname=pjoin(self.dir_name, relpath))
                 ti = clean_tarinfo(ti, mtime)
 
