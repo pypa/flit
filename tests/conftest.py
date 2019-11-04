@@ -9,7 +9,7 @@ def copy_sample(tmp_path):
     """Copy a subdirectory from the samples dir to a temp dir"""
     def copy(dirname):
         dst = tmp_path / dirname
-        copytree(samples_dir / dirname, dst)
+        copytree(str(samples_dir / dirname), str(dst))
         return dst
 
     return copy
