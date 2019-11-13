@@ -145,7 +145,8 @@ class SdistBuilder(SdistBuilderCore):
         vcs_mod = identify_vcs(cfgdir_path)
         if vcs_mod is not None:
             untracked_deleted = vcs_mod.list_untracked_deleted_files(cfgdir_path)
-            if list(filter(include_path, untracked_deleted)):
+            if any(include_path(p) and not self.excludes.match_file(p)
+                   for p in untracked_deleted):
                 raise VCSError(
                     "Untracked or deleted files in the source directory. "
                     "Commit, undo or ignore these files in your VCS.",

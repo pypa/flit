@@ -1,8 +1,10 @@
 import configparser
 import difflib
 import logging
+import os
 import os.path as osp
 import pytoml as toml
+import re
 
 log = logging.getLogger(__name__)
 
@@ -70,7 +72,7 @@ def prep_toml_config(d, path: str):
         raise ConfigError("TOML file missing [tool.flit] table.")
 
     d = d['tool']['flit']
-    unknown_sections = set(d) - {'metadata', 'scripts', 'entrypoints'}
+    unknown_sections = set(d) - {'metadata', 'scripts', 'entrypoints', 'sdist'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
         raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
@@ -85,6 +87,20 @@ def prep_toml_config(d, path: str):
 
     if 'scripts' in d:
         loaded_cfg.add_scripts(dict(d['scripts']))
+
+    if 'sdist' in d:
+        unknown_keys = set(d['sdist']) - {'include', 'exclude'}
+        if unknown_keys:
+            raise ConfigError(
+                "Unknown keys in [tool.flit.sdist]:" + ", ".join(unknown_keys)
+            )
+
+        loaded_cfg.sdist_include_patterns = _check_glob_patterns(
+            d['sdist'].get('include', []), 'include'
+        )
+        loaded_cfg.sdist_exclude_patterns = _check_glob_patterns(
+            d['sdist'].get('exclude', []), 'exclude'
+        )
 
     return loaded_cfg
 
@@ -121,6 +137,45 @@ def flatten_entrypoints(ep):
     return res
 
 
+def _check_glob_patterns(pats, clude):
+    """Check and normalise glob patterns for sdist include/exclude"""
+    if not isinstance(pats, list):
+        raise ConfigError("sdist {} patterns must be a list".format(clude))
+
+    # Windows filenames can't contain these (nor * or ?, but they are part of
+    # glob patterns) - https://stackoverflow.com/a/31976060/434217
+    bad_chars = re.compile(r'[\000-\037<>:"\\]')
+
+    normed = []
+
+    for p in pats:
+        if bad_chars.search(p):
+            raise ConfigError(
+                '{} pattern {!r} contains bad characters (<>:\"\\ or control characters)'
+                .format(clude, p)
+            )
+        if '**' in p:
+            raise ConfigError(
+                "Recursive globbing (**) is not supported yet (in {} pattern {!r})"
+                .format(clude, p)
+            )
+
+        normp = osp.normpath(p)
+
+        if osp.isabs(normp):
+            raise ConfigError(
+                '{} pattern {!r} is an absolute path'.format(clude, p)
+            )
+        if osp.normpath(p).startswith('..' + os.sep):
+            raise ConfigError(
+                '{} pattern {!r} points out of the directory containing pyproject.toml'
+                .format(clude, p)
+            )
+        normed.append(normp)
+
+    return normed
+
+
 def _read_pkg_ini(path):
     """Reads old-style flit.ini
     """
@@ -137,6 +192,8 @@ class LoadedConfig(object):
         self.reqs_by_extra = {}
         self.entrypoints = {}
         self.referenced_files = []
+        self.sdist_include_patterns = []
+        self.sdist_exclude_patterns = []
 
     def add_scripts(self, scripts_dict):
         if scripts_dict:

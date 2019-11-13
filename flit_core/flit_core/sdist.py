@@ -1,5 +1,6 @@
 from collections import defaultdict
 from copy import copy
+from glob import glob
 from gzip import GzipFile
 import io
 import logging
@@ -43,6 +44,36 @@ def clean_tarinfo(ti, mtime=None):
     return ti
 
 
+class FilePatterns:
+    """Manage a set of file inclusion/exclusion patterns relative to basedir"""
+    def __init__(self, patterns, basedir):
+        self.basedir = basedir
+
+        self.dirs = set()
+        self.files = set()
+
+        for pattern in patterns:
+            for path in sorted(glob(osp.join(basedir, pattern))):
+                rel = osp.relpath(path, basedir)
+                if osp.isdir(path):
+                    self.dirs.add(rel)
+                else:
+                    self.files.add(rel)
+
+    def match_file(self, rel_path):
+        if rel_path in self.files:
+            return True
+
+        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
+
+    def match_dir(self, rel_path):
+        if rel_path in self.dirs:
+            return True
+
+        # Check if it's a subdirectory of any directory in the list
+        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
+
+
 class SdistBuilder:
     """Builds a minimal sdist
 
@@ -51,13 +82,15 @@ class SdistBuilder:
     which is what should normally be published to PyPI.
     """
     def __init__(self, module, metadata, cfgdir, reqs_by_extra, entrypoints,
-                 extra_files):
+                 extra_files, include_patterns=(), exclude_patterns=()):
         self.module = module
         self.metadata = metadata
         self.cfgdir = cfgdir
         self.reqs_by_extra = reqs_by_extra
         self.entrypoints = entrypoints
         self.extra_files = extra_files
+        self.includes = FilePatterns(include_patterns, cfgdir)
+        self.excludes = FilePatterns(exclude_patterns, cfgdir)
 
     @classmethod
     def from_ini_path(cls, ini_path: str):
@@ -68,7 +101,8 @@ class SdistBuilder:
         extra_files = [osp.basename(ini_path)] + ini_info.referenced_files
         return cls(
             module, metadata, srcdir, ini_info.reqs_by_extra,
-            ini_info.entrypoints, extra_files
+            ini_info.entrypoints, extra_files, ini_info.sdist_include_patterns,
+            ini_info.sdist_exclude_patterns,
         )
 
     def prep_entry_points(self):
@@ -89,6 +123,36 @@ class SdistBuilder:
         return [
             osp.relpath(p, self.cfgdir) for p in self.module.iter_files()
         ] + self.extra_files
+
+    def apply_includes_excludes(self, files):
+        files = {f for f in files if not self.excludes.match_file(f)}
+
+        for f_rel in self.includes.files:
+            if not self.excludes.match_file(f_rel):
+                files.add(f_rel)
+
+        for rel_d in self.includes.dirs:
+            for dirpath, dirs, dfiles in os.walk(osp.join(self.cfgdir, rel_d)):
+                for file in dfiles:
+                    f_abs = osp.join(dirpath, file)
+                    f_rel = osp.relpath(f_abs, self.cfgdir)
+                    if not self.excludes.match_file(f_rel):
+                        files.add(f_rel)
+
+                # Filter subdirectories before os.walk scans them
+                dirs[:] = [d for d in dirs if not self.excludes.match_dir(
+                    osp.relpath(osp.join(dirpath, d), self.cfgdir)
+                )]
+
+        crucial_files = set(
+            self.extra_files + [osp.relpath(self.module.file, self.cfgdir)]
+        )
+        missing_crucial = crucial_files - files
+        if missing_crucial:
+            raise Exception("Crucial files were excluded from the sdist: {}"
+                            .format(", ".join(missing_crucial)))
+
+        return sorted(files)
 
     def add_setup_py(self, files_to_add, target_tarfile):
         """No-op here; overridden in flit to generate setup.py"""
@@ -112,7 +176,7 @@ class SdistBuilder:
                              format=tarfile.PAX_FORMAT)
 
         try:
-            files_to_add = self.select_files()
+            files_to_add = self.apply_includes_excludes(self.select_files())
 
             for relpath in files_to_add:
                 path = osp.join(self.cfgdir, relpath)
