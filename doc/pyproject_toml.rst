@@ -186,3 +186,34 @@ In each ``package:name`` value, the part before the colon should be an
 importable module name, and the latter part should be the name of an object
 accessible within that module. The details of what object to expose depend on
 the application you're extending.
+
+Sdist section
+-------------
+
+.. versionadded:: 2.0
+
+When you use :ref:`build_cmd` or :ref:`publish_cmd`, Flit builds an sdist
+(source distribution) tarball containing the files that are checked into version
+control (git or mercurial). If you want more control, or it doesn't recognise
+your version control system, you can give lists of paths or glob patterns as
+``include`` and ``exclude`` in this section. For example:
+
+.. code-block:: toml
+
+    [tool.flit.sdist]
+    include = ["doc/"]
+    exclude = ["doc/*.html"]
+
+These paths:
+
+- Always use ``/`` as a separator (POSIX style)
+- Must be relative paths from the directory containing ``pyproject.toml``
+- Cannot go outside that directory (no ``../`` paths)
+- Cannot contain control characters or ``<>:"\\``
+- Cannot use recursive glob patterns (``**/``)
+- Can refer to directories, in which case they include everything under the
+  directory, including subdirectories
+- Should match the case of the files they refer to, as case-insensitive matching
+  is platform dependent
+
+Exclusions have priority over inclusions.

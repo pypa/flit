@@ -44,6 +44,7 @@ Build a wheel and an sdist (tarball) from the package.
 
    Limit to building either ``wheel`` or ``sdist``.
 
+.. _publish_cmd:
 
 ``flit publish``
 ----------------
