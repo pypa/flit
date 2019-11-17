@@ -1,11 +1,11 @@
 import ast
 from contextlib import contextmanager
 import hashlib
-from importlib.machinery import SourceFileLoader
 import logging
 import os
 import os.path as osp
 import re
+import sys
 
 log = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ def _module_load_ctx():
     finally:
         logging.root.handlers = logging_handlers
 
-def get_docstring_and_version_via_ast(target: Module):
+def get_docstring_and_version_via_ast(target):
     """
     Return a tuple like (docstring, version) for the given module,
     extracted by parsing its AST.
@@ -135,21 +135,34 @@ def get_docstring_and_version_via_ast(target: Module):
         version = None
     return ast.get_docstring(node), version
 
-def get_docstring_and_version_via_import(target):
-    """
-    Return a tuple like (docstring, version) for the given module,
-    extracted by importing the module and pulling __doc__ & __version__
-    from it.
-    """
-    log.debug("Loading module %s", target.file)
-    sl = SourceFileLoader(target.name, target.file)
-    with _module_load_ctx():
-        m = sl.load_module()
-    docstring = m.__dict__.get('__doc__', None)
-    version = m.__dict__.get('__version__', None)
-    return docstring, version
 
-def get_info_from_module(target: Module):
+if sys.version_info[0] >= 3:
+    def get_docstring_and_version_via_import(target):
+        """
+        Return a tuple like (docstring, version) for the given module,
+        extracted by importing the module and pulling __doc__ & __version__
+        from it.
+        """
+        log.debug("Loading module %s", target.file)
+        from importlib.machinery import SourceFileLoader
+        sl = SourceFileLoader(target.name, target.file)
+        with _module_load_ctx():
+            m = sl.load_module()
+        docstring = m.__dict__.get('__doc__', None)
+        version = m.__dict__.get('__version__', None)
+        return docstring, version
+else:
+    def get_docstring_and_version_via_import(target):
+        log.debug("Loading module %s", target.file)
+        import imp
+        mod_info = imp.find_module(target.name, [target.source_dir])
+        with _module_load_ctx():
+            m = imp.load_module(target.name, *mod_info)
+        docstring = m.__dict__.get('__doc__', None)
+        version = m.__dict__.get('__version__', None)
+        return docstring, version
+
+def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__
     """
     log.debug("Loading module %s", target.file)
@@ -204,7 +217,7 @@ if __name__ == '__main__':
     {func}()
 """
 
-def parse_entry_point(ep: str):
+def parse_entry_point(ep):
     """Check and parse a 'package.module:func' style entry point specification.
 
     Returns (modulename, funcname)
@@ -252,7 +265,7 @@ def normalize_file_permissions(st_mode):
         new_mode |= 0o111  # Executable: 644 -> 755
     return new_mode
 
-class Metadata:
+class Metadata(object):
 
     home_page = None
     author = None
@@ -315,30 +328,30 @@ class Metadata:
 
         for field in fields:
             value = getattr(self, self._normalise_name(field))
-            fp.write("{}: {}\n".format(field, value or 'UNKNOWN'))
+            fp.write(u"{}: {}\n".format(field, value or 'UNKNOWN'))
 
         for field in optional_fields:
             value = getattr(self, self._normalise_name(field))
             if value is not None:
-                fp.write("{}: {}\n".format(field, value))
+                fp.write(u"{}: {}\n".format(field, value))
 
         for clsfr in self.classifiers:
-            fp.write('Classifier: {}\n'.format(clsfr))
+            fp.write(u'Classifier: {}\n'.format(clsfr))
 
         for req in self.requires_dist:
-            fp.write('Requires-Dist: {}\n'.format(req))
+            fp.write(u'Requires-Dist: {}\n'.format(req))
 
         for url in self.project_urls:
-            fp.write('Project-URL: {}\n'.format(url))
+            fp.write(u'Project-URL: {}\n'.format(url))
 
         for extra in self.provides_extra:
-            fp.write('Provides-Extra: {}\n'.format(extra))
+            fp.write(u'Provides-Extra: {}\n'.format(extra))
 
         if self.description is not None:
-            fp.write('\n' + self.description + '\n')
+            fp.write(u'\n' + self.description + u'\n')
 
     @property
-    def supports_py2(self) -> bool:
+    def supports_py2(self):
         """Return True if Requires-Python indicates Python 2 support."""
         for part in (self.requires_python or "").split(","):
             if re.search(r"^\s*(>\s*(=\s*)?)?[3-9]", part):
@@ -364,4 +377,4 @@ def dist_info_name(distribution, version):
     """Get the correct name of the .dist-info folder"""
     escaped_name = re.sub(r"[^\w\d.]+", "_", distribution, flags=re.UNICODE)
     escaped_version = re.sub(r"[^\w\d.]+", "_", version, flags=re.UNICODE)
-    return '{}-{}.dist-info'.format(escaped_name, escaped_version)
+    return u'{}-{}.dist-info'.format(escaped_name, escaped_version)

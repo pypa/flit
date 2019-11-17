@@ -13,7 +13,7 @@ def test_requires_with_empty_lines():
     assert ini_info.metadata['requires_dist'] == ['foo', 'bar']
 
 def test_missing_entrypoints():
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(inifile.ConfigError, match="does not exist"):
         inifile.read_flit_config(osp.join(samples_dir, 'entrypoints_missing.ini'))
 
 def test_flatten_entrypoints():
@@ -63,7 +63,7 @@ def test_extras_dev_conflict():
 
 def test_extras_dev_warning(caplog):
     info = inifile.read_flit_config(osp.join(samples_dir, 'requires-dev.toml'))
-    assert '“dev-requires = ...” is obsolete' in caplog.text
+    assert '"dev-requires = ..." is obsolete' in caplog.text
     assert set(info.metadata['requires_dist']) == {'apackage; extra == "dev"'}
 
 def test_requires_extra_env_marker():

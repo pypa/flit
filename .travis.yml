@@ -10,6 +10,8 @@ matrix:
     # Only flit_core is supported on < 3.5
     - python: "3.4"
       env: EXTRA_PYTEST_ARGS="--pyargs flit_core"
+    - python: "2.7"
+      env: EXTRA_PYTEST_ARGS="--pyargs flit_core"
 
 env:
   global:

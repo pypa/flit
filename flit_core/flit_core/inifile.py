@@ -1,12 +1,25 @@
 import configparser
 import difflib
+import errno
+import io
 import logging
 import os
 import os.path as osp
 import pytoml as toml
 import re
+import sys
 
 log = logging.getLogger(__name__)
+
+if sys.version_info[0] >= 3:
+    isidentifier = str.isidentifier
+
+    text_types = (str,)
+else:
+    def isidentifier(s):
+        return bool(re.match('[A-Za-z][A-Za-z0-9]*$', s))
+
+    text_types = (str, unicode)
 
 class ConfigError(ValueError):
     pass
@@ -39,11 +52,11 @@ metadata_required_fields = {
 }
 
 
-def read_flit_config(path: str):
+def read_flit_config(path):
     """Read and check the `pyproject.toml` or `flit.ini` file with data about the package.
     """
     if path.endswith('.toml'):
-        with open(path, 'r', encoding='utf-8') as f:
+        with io.open(path, 'r', encoding='utf-8') as f:
             d = toml.load(f)
         return prep_toml_config(d, path)
     else:
@@ -62,7 +75,7 @@ class EntryPointsConflict(ConfigError):
         return ('Please specify console_scripts entry points, or [scripts] in '
             'flit config, not both.')
 
-def prep_toml_config(d, path: str):
+def prep_toml_config(d, path):
     """Validate config loaded from pyproject.toml and prepare common metadata
     
     Returns a LoadedConfig object.
@@ -124,7 +137,8 @@ def flatten_entrypoints(ep):
         d1 = {}
         for k, v in d.items():
             if isinstance(v, dict):
-                yield from _flatten(v, prefix+'.'+k)
+                for flattened in _flatten(v, prefix+'.'+k):
+                    yield flattened
             else:
                 d1[k] = v
 
@@ -180,7 +194,7 @@ def _read_pkg_ini(path):
     """Reads old-style flit.ini
     """
     cp = configparser.ConfigParser()
-    with open(path, 'r', encoding='utf-8') as f:
+    with io.open(path, 'r', encoding='utf-8') as f:
         cp.read_file(f)
 
     return cp
@@ -208,7 +222,8 @@ readme_ext_to_content_type = {
     '.txt': 'text/plain',
 }
 
-def _prep_metadata(md_sect, path: str):
+
+def _prep_metadata(md_sect, path):
     """Process & verify the metadata from a config file
     
     - Pull out the module name we're packaging.
@@ -223,7 +238,7 @@ def _prep_metadata(md_sect, path: str):
     res = LoadedConfig()
 
     res.module = md_sect.get('module')
-    if not res.module.isidentifier():
+    if not isidentifier(res.module):
         raise ConfigError("Module name %r is not a valid identifier" % res.module)
 
     md_dict = res.metadata
@@ -234,12 +249,14 @@ def _prep_metadata(md_sect, path: str):
         res.referenced_files.append(desc_path)
         description_file = osp.join(osp.dirname(path), desc_path)
         try:
-            with open(description_file, 'r', encoding='utf-8') as f:
+            with io.open(description_file, 'r', encoding='utf-8') as f:
                 raw_desc = f.read()
-        except FileNotFoundError:
-            raise ConfigError(
-                "Description file {} does not exist".format(description_file)
-            )
+        except IOError as e:
+            if e.errno == errno.ENOENT:
+                raise ConfigError(
+                    "Description file {} does not exist".format(description_file)
+                )
+            raise
         _, ext = osp.splitext(description_file)
         try:
             mimetype = readme_ext_to_content_type[ext]
@@ -274,7 +291,7 @@ def _prep_metadata(md_sect, path: str):
             if not isinstance(value, list):
                 raise ConfigError('Expected a list for {} field, found {!r}'
                                     .format(key, value))
-            if not all(isinstance(a, str) for a in value):
+            if not all(isinstance(a, text_types) for a in value):
                 raise ConfigError('Expected a list of strings for {} field'
                                     .format(key))
         elif key == 'requires-extra':
@@ -284,11 +301,11 @@ def _prep_metadata(md_sect, path: str):
             if not all(isinstance(e, list) for e in value.values()):
                 raise ConfigError('Expected a dict of lists for requires-extra field')
             for e, reqs in value.items():
-                if not all(isinstance(a, str) for a in reqs):
+                if not all(isinstance(a, text_types) for a in reqs):
                     raise ConfigError('Expected a string list for requires-extra. (extra {})'
                                         .format(e))
         else:
-            if not isinstance(value, str):
+            if not isinstance(value, text_types):
                 raise ConfigError('Expected a string for {} field, found {!r}'
                                     .format(key, value))
 
@@ -311,7 +328,7 @@ def _prep_metadata(md_sect, path: str):
                 'dev-requires occurs together with its replacement requires-extra.dev.')
         else:
             log.warning(
-                '“dev-requires = ...” is obsolete. Use “requires-extra = {"dev" = ...}” instead.')
+                '"dev-requires = ..." is obsolete. Use "requires-extra = {"dev" = ...}" instead.')
             res.reqs_by_extra['dev'] = dev_requires
 
     # Add requires-extra requirements into requires_dist
@@ -334,7 +351,7 @@ def _expand_requires_extra(re):
             else:
                 yield '{}; extra == "{}"'.format(req, extra)
 
-def prep_ini_config(cp, path: str):
+def prep_ini_config(cp, path):
     """Validate and process config loaded from a flit.ini file.
     
     Returns a LoadedConfig object.
@@ -358,7 +375,9 @@ def prep_ini_config(cp, path: str):
         ep_rel_path = md_sect.pop('entry-points-file')
         entry_points_file = osp.join(osp.dirname(path), ep_rel_path)
         if not osp.isfile(entry_points_file):
-            raise FileNotFoundError(entry_points_file)
+            raise ConfigError(
+                "Entry points file {} does not exist".format(entry_points_file)
+            )
     else:
         entry_points_file = osp.join(osp.dirname(path), 'entry_points.txt')
         if not osp.isfile(entry_points_file):
@@ -368,7 +387,7 @@ def prep_ini_config(cp, path: str):
 
     if entry_points_file:
         ep_cp = configparser.ConfigParser()
-        with open(entry_points_file, 'r', encoding='utf-8') as f:
+        with io.open(entry_points_file, 'r', encoding='utf-8') as f:
             ep_cp.read_file(f)
         # Convert to regular dict
         loaded_cfg.entrypoints = {k: dict(v) for k, v in ep_cp.items()}

@@ -4,12 +4,13 @@ This is *only* meant to build flit_core itself.
 Building any other packages occurs through flit_core.buildapi
 """
 
+import io
 import os
 import os.path as osp
 import tempfile
 
 from .common import Metadata, Module, dist_info_name
-from .wheel import WheelBuilder, _write_wheel_file
+from .wheel import WheelBuilder, _write_wheel_file, _replace
 from .sdist import SdistBuilder
 
 metadata = Metadata({
@@ -56,14 +57,14 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     # a temporary_file, and rename it afterwards.
     (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
     try:
-        with open(fd, 'w+b') as fp:
+        with io.open(fd, 'w+b') as fp:
             wb = WheelBuilder(
                 srcdir, module, metadata, entrypoints={}, target_fp=fp
             )
             wb.build()
 
         wheel_path = osp.join(wheel_directory, wb.wheel_filename)
-        os.replace(temp_path, str(wheel_path))
+        _replace(temp_path, str(wheel_path))
     except:
         os.unlink(temp_path)
         raise

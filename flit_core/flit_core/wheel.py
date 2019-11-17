@@ -11,7 +11,10 @@ import re
 import stat
 import sys
 import tempfile
-from types import SimpleNamespace
+try:
+    from types import SimpleNamespace  # Python 3
+except ImportError:
+    from argparse import Namespace as SimpleNamespace  # Python 2
 
 HAVE_ZIPFILE36 = True
 if sys.version_info >= (3, 6):
@@ -29,17 +32,17 @@ from . import inifile
 
 log = logging.getLogger(__name__)
 
-wheel_file_template = """\
+wheel_file_template = u"""\
 Wheel-Version: 1.0
 Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
-def _write_wheel_file(f, *, supports_py2=False):
+def _write_wheel_file(f, supports_py2=False):
     f.write(wheel_file_template)
     if supports_py2:
-        f.write("Tag: py2-none-any\n")
-    f.write("Tag: py3-none-any\n")
+        f.write(u"Tag: py2-none-any\n")
+    f.write(u"Tag: py3-none-any\n")
 
 
 class WheelBuilder:
@@ -202,7 +205,7 @@ class WheelBuilder:
         # Write a record of the files in the wheel
         with self._write_to_zip(self.dist_info + '/RECORD') as f:
             for path, hash, size in self.records:
-                f.write('{},sha256={},{}\n'.format(path, hash, size))
+                f.write(u'{},sha256={},{}\n'.format(path, hash, size))
             # RECORD itself is recorded with no hash or size
             f.write(self.dist_info + '/RECORD,,\n')
 
@@ -219,15 +222,24 @@ def make_wheel_in(ini_path, wheel_directory):
     # a temporary_file, and rename it afterwards.
     (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
     try:
-        with open(fd, 'w+b') as fp:
+        with io.open(fd, 'w+b') as fp:
             wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build()
 
         wheel_path = osp.join(wheel_directory, wb.wheel_filename)
-        os.replace(temp_path, str(wheel_path))
+        _replace(temp_path, str(wheel_path))
     except:
         os.unlink(temp_path)
         raise
 
     log.info("Built wheel: %s", wheel_path)
     return SimpleNamespace(builder=wb, file=wheel_path)
+
+
+if sys.version_info[0] >= 3:
+    _replace = os.replace
+else:
+    def _replace(src, dst):
+        if os.path.exists(dst):
+            os.unlink(dst)
+        os.rename(src, dst)

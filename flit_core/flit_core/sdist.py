@@ -93,7 +93,7 @@ class SdistBuilder:
         self.excludes = FilePatterns(exclude_patterns, cfgdir)
 
     @classmethod
-    def from_ini_path(cls, ini_path: str):
+    def from_ini_path(cls, ini_path):
         ini_info = inifile.read_flit_config(ini_path)
         srcdir = osp.dirname(ini_path)
         module = common.Module(ini_info.module, srcdir)
@@ -162,7 +162,7 @@ class SdistBuilder:
     def dir_name(self):
         return '{}-{}'.format(self.metadata.name, self.metadata.version)
 
-    def build(self, target_dir: str):
+    def build(self, target_dir):
         if not osp.isdir(target_dir):
             os.makedirs(target_dir)
         target = osp.join(

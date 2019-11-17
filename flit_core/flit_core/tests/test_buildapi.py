@@ -2,8 +2,8 @@ from contextlib import contextmanager
 import os
 import os.path as osp
 import tarfile
-from tempfile import TemporaryDirectory
 from testpath import assert_isfile, assert_isdir
+from testpath.tempdir import TemporaryDirectory
 import zipfile
 
 from flit_core import buildapi
