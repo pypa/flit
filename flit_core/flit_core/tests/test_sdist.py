@@ -15,6 +15,7 @@ def test_make_sdist():
         builder.build(td)
         assert_isfile(osp.join(td, 'package1-0.1.tar.gz'))
 
+
 def test_clean_tarinfo():
     with tarfile.open(mode='w', fileobj=BytesIO()) as tf:
         ti = tf.gettarinfo(osp.join(samples_dir, 'module1.py'))
@@ -22,3 +23,14 @@ def test_clean_tarinfo():
     assert cleaned.uid == 0
     assert cleaned.uname == ''
     assert cleaned.mtime == 42
+
+
+def test_include_exclude():
+    builder = sdist.SdistBuilder.from_ini_path(
+        osp.join(samples_dir, 'inclusion', 'pyproject.toml')
+    )
+    files = builder.apply_includes_excludes(builder.select_files())
+
+    assert osp.join('doc', 'test.rst') in files
+    assert osp.join('doc', 'test.txt') not in files
+    assert osp.join('doc', 'subdir', 'test.txt') in files
