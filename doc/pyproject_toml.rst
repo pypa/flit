@@ -21,8 +21,8 @@ defined by PEP 517. For any project using Flit, it will look like this:
 .. code-block:: toml
 
     [build-system]
-    requires = ["flit"]
-    build-backend = "flit.buildapi"
+    requires = ["flit_core >=2,<3"]
+    build-backend = "flit_core.buildapi"
 
 Metadata section
 ----------------

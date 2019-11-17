@@ -11,6 +11,14 @@ a :pep:`517` backend for building packages, while ``flit`` is a
 The build backend works on Python 2, so tools like pip should be able to install
 packages built with flit from source on Python 2.
 The ``flit`` command requires Python 3.5 or above.
+You will need to change the build-system table in your ``pyproject.toml`` file
+to look like this:
+
+.. code-block:: toml
+
+    [build-system]
+    requires = ["flit_core >=2,<3"]
+    build-backend = "flit_core.buildapi"
 
 Other changes include:
 
