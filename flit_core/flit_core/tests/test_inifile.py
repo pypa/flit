@@ -79,3 +79,19 @@ def test_faulty_requires_extra(erroneous, match):
     metadata = {'module': 'mymod', 'author': '', 'author-email': ''}
     with pytest.raises(inifile.ConfigError, match=match):
         inifile._prep_metadata(dict(metadata, **erroneous), None)
+
+@pytest.mark.parametrize(('path', 'err_match'), [
+    ('../bar', 'out of the directory'),
+    ('foo/../../bar', 'out of the directory'),
+    ('/home', 'absolute path'),
+    ('foo:bar', 'bad character'),
+    ('foo/**/bar', '[Rr]ecursive glob')
+])
+def test_bad_include_paths(path, err_match):
+    toml_cfg = {'tool': {'flit': {
+        'metadata': {'module': 'xyz', 'author': 'nobody'},
+        'sdist': {'include': [path]}
+    }}}
+
+    with pytest.raises(inifile.ConfigError, match=err_match):
+        inifile.prep_toml_config(toml_cfg, None)
