@@ -7,7 +7,9 @@ module="flit"
 author="Thomas Kluyver"
 author-email="thomas@kluyver.me.uk"
 home-page="https://github.com/takluyver/flit"
-requires=["requests",
+requires=[
+    "flit_core>=2.0rc2",
+    "requests",
     "docutils",
     "pytoml",
     "zipfile36; python_version in '3.3 3.4 3.5'",
