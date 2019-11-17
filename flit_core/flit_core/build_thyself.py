@@ -23,7 +23,7 @@ metadata = Metadata({
     'home_page': 'https://github.com/takluyver/flit',
     'summary': ('Distribution-building parts of Flit. '
                     'See flit package for more information'),
-    'requires': [
+    'requires_dist': [
         'pytoml',
     ],
     'requires_python': '>=2.7, !=3.0, !=3.1, !=3.2, != 3.3',

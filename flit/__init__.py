@@ -9,7 +9,7 @@ import sys
 from flit_core import common
 from .log import enable_colourful_output
 
-__version__ = '2.0rc1'
+__version__ = '2.0rc2'
 
 log = logging.getLogger(__name__)
 
