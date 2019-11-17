@@ -187,6 +187,8 @@ importable module name, and the latter part should be the name of an object
 accessible within that module. The details of what object to expose depend on
 the application you're extending.
 
+.. _pyproject_toml_sdist:
+
 Sdist section
 -------------
 

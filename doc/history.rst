@@ -1,6 +1,28 @@
 Release history
 ===============
 
+Version 2.0
+-----------
+
+Flit 2 is a major architecture change. The ``flit_core`` package now provides
+a :pep:`517` backend for building packages, while ``flit`` is a
+:doc:`command line interface <cmdline>` extending that.
+
+The build backend works on Python 2, so tools like pip should be able to install
+packages built with flit from source on Python 2.
+The ``flit`` command requires Python 3.5 or above.
+
+Other changes include:
+
+- Support for storing your code under a ``src/`` folder (:ghpull:`260`).
+  You don't need to change any configuration if you do this.
+- Options to control what files are included in an sdist - see
+  :ref:`pyproject_toml_sdist` for the details.
+- Fix the shebang of scripts installed with the ``--python`` option and the
+  ``--symlink`` flag (:ghpull:`286`).
+- Author email is no longer required in the metadata table (:ghpull:`289`).
+- More error messages are now shown without a traceback (:ghpull:`254`)
+
 Version 1.3
 -----------
 
