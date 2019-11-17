@@ -152,7 +152,8 @@ class SdistBuilder(SdistBuilderCore):
                     "Commit, undo or ignore these files in your VCS.",
                     self.cfgdir)
 
-            files = vcs_mod.list_tracked_files(cfgdir_path)
+            files = [os.path.normpath(p)
+                     for p in vcs_mod.list_tracked_files(cfgdir_path)]
             files = sorted(filter(include_path, files))
             log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
         else:
