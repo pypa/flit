@@ -75,8 +75,6 @@ class Module(object):
             return True
 
         if self.is_package:
-            res = []
-
             # Ensure we sort all files and directories so the order is stable
             for dirpath, dirs, files in os.walk(str(self.path)):
                 for file in sorted(files):
@@ -86,7 +84,6 @@ class Module(object):
 
                 dirs[:] = [d for d in sorted(dirs) if _include(d)]
 
-            return res
         else:
             yield self.path
 
