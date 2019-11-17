@@ -6,7 +6,7 @@ environment:
     - PYTHON: "C:\\Python35-x64"
     - PYTHON: "C:\\Python36"
     - PYTHON: "C:\\Python27-x64"
-      EXTRA_PYTEST_ARGS: "--pyargs flit_core"
+      EXTRA_PYTEST_ARGS: "flit_core"
 
 install:
   - "%PYTHON%\\python.exe -m pip install -r requirements-test.txt"
