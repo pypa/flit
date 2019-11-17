@@ -12,7 +12,7 @@ requires=["requests",
     "pytoml",
     "zipfile36; python_version in '3.3 3.4 3.5'",
 ]
-requires-python=">=3"
+requires-python=">=3.5"
 description-file="README.rst"
 classifiers=["Intended Audience :: Developers",
     "License :: OSI Approved :: BSD License",

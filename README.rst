@@ -38,8 +38,8 @@ or as a directory — and you want to distribute it.
    .. code-block:: ini
 
        [build-system]
-       requires = ["flit"]
-       build-backend = "flit.buildapi"
+       requires = ["flit_core >=2,<3"]
+       build-backend = "flit_core.buildapi"
 
        [tool.flit.metadata]
        module = "foobar"

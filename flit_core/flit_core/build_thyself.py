@@ -13,9 +13,11 @@ from .common import Metadata, Module, dist_info_name
 from .wheel import WheelBuilder, _write_wheel_file, _replace
 from .sdist import SdistBuilder
 
+from . import __version__
+
 metadata = Metadata({
     'name': 'flit_core',
-    'version': '',
+    'version': __version__,
     'author': 'Thomas Kluyver & contributors',
     'author_email': 'thomas@kluyver.me.uk',
     'home_page': 'https://github.com/takluyver/flit',
@@ -23,6 +25,11 @@ metadata = Metadata({
                     'See flit package for more information'),
     'requires': [
         'pytoml',
+    ],
+    'requires_python': '>=2.7, !=3.0, !=3.1, !=3.2, != 3.3',
+    'classifiers': [
+        "License :: OSI Approved :: BSD License",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ]
 })
 

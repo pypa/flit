@@ -1,5 +1,6 @@
 /build/
 /dist/
+/flit_core/dist/
 __pycache__/
 /doc/_build/
 /tests/samples/build/
