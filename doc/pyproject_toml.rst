@@ -100,7 +100,7 @@ dist-name
   If you want your package's name on PyPI to be different from the importable
   module name, set this to the PyPI name.
 keywords
-  Space separated list of words to help with searching for your package.
+  Comma separated list of words to help with searching for your package.
 license
   The name of a license, if you're using one for which there isn't a Trove
   classifier. It's recommended to use Trove classifiers instead of this in
