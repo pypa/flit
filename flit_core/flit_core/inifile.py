@@ -347,9 +347,9 @@ def _expand_requires_extra(re):
         for req in reqs:
             if ';' in req:
                 name, envmark = req.split(';', 1)
-                yield '{}; extra == "{}" and ({})'.format(name, extra, envmark)
+                yield '{} ; extra == "{}" and ({})'.format(name, extra, envmark)
             else:
-                yield '{}; extra == "{}"'.format(req, extra)
+                yield '{} ; extra == "{}"'.format(req, extra)
 
 def prep_ini_config(cp, path):
     """Validate and process config loaded from a flit.ini file.

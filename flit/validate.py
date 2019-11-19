@@ -132,7 +132,7 @@ r''
 VERSION_SPEC = re.compile(r'(~=|===?|!=|<=?|>=?)\s*[A-Z0-9\-_.*+!]+$', re.IGNORECASE)
 REQUIREMENT = re.compile(NAME.pattern[:-1] +  # Trim '$'
      r"""\s*(?P<extras>\[.*\])?
-         \s*(?P<version>[(=~<>!][^;]*)?
+         \s*(?P<version>[(=~<>!@][^;]*)?
          \s*(?P<envmark>;.*)?
      $""", re.IGNORECASE | re.VERBOSE)
 MARKER_OP = re.compile(r'(~=|===?|!=|<=?|>=?|\s+in\s+|\s+not in\s+)')
@@ -196,7 +196,9 @@ def validate_requires_dist(metadata):
         if version is not None:
             if version.startswith('(') and version.endswith(')'):
                 version = version[1:-1]
-            if not _valid_version_specifier(version):
+            if version.startswith('@'):
+                pass  # url specifier  TODO: validate URL
+            elif not _valid_version_specifier(version):
                 print((extras, version, envmark))
                 probs.append("Invalid version specifier {!r} in requirement {!r}"
                              .format(version, req))

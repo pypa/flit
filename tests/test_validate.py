@@ -47,9 +47,17 @@ def test_validate_requires_dist():
     # Altogether now
     assert check('requests[extra-foo] >=2.14; python_version < "3.0"') == []
 
+    # URL specifier
+    assert check('requests @ https://example.com/requests.tar.gz') == []
+    assert check(
+        'requests @ https://example.com/requests.tar.gz ; python_version < "3.8"'
+    ) == []
+
+    # Problems
     assert len(check('Bücher')) == 1
     assert len(check('requests 2.14')) == 1
     assert len(check('pexpect; sys.platform == "win32"')) == 1  # '.' -> '_'
+    assert len(check('requests >=2.14 @ https://example.com/requests.tar.gz')) == 1
     # Several problems in one requirement
     assert len(check('pexpect[_foo] =3; sys.platform == "win32"')) == 3
 

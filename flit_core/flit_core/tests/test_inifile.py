@@ -52,8 +52,8 @@ def test_extras():
     requires_dist = set(info.metadata['requires_dist'])
     assert requires_dist == {
         'toml',
-        'pytest; extra == "test"',
-        'requests; extra == "custom"',
+        'pytest ; extra == "test"',
+        'requests ; extra == "custom"',
     }
     assert set(info.metadata['provides_extra']) == {'test', 'custom'}
 
@@ -64,11 +64,11 @@ def test_extras_dev_conflict():
 def test_extras_dev_warning(caplog):
     info = inifile.read_flit_config(osp.join(samples_dir, 'requires-dev.toml'))
     assert '"dev-requires = ..." is obsolete' in caplog.text
-    assert set(info.metadata['requires_dist']) == {'apackage; extra == "dev"'}
+    assert set(info.metadata['requires_dist']) == {'apackage ; extra == "dev"'}
 
 def test_requires_extra_env_marker():
     info = inifile.read_flit_config(osp.join(samples_dir, 'requires-extra-envmark.toml'))
-    assert info.metadata['requires_dist'][0].startswith('pathlib2;')
+    assert info.metadata['requires_dist'][0].startswith('pathlib2 ;')
 
 @pytest.mark.parametrize(('erroneous', 'match'), [
     ({'requires-extra': None}, r'Expected a dict for requires-extra field'),
