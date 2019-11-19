@@ -198,7 +198,8 @@ class Installer(object):
             # We don’t remove 'all' from the set because there might be an extra called “all”.
         elif self.deps == 'develop':
             extras_to_install |= {'dev', 'doc', 'test'}
-        elif self.deps == 'production':
+
+        if self.deps != 'none':
             # '.none' is an internal token for normal requirements
             extras_to_install.add('.none')
         log.info("Extras to install for deps %r: %s", self.deps, extras_to_install)
