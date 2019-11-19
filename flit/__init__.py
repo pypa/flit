@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 from flit_core import common
+from .inifile import ConfigError
 from .log import enable_colourful_output
 
 __version__ = '2.0rc2'
@@ -135,7 +136,7 @@ def main(argv=None):
             Installer(args.ini_file, user=args.user, python=python,
                       symlink=args.symlink, deps=args.deps, extras=args.extras,
                       pth=args.pth_file).install()
-        except (common.NoDocstringError, common.NoVersionError) as e:
+        except (ConfigError, common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'installfrom':
         log.warning("'flit installfrom' is deprecated: use a recent version of pip instead")
