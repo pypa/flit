@@ -131,9 +131,9 @@ class InstallTests(TestCase):
 
 @pytest.mark.parametrize(('deps', 'extras', 'installed'), [
     ('none', [], set()),
-    ('develop', [], {'pytest;', 'toml;'}),
-    ('production', [], {'toml;'}),
-    ('all', [], {'toml;', 'pytest;', 'requests;'}),
+    ('develop', [], {'pytest ;', 'toml ;'}),
+    ('production', [], {'toml ;'}),
+    ('all', [], {'toml ;', 'pytest ;', 'requests ;'}),
 ])
 def test_install_requires_extra(deps, extras, installed):
     it = InstallTests()
@@ -164,7 +164,7 @@ def test_install_requires_extra(deps, extras, installed):
 def test_requires_dist_to_pip_requirement():
     rd = 'pathlib2 (>=2.3); python_version == "2.7"'
     assert _requires_dist_to_pip_requirement(rd) == \
-        'pathlib2>=2.3; python_version == "2.7"'
+        'pathlib2>=2.3 ; python_version == "2.7"'
 
 def test_test_writable_dir_win():
     with tempfile.TemporaryDirectory() as td:

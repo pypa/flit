@@ -40,7 +40,7 @@ def _requires_dist_to_pip_requirement(requires_dist):
             version = '==' + version
         name_version = name + version
     # re-add environment marker
-    return ';'.join([name_version, env_mark])
+    return ' ;'.join([name_version, env_mark])
 
 def test_writable_dir(path):
     """Check if a directory is writable.
