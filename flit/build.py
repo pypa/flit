@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import sys
 
-from .inifile import ConfigError
+from .inifile import read_flit_config, ConfigError
 from .sdist import SdistBuilder
 from .wheel import wheel_main, make_wheel_in
 
@@ -36,6 +36,9 @@ def main(ini_file: Path, formats=None):
     sdist_info = wheel_info = None
 
     try:
+        # Load the config file to make sure it gets validated
+        read_flit_config(ini_file)
+
         if 'sdist' in formats:
             sb = SdistBuilder.from_ini_path(ini_file)
             sdist_file = sb.build(ini_file.parent / 'dist')
