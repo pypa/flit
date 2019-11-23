@@ -115,7 +115,7 @@ def test_permissions_normed(copy_sample):
 def test_compression(tmp_path):
     info = make_wheel_in(samples_dir / 'module1' / 'flit.ini', tmp_path)
     assert_isfile(info.file)
-    with zipfile.ZipFile(info.file) as zf:
+    with zipfile.ZipFile(str(info.file)) as zf:
         for name in [
             'module1.py',
             'module1-0.1.dist-info/METADATA',
