@@ -17,6 +17,8 @@ log = logging.getLogger(__name__)
 
 def find_python_executable(python):
     if not python:
+        python = os.environ.get("FLIT_INSTALL_PYTHON")
+    if not python:
         return sys.executable
     if os.path.isabs(python):  # sys.executable is absolute too
         return python

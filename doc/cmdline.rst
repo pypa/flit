@@ -107,9 +107,12 @@ Install the package on your system.
 .. option:: --python <path to python>
 
    Install for another Python, identified by the path of the python
-   executable. The default is to install the module for the copy of Python
-   that is running Flit. Using this option, you can install a module for Python
-   2, for instance.
+   executable. Using this option, you can install a module for Python 2, for
+   instance. See :envvar:`FLIT_INSTALL_PYTHON` if this option is not given.
+
+   .. versionchanged:: 2.1
+      Added :envvar:`FLIT_INSTALL_PYTHON` and use its value over the Python
+      running Flit when an explicit :option:`--python` option is not given.
 
 .. note::
 
@@ -171,6 +174,16 @@ Environment variables
    environment variable provides an escape hatch in case Flit incorrectly
    rejects your valid metadata. If you need to use it and you believe your
    metadata is valid, please `open an issue <https://github.com/takluyver/flit/issues>`__.
+
+.. envvar:: FLIT_INSTALL_PYTHON
+
+   .. versionadded:: 2.1
+
+   Set a default Python interpreter for ``flit install`` to use when
+   :option:`--python` is not specified. The value can be either an absolute
+   path, or a command name (which will be found in ``PATH``). If this is unset
+   or empty, the module is installed for the copy of Python that is running
+   Flit.
 
 .. envvar:: SOURCE_DATE_EPOCH
 
