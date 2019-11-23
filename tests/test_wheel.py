@@ -8,7 +8,7 @@ import zipfile
 import pytest
 from testpath import assert_isfile, assert_isdir
 
-from flit.wheel import wheel_main, WheelBuilder
+from flit.wheel import wheel_main, WheelBuilder, make_wheel_in
 from flit.inifile import EntryPointsConflict
 
 samples_dir = Path(__file__).parent / 'samples'
@@ -111,3 +111,13 @@ def test_permissions_normed(copy_sample):
         info = zf.getinfo('module1.py')
         perms = (info.external_attr >> 16) & 0o777
         assert perms == 0o755, oct(perms)
+
+def test_compression(tmp_path):
+    info = make_wheel_in(samples_dir / 'module1' / 'flit.ini', tmp_path)
+    assert_isfile(info.file)
+    with zipfile.ZipFile(info.file) as zf:
+        for name in [
+            'module1.py',
+            'module1-0.1.dist-info/METADATA',
+        ]:
+            assert zf.getinfo(name).compress_type == zipfile.ZIP_DEFLATED

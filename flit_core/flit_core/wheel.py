@@ -144,6 +144,8 @@ class WheelBuilder:
         if stat.S_ISDIR(st_mode):
             zinfo.external_attr |= 0x10  # MS-DOS directory flag
 
+        zinfo.compress_type = zipfile.ZIP_DEFLATED
+
         hashsum = hashlib.sha256()
         with open(full_path, 'rb') as src, self.wheel_zip.open(zinfo, 'w') as dst:
             while True:
