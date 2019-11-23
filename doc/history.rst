@@ -1,6 +1,14 @@
 Release history
 ===============
 
+Version 2.1
+-----------
+
+- Use compression when adding files to wheels.
+- Added the :envvar:`FLIT_INSTALL_PYTHON` environment variable (:ghpull:`295`),
+  to configure flit to always install into a Python other than the one it's
+  running on.
+
 Version 2.0
 -----------
 
