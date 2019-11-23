@@ -240,12 +240,12 @@ def write_entry_points(d, fp):
     Sorts on keys to ensure results are reproducible.
     """
     for group_name in sorted(d):
-        fp.write('[{}]\n'.format(group_name))
+        fp.write(u'[{}]\n'.format(group_name))
         group = d[group_name]
         for name in sorted(group):
             val = group[name]
-            fp.write('{}={}\n'.format(name, val))
-        fp.write('\n')
+            fp.write(u'{}={}\n'.format(name, val))
+        fp.write(u'\n')
 
 def hash_file(path, algorithm='sha256'):
     with open(path, 'rb') as f:
