@@ -26,8 +26,13 @@ Other changes include:
   You don't need to change any configuration if you do this.
 - Options to control what files are included in an sdist - see
   :ref:`pyproject_toml_sdist` for the details.
+- Requirements can specify a URL 'direct reference', as an alternative to a
+  version number, with the syntax defined in :pep:`440`:
+  ``requests @ https://example.com/requests-2.22.0.tar.gz``.
 - Fix the shebang of scripts installed with the ``--python`` option and the
   ``--symlink`` flag (:ghpull:`286`).
+- Installing with ``--deps develop`` now installs normal dependencies
+  as well as development dependencies.
 - Author email is no longer required in the metadata table (:ghpull:`289`).
 - More error messages are now shown without a traceback (:ghpull:`254`)
 
