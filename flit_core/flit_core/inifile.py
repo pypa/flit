@@ -1,4 +1,3 @@
-import configparser
 import difflib
 import errno
 import io
@@ -193,6 +192,9 @@ def _check_glob_patterns(pats, clude):
 def _read_pkg_ini(path):
     """Reads old-style flit.ini
     """
+    # This is only used for flit.ini; importing it locally so that projects
+    # with pyproject.toml don't need the backported package on Python 2.
+    import configparser
     cp = configparser.ConfigParser()
     with io.open(path, 'r', encoding='utf-8') as f:
         cp.read_file(f)
@@ -386,6 +388,7 @@ def prep_ini_config(cp, path):
     loaded_cfg = _prep_metadata(md_sect, path)
 
     if entry_points_file:
+        import configparser  # See _read_pkg_ini for why it's a local import
         ep_cp = configparser.ConfigParser()
         with io.open(entry_points_file, 'r', encoding='utf-8') as f:
             ep_cp.read_file(f)
