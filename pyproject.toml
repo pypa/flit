@@ -1,5 +1,5 @@
 [build-system]
-requires = ["flit_core >=2.0.1,<3"]
+requires = ["flit_core >=2.0.2,<3"]
 build-backend = "flit_core.buildapi"
 
 [tool.flit.metadata]
@@ -8,7 +8,7 @@ author="Thomas Kluyver"
 author-email="thomas@kluyver.me.uk"
 home-page="https://github.com/takluyver/flit"
 requires=[
-    "flit_core>=2.0.1",
+    "flit_core>=2.0.2",
     "requests",
     "docutils",
     "pytoml",
