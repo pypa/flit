@@ -4,4 +4,4 @@ This package provides a standard PEP 517 API to build packages using Flit.
 All the convenient development features live in the main 'flit' package.
 """
 
-__version__ = '2.0rc3'
+__version__ = '2.0'

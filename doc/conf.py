@@ -56,7 +56,7 @@ copyright = u'2015, Thomas Kluyver'
 # built documents.
 #
 # The short X.Y version.
-version = '1.3'
+version = '2.0'
 # The full version, including alpha/beta/rc tags.
 release = version #+ '.1'
 
