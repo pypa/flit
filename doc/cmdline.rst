@@ -172,6 +172,12 @@ Environment variables
    rejects your valid metadata. If you need to use it and you believe your
    metadata is valid, please `open an issue <https://github.com/takluyver/flit/issues>`__.
 
+.. envvar:: FLIT_INSTALL_PYTHON
+
+   Set a default Python interpreter for ``flit install`` to use when
+   ``--python`` is not specified. Flit uses the same environment itself is
+   installed in if this is left unset or empty.
+
 .. envvar:: SOURCE_DATE_EPOCH
 
    To make reproducible builds, set this to a timestamp as a number of seconds
