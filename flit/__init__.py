@@ -43,13 +43,14 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='pyproject.toml')
     ap.add_argument('-V', '--version', action='version', version='Flit '+__version__)
-    ap.add_argument('--repository',
-        help="Name of the repository to upload to (must be in ~/.pypirc)"
-    )
+    # --repository now belongs on 'flit publish' - it's still here for
+    # compatibility with scripts passing it before the subcommand.
+    ap.add_argument('--repository', help=argparse.SUPPRESS)
     ap.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
     ap.add_argument('--logo', action='store_true', help=argparse.SUPPRESS)
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
 
+    # flit build --------------------------------------------
     parser_build = subparsers.add_parser('build',
         help="Build wheel and sdist",
     )
@@ -58,6 +59,7 @@ def main(argv=None):
         help="Select a format to build. Options: 'wheel', 'sdist'"
     )
 
+    # flit publish --------------------------------------------
     parser_publish = subparsers.add_parser('publish',
         help="Upload wheel and sdist",
     )
@@ -66,6 +68,11 @@ def main(argv=None):
         help="Select a format to publish. Options: 'wheel', 'sdist'"
     )
 
+    parser_publish.add_argument('--repository',
+        help="Name of the repository to upload to (must be in ~/.pypirc)"
+    )
+
+    # flit install --------------------------------------------
     parser_install = subparsers.add_parser('install',
         help="Install the package",
     )
@@ -84,6 +91,7 @@ def main(argv=None):
              "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
     )
 
+    # flit installfrom (deprecated) ---------------------------------------
     parser_installfrom = subparsers.add_parser('installfrom',
        help="Download and install a package using flit from source"
     )
@@ -92,6 +100,7 @@ def main(argv=None):
     )
     add_shared_install_options(parser_installfrom)
 
+    # flit init --------------------------------------------
     parser_init = subparsers.add_parser('init',
         help="Prepare pyproject.toml for a new package"
     )

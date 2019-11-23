@@ -14,11 +14,6 @@ Common options
    Path to a config file specifying the module to build. The default is
    ``pyproject.toml`` or ``flit.ini``
 
-.. option:: --repository <repository>
-
-   Name of a repository to upload packages to. Should match a section in
-   ``~/.pypirc``. The default is ``pypi``. See :doc:`upload`.
-
 .. option::  --version
 
    Show the version of Flit in use.
@@ -58,6 +53,11 @@ or another repository.
 
    Limit to publishing either ``wheel`` or ``sdist``.
    You should normally publish the two formats together.
+
+.. option:: --repository <repository>
+
+   Name of a repository to upload packages to. Should match a section in
+   ``~/.pypirc``. The default is ``pypi``.
 
 .. seealso:: :doc:`upload`
 
