@@ -61,6 +61,8 @@ or another repository.
 
 .. seealso:: :doc:`upload`
 
+.. _install_cmd:
+
 ``flit install``
 ----------------
 
@@ -179,7 +181,9 @@ Environment variables
 
    .. versionadded:: 2.1
 
-   Set a default Python interpreter for ``flit install`` to use when
+   .. program:: flit install
+
+   Set a default Python interpreter for :ref:`install_cmd` to use when
    :option:`--python` is not specified. The value can be either an absolute
    path, or a command name (which will be found in ``PATH``). If this is unset
    or empty, the module is installed for the copy of Python that is running
