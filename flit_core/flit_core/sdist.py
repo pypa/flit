@@ -9,7 +9,7 @@ import os.path as osp
 from posixpath import join as pjoin
 import tarfile
 
-from . import common, inifile
+from . import common
 
 log = logging.getLogger(__name__)
 
@@ -94,6 +94,8 @@ class SdistBuilder:
 
     @classmethod
     def from_ini_path(cls, ini_path):
+        # Local import so bootstrapping doesn't try to load pytoml
+        from . import inifile
         ini_info = inifile.read_flit_config(ini_path)
         srcdir = osp.dirname(ini_path)
         module = common.Module(ini_info.module, srcdir)

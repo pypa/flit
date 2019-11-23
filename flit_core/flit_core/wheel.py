@@ -28,7 +28,6 @@ else:
 
 from flit_core import __version__
 from . import common
-from . import inifile
 
 log = logging.getLogger(__name__)
 
@@ -79,6 +78,8 @@ class WheelBuilder:
 
     @classmethod
     def from_ini_path(cls, ini_path, target_fp):
+        # Local import so bootstrapping doesn't try to load pytoml
+        from . import inifile
         directory = osp.dirname(ini_path)
         ini_info = inifile.read_flit_config(ini_path)
         entrypoints = ini_info.entrypoints
