@@ -8,6 +8,11 @@ python:
   - "3.4"  # 3.4 & 2.7 only test flit_core - see tox.ini
   - "2.7"
 
+jobs:
+  include:
+    - python: "3.8"
+      env: TOXENV=bootstrap
+
 install:
   - pip install tox-travis codecov
 script: tox
