@@ -32,8 +32,8 @@ or as a directory — and you want to distribute it.
 
        python3 -m pip install flit
 
-3. Run ``flit init`` to create a ``pyproject.toml`` file. It will look something
-   like this:
+3. Run ``flit init`` in the directory containing the module to create a
+   ``pyproject.toml`` file. It will look something like this:
 
    .. code-block:: ini
 
