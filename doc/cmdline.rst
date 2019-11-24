@@ -70,6 +70,15 @@ or another repository.
 
 Install the package on your system.
 
+By default, the package is installed to the same Python environment that Flit
+itself is installed in; use :option:`--python` or :envvar:`FLIT_INSTALL_PYTHON`
+to override this.
+
+If you don't have permission to modify the environment (e.g. the system Python
+on Linux), Flit may do a user install instead. Use the :option:`--user` or
+:option:`--env` flags to force this one way or the other, rather than letting
+Flit guess.
+
 .. option:: -s, --symlink
 
    Symlink the module into site-packages rather than copying it, so that you
@@ -102,9 +111,9 @@ Install the package on your system.
 
 .. option:: --env
 
-   Install into the environment. This is the default in a virtualenv or conda
-   env (if the environment's library directory is writable or
-   ``site.ENABLE_USER_SITE`` is false).
+   Install into the environment - the opposite of :option:`--user`.
+   This is the default in a virtualenv or conda env (if the environment's
+   library directory is writable or ``site.ENABLE_USER_SITE`` is false).
 
 .. option:: --python <path to python>
 
