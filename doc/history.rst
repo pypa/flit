@@ -8,6 +8,9 @@ Version 2.1
 - Added the :envvar:`FLIT_INSTALL_PYTHON` environment variable (:ghpull:`295`),
   to configure flit to always install into a Python other than the one it's
   running on.
+- ``flit_core`` uses the ``intreehooks`` shim package to load its bootstrapping
+  backend, until a released version of pip supports the standard
+  ``backend-path`` mechanism.
 
 Version 2.0
 -----------
