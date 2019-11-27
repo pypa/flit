@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 
@@ -22,6 +23,7 @@ def find_python_executable(python):
         return sys.executable
     if os.path.isabs(python):  # sys.executable is absolute too
         return python
+    python = shutil.which(python) or os.path.abspath(python)
     return subprocess.check_output(
         [python, "-c", "import sys; print(sys.executable)"],
         universal_newlines=True,
