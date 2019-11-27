@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 
@@ -15,6 +16,8 @@ __version__ = '2.1.0'
 log = logging.getLogger(__name__)
 
 
+class PythonNotFoundError(Exception): pass
+
 def find_python_executable(python):
     if not python:
         python = os.environ.get("FLIT_INSTALL_PYTHON")
@@ -22,6 +25,9 @@ def find_python_executable(python):
         return sys.executable
     if os.path.isabs(python):  # sys.executable is absolute too
         return python
+    python = shutil.which(python)
+    if not python:
+        raise PythonNotFoundError('Python executable {!r} not found'.format(python))
     return subprocess.check_output(
         [python, "-c", "import sys; print(sys.executable)"],
         universal_newlines=True,
@@ -147,12 +153,15 @@ def main(argv=None):
             Installer(args.ini_file, user=args.user, python=python,
                       symlink=args.symlink, deps=args.deps, extras=args.extras,
                       pth=args.pth_file).install()
-        except (ConfigError, common.NoDocstringError, common.NoVersionError) as e:
+        except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'installfrom':
         log.warning("'flit installfrom' is deprecated: use a recent version of pip instead")
         from .installfrom import installfrom
-        python = find_python_executable(args.python)
+        try:
+            python = find_python_executable(args.python)
+        except PythonNotFoundError as e:
+            sys.exit(e.args[0])
         sys.exit(installfrom(args.location, user=args.user, python=python))
     elif args.subcmd == 'init':
         from .init import TerminalIniter
