@@ -1,0 +1,37 @@
+import argparse
+import logging
+import os
+from pathlib import Path
+import sys
+
+my_dir = Path(__file__).parent
+os.chdir(my_dir)
+sys.path.insert(0, 'flit_core')
+
+from flit_core import build_thyself
+from flit_core.inifile import LoadedConfig
+from flit.install import Installer
+
+ap = argparse.ArgumentParser()
+ap.add_argument('--user')
+args = ap.parse_args()
+
+logging.basicConfig(level=logging.INFO)
+
+# Construct config for flit_core
+core_config = LoadedConfig()
+core_config.module = 'flit_core'
+core_config.metadata = build_thyself.metadata_dict
+core_config.reqs_by_extra['.none'] = build_thyself.metadata.requires_dist
+
+# Install flit_core
+Installer(
+    my_dir / 'flit_core', core_config, symlink=True, user=args.user,
+).install()
+print("Linked flit_core into site-packages.")
+
+# Install flit
+Installer.from_ini_path(
+    my_dir / 'pyproject.toml', symlink=True, user=args.user,
+).install()
+print("Linked flit into site-packages.")

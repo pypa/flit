@@ -15,7 +15,7 @@ from .sdist import SdistBuilder
 
 from . import __version__
 
-metadata = Metadata({
+metadata_dict = {
     'name': 'flit_core',
     'version': __version__,
     'author': 'Thomas Kluyver & contributors',
@@ -31,7 +31,8 @@ metadata = Metadata({
         "License :: OSI Approved :: BSD License",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
-})
+}
+metadata = Metadata(metadata_dict)
 
 def get_requires_for_build_wheel(config_settings=None):
     """Returns a list of requirements for building, as strings"""
