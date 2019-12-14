@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+# Symlink install flit & flit_core for development.
+# Most projects can do the same with 'flit install --symlink'.
+# But that doesn't work until Flit is installed, so we need some bootstrapping.
+
 import argparse
 import logging
 import os

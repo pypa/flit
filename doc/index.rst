@@ -17,6 +17,11 @@ Documentation contents
    cmdline
    upload
    reproducible
+
+.. toctree::
+   :maxdepth: 1
+
+   development
    history
 
 Indices and tables
