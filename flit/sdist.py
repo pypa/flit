@@ -183,6 +183,11 @@ class SdistBuilder(SdistBuilderCore):
         else:
             extra.append("py_modules={!r},".format([self.module.name]))
 
+        if self.module.prefix:
+            package_dir = pformat({'': self.module.prefix})
+            before.append("package_dir = \\\n%s\n" % package_dir)
+            extra.append("package_dir=package_dir,")
+
         install_reqs, extra_reqs = convert_requires(self.reqs_by_extra)
         if install_reqs:
             before.append("install_requires = \\\n%s\n" % pformat(install_reqs))

@@ -28,18 +28,22 @@ class Module(object):
         if osp.isdir(pkg_dir):
             self.path = pkg_dir
             self.is_package = True
+            self.prefix = ''
             existing.add(pkg_dir)
         elif osp.isfile(py_file):
             self.path = py_file
             self.is_package = False
+            self.prefix = ''
             existing.add(py_file)
         elif osp.isdir(src_pkg_dir):
             self.path = src_pkg_dir
             self.is_package = True
+            self.prefix = 'src'
             existing.add(src_pkg_dir)
         elif osp.isfile(src_py_file):
             self.path = src_py_file
             self.is_package = False
+            self.prefix = 'src'
             existing.add(src_py_file)
         else:
             raise ValueError("No file/folder found for module {}".format(name))
