@@ -150,7 +150,7 @@ def main(argv=None):
         from .install import Installer
         try:
             python = find_python_executable(args.python)
-            Installer(args.ini_file, user=args.user, python=python,
+            Installer.from_ini_path(args.ini_file, user=args.user, python=python,
                       symlink=args.symlink, deps=args.deps, extras=args.extras,
                       pth=args.pth_file).install()
         except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:

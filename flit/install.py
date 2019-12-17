@@ -89,9 +89,10 @@ class DependencyError(Exception):
         return 'To install dependencies for extras, you cannot set deps=none.'
 
 class Installer(object):
-    def __init__(self, ini_path, user=None, python=sys.executable,
+    def __init__(self, directory, ini_info, user=None, python=sys.executable,
                  symlink=False, deps='all', extras=(), pth=False):
-        self.ini_path = ini_path
+        self.directory = directory
+        self.ini_info = ini_info
         self.python = python
         self.symlink = symlink
         self.pth = pth
@@ -103,8 +104,7 @@ class Installer(object):
         if deps == 'none' and extras:
             raise DependencyError()
 
-        self.ini_info = inifile.read_flit_config(ini_path)
-        self.module = common.Module(self.ini_info.module, str(ini_path.parent))
+        self.module = common.Module(self.ini_info.module, str(directory))
 
         if (hasattr(os, 'getuid') and (os.getuid() == 0) and
                 (not os.environ.get('FLIT_ROOT_INSTALL'))):
@@ -117,6 +117,13 @@ class Installer(object):
         log.debug('User install? %s', self.user)
 
         self.installed_files = []
+
+    @classmethod
+    def from_ini_path(cls, ini_path, user=None, python=sys.executable,
+                      symlink=False, deps='all', extras=(), pth=False):
+        ini_info = inifile.read_flit_config(ini_path)
+        return cls(ini_path.parent, ini_info, user=user, python=python,
+                   symlink=symlink, deps=deps, extras=extras, pth=pth)
 
     def _run_python(self, code=None, file=None, extra_args=()):
         if code and file:
@@ -258,7 +265,7 @@ class Installer(object):
 
             log.warning("Installing requirements to Flit's env to import module.")
             user = self.user if (self.python == sys.executable) else None
-            i2 = Installer(ini_path=self.ini_path, user=user, deps='production')
+            i2 = Installer(self.directory, self.ini_info, user=user, deps='production')
             i2.install_requirements()
 
     def _get_dirs(self, user):
@@ -326,7 +333,13 @@ class Installer(object):
         with tempfile.TemporaryDirectory() as td:
             temp_whl = osp.join(td, 'temp.whl')
             with open(temp_whl, 'w+b') as fp:
-                wb = WheelBuilder.from_ini_path(self.ini_path, fp)
+                wb = WheelBuilder(
+                    str(self.directory),
+                    self.module,
+                    metadata=common.make_metadata(self.module, self.ini_info),
+                    entrypoints=self.ini_info.entrypoints,
+                    target_fp=fp,
+                )
                 wb.build()
 
             renamed_whl = osp.join(td, wb.wheel_filename)
