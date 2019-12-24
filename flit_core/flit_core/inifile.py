@@ -16,7 +16,7 @@ if sys.version_info[0] >= 3:
     text_types = (str,)
 else:
     def isidentifier(s):
-        return bool(re.match('[A-Za-z][A-Za-z0-9]*$', s))
+        return bool(re.match('[A-Za-z_][A-Za-z0-9_]*$', s))
 
     text_types = (str, unicode)
 
