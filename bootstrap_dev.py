@@ -11,7 +11,7 @@ from pathlib import Path
 import sys
 
 my_dir = Path(__file__).parent
-os.chdir(my_dir)
+os.chdir(str(my_dir))
 sys.path.insert(0, 'flit_core')
 
 from flit_core import build_thyself
