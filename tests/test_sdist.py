@@ -101,3 +101,8 @@ def test_make_setup_py_reqs_extra_envmark():
     builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'requires-extra-envmark' / 'pyproject.toml')
     ns = get_setup_assigns(builder.make_setup_py())
     assert ns['extras_require'] == {'test:python_version == "2.7"': ['pathlib2']}
+
+def test_make_setup_py_package_dir_src():
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'packageinsrc' / 'pyproject.toml')
+    ns = get_setup_assigns(builder.make_setup_py())
+    assert ns['package_dir'] == {'': 'src'}
