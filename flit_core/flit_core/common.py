@@ -30,29 +30,29 @@ class Module(object):
             self.is_package = True
             self.prefix = ''
             existing.add(pkg_dir)
-        elif osp.isfile(py_file):
+        if osp.isfile(py_file):
             self.path = py_file
             self.is_package = False
             self.prefix = ''
             existing.add(py_file)
-        elif osp.isdir(src_pkg_dir):
+        if osp.isdir(src_pkg_dir):
             self.path = src_pkg_dir
             self.is_package = True
             self.prefix = 'src'
             existing.add(src_pkg_dir)
-        elif osp.isfile(src_py_file):
+        if osp.isfile(src_py_file):
             self.path = src_py_file
             self.is_package = False
             self.prefix = 'src'
             existing.add(src_py_file)
-        else:
-            raise ValueError("No file/folder found for module {}".format(name))
 
         if len(existing) > 1:
             raise ValueError(
                 "Multiple files or folders could be module {}: {}"
                 .format(name, ", ".join(sorted(existing)))
             )
+        elif not existing:
+            raise ValueError("No file/folder found for module {}".format(name))
 
     @property
     def source_dir(self):
