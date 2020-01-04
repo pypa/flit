@@ -25,6 +25,10 @@ class ModuleTests(TestCase):
         with self.assertRaises(ValueError):
             i = Module('doesnt_exist', samples_dir)
 
+    def test_conflicting_modules(self):
+        with pytest.raises(ValueError, match="Multiple"):
+            Module('module1', osp.join(samples_dir, 'conflicting_modules'))
+
     def test_get_info_from_module(self):
         info = get_info_from_module(Module('module1', samples_dir))
         self.assertEqual(info, {'summary': 'Example module',
