@@ -44,7 +44,7 @@ if '--deleted' not in sys.argv:
 
 
 def test_get_files_list_git(copy_sample):
-    td = copy_sample('module1')
+    td = copy_sample('module1_ini')
     (td / '.git').mkdir()
 
     builder = sdist.SdistBuilder.from_ini_path(td / 'flit.ini')
@@ -58,7 +58,7 @@ def test_get_files_list_git(copy_sample):
 
 def test_get_files_list_hg(tmp_path):
     dir1 = tmp_path / 'dir1'
-    copytree(str(samples_dir / 'module1'), str(dir1))
+    copytree(str(samples_dir / 'module1_ini'), str(dir1))
     (tmp_path / '.hg').mkdir()
     builder = sdist.SdistBuilder.from_ini_path(dir1 / 'flit.ini')
     with MockCommand('hg', LIST_FILES):

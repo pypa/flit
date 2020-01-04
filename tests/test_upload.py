@@ -22,7 +22,7 @@ repo_settings = {'url': upload.PYPI,
 def test_verify():
     responses.add(responses.POST, upload.PYPI, status=200)
 
-    meta, mod = common.metadata_and_module_from_ini_path(samples_dir / 'module1' / 'flit.ini')
+    meta, mod = common.metadata_and_module_from_ini_path(samples_dir / 'module1_ini' / 'flit.ini')
     with patch('flit.upload.get_repository', return_value=repo_settings):
         upload.verify(meta, 'pypi')
 
@@ -31,7 +31,7 @@ def test_verify():
 @responses.activate
 def test_upload(copy_sample):
     responses.add(responses.POST, upload.PYPI, status=200)
-    td = copy_sample('module1')
+    td = copy_sample('module1_ini')
 
     with patch('flit.upload.get_repository', return_value=repo_settings):
         wheel.wheel_main(td / 'flit.ini', upload='pypi')
