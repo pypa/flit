@@ -28,7 +28,7 @@ class InstallTests(TestCase):
         self.get_dirs_patch.stop()
 
     def test_install_module(self):
-        Installer.from_ini_path(samples_dir / 'module1' / 'flit.ini').install_directly()
+        Installer.from_ini_path(samples_dir / 'module1_ini' / 'flit.ini').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
         assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
 

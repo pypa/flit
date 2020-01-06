@@ -21,7 +21,7 @@ def unpack(path):
     return t
 
 def test_wheel_module(copy_sample):
-    td = copy_sample('module1')
+    td = copy_sample('module1_ini')
     wheel_main(td / 'flit.ini')
     assert_isfile(td / 'dist/module1-0.1-py2.py3-none-any.whl')
 
@@ -89,7 +89,7 @@ def test_wheel_builder():
 
 @skipIf(os.name == 'nt', 'Windows does not preserve necessary permissions')
 def test_permissions_normed(copy_sample):
-    td = copy_sample('module1')
+    td = copy_sample('module1_ini')
 
     (td / 'module1.py').chmod(0o620)
     wheel_main(td / 'flit.ini')
@@ -113,7 +113,7 @@ def test_permissions_normed(copy_sample):
         assert perms == 0o755, oct(perms)
 
 def test_compression(tmp_path):
-    info = make_wheel_in(samples_dir / 'module1' / 'flit.ini', tmp_path)
+    info = make_wheel_in(samples_dir / 'module1_ini' / 'flit.ini', tmp_path)
     assert_isfile(info.file)
     with zipfile.ZipFile(str(info.file)) as zf:
         for name in [
