@@ -65,6 +65,13 @@ def main(argv=None):
         help="Select a format to build. Options: 'wheel', 'sdist'"
     )
 
+    parser_build.add_argument('--no-setup-py', action='store_false', dest='setup_py',
+        help=("Don't generate a setup.py file in the sdist. "
+              "The sdist will only work with tools that support PEP 517, "
+              "but the wheel will still be usable by any compatible tool."
+             )
+    )
+
     # flit publish --------------------------------------------
     parser_publish = subparsers.add_parser('publish',
         help="Upload wheel and sdist",
@@ -72,6 +79,13 @@ def main(argv=None):
 
     parser_publish.add_argument('--format', action='append',
         help="Select a format to publish. Options: 'wheel', 'sdist'"
+    )
+
+    parser_publish.add_argument('--no-setup-py', action='store_false', dest='setup_py',
+        help=("Don't generate a setup.py file in the sdist. "
+              "The sdist will only work with tools that support PEP 517, "
+              "but the wheel will still be usable by any compatible tool."
+             )
     )
 
     parser_publish.add_argument('--repository',
@@ -139,12 +153,14 @@ def main(argv=None):
     if args.subcmd == 'build':
         from .build import main
         try:
-            main(args.ini_file, formats=set(args.format or []))
+            main(args.ini_file, formats=set(args.format or []),
+                 gen_setup_py=args.setup_py)
         except(common.NoDocstringError, common.VCSError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'publish':
         from .upload import main
-        main(args.ini_file, args.repository, formats=set(args.format or []))
+        main(args.ini_file, args.repository, formats=set(args.format or []),
+             gen_setup_py=args.setup_py)
 
     elif args.subcmd == 'install':
         from .install import Installer

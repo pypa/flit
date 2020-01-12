@@ -261,10 +261,10 @@ def do_upload(file:Path, metadata:Metadata, repo_name=None):
         log.info("Package is at %s/%s", repo['url'], metadata.name)
 
 
-def main(ini_path, repo_name, formats=None):
+def main(ini_path, repo_name, formats=None, gen_setup_py=True):
     """Build and upload wheel and sdist."""
     from . import build
-    built = build.main(ini_path, formats=formats)
+    built = build.main(ini_path, formats=formats, gen_setup_py=gen_setup_py)
 
     if built.wheel is not None:
         do_upload(built.wheel.file, built.wheel.builder.metadata, repo_name)

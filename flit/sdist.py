@@ -215,5 +215,5 @@ class SdistBuilder(SdistBuilderCore):
             extra='\n      '.join(extra),
         ).encode('utf-8')
 
-    def build(self, target_dir):
-        return Path(super().build(str(target_dir)))
+    def build(self, target_dir, gen_setup_py=True):
+        return Path(super().build(str(target_dir), gen_setup_py=gen_setup_py))
