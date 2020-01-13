@@ -31,7 +31,7 @@ def test_make_sdist():
         sdist_file = td / 'package1-0.1.tar.gz'
         assert_isfile(sdist_file)
 
-        with tarfile.open(sdist_file) as tf:
+        with tarfile.open(str(sdist_file)) as tf:
             assert 'package1-0.1/setup.py' in tf.getnames()
 
 
@@ -46,7 +46,7 @@ def test_sdist_no_setup_py():
         sdist_file = td / 'package1-0.1.tar.gz'
         assert_isfile(sdist_file)
 
-        with tarfile.open(sdist_file) as tf:
+        with tarfile.open(str(sdist_file)) as tf:
             assert 'package1-0.1/setup.py' not in tf.getnames()
 
 
