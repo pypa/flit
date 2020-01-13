@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 from shutil import which, copy, copytree
 import sys
+import tarfile
 from tempfile import TemporaryDirectory
 from testpath import assert_isfile, MockCommand
 
@@ -27,7 +28,26 @@ def test_make_sdist():
     with TemporaryDirectory() as td:
         td = Path(td)
         builder.build(td)
-        assert_isfile(td / 'package1-0.1.tar.gz')
+        sdist_file = td / 'package1-0.1.tar.gz'
+        assert_isfile(sdist_file)
+
+        with tarfile.open(sdist_file) as tf:
+            assert 'package1-0.1/setup.py' in tf.getnames()
+
+
+def test_sdist_no_setup_py():
+    # Smoke test of making a complete sdist
+    if not which('git'):
+        pytest.skip("requires git")
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1' / 'flit.ini')
+    with TemporaryDirectory() as td:
+        td = Path(td)
+        builder.build(td, gen_setup_py=False)
+        sdist_file = td / 'package1-0.1.tar.gz'
+        assert_isfile(sdist_file)
+
+        with tarfile.open(sdist_file) as tf:
+            assert 'package1-0.1/setup.py' not in tf.getnames()
 
 
 LIST_FILES = """\
