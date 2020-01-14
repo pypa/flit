@@ -164,7 +164,7 @@ class SdistBuilder:
     def dir_name(self):
         return '{}-{}'.format(self.metadata.name, self.metadata.version)
 
-    def build(self, target_dir):
+    def build(self, target_dir, gen_setup_py=True):
         if not osp.isdir(target_dir):
             os.makedirs(target_dir)
         target = osp.join(
@@ -191,7 +191,8 @@ class SdistBuilder:
                 else:
                     tf.addfile(ti)  # Symlinks & ?
 
-            self.add_setup_py(files_to_add, tf)
+            if gen_setup_py:
+                self.add_setup_py(files_to_add, tf)
 
             pkg_info = PKG_INFO.format(
                 name=self.metadata.name,

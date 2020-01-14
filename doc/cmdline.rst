@@ -39,6 +39,12 @@ Build a wheel and an sdist (tarball) from the package.
 
    Limit to building either ``wheel`` or ``sdist``.
 
+.. option:: --no-setup-py
+
+   Don't generate a setup.py file in the sdist.
+   An sdist built without this will only work with tools that support PEP 517,
+   but the wheel will still be usable by any compatible tool.
+
 .. _publish_cmd:
 
 ``flit publish``
@@ -53,6 +59,12 @@ or another repository.
 
    Limit to publishing either ``wheel`` or ``sdist``.
    You should normally publish the two formats together.
+
+.. option:: --no-setup-py
+
+   Don't generate a setup.py file in the sdist.
+   An sdist built without this will only work with tools that support PEP 517,
+   but the wheel will still be usable by any compatible tool.
 
 .. option:: --repository <repository>
 
