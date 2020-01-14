@@ -1,6 +1,23 @@
 Release history
 ===============
 
+Version 2.2
+-----------
+
+- Allow underscores in package names with Python 2 (:ghpull:`305`).
+- Add a ``--no-setup-py`` option to build sdists without a backwards-compatible
+  ``setup.py`` file (:ghpull:`311`).
+- Fix the generated ``setup.py`` file for packages using a ``src/`` layout
+  (:ghpull:`303`).
+- Fix detecting when more than one file matches the module name specified
+  (:ghpull:`307`).
+- Fix installing to a venv on Windows with the ``--python`` option
+  (:ghpull:`300`).
+- Don't echo the command in scripts installed with ``--symlink`` or
+  ``--pth-file`` on Windows (:ghpull:`310`).
+- New ``bootstrap_dev.py`` script to set up a development installation of Flit
+  from the repository (:ghpull:`301`, :ghpull:`306`).
+
 Version 2.1
 -----------
 
