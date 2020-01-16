@@ -195,7 +195,12 @@ class WheelBuilder:
 
         for base in ('COPYING', 'LICENSE'):
             for path in sorted(glob(osp.join(self.directory, base + '*'))):
-                self._add_file(path, '%s/%s' % (self.dist_info, osp.basename(path)))
+                if osp.isdir(path):
+                    for full_path in sorted(glob(osp.join(path, '*'))):
+                        rel_path = osp.relpath(full_path, self.directory)
+                        self._add_file(full_path, '%s/%s' % (self.dist_info, rel_path))
+                else:
+                    self._add_file(path, '%s/%s' % (self.dist_info, osp.basename(path)))
 
         with self._write_to_zip(self.dist_info + '/WHEEL') as f:
             _write_wheel_file(f, supports_py2=self.metadata.supports_py2)

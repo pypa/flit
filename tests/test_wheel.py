@@ -41,6 +41,20 @@ def test_wheel_src_module(copy_sample):
         assert_isdir(Path(unpacked, 'module3-0.1.dist-info'))
         assert_isfile(Path(unpacked, 'module3-0.1.dist-info', 'LICENSE'))
 
+def test_wheel_src_module_with_licenses_dir(copy_sample):
+    td = copy_sample('module4_licenses_dir')
+    wheel_main(td / 'flit.ini')
+
+    whl_file = td / 'dist/module4-0.1-py2.py3-none-any.whl'
+    assert_isfile(whl_file)
+    with unpack(whl_file) as unpacked:
+        assert_isfile(Path(unpacked, 'module4.py'))
+        assert_isdir(Path(unpacked, 'module4-0.1.dist-info'))
+        licenses = Path(unpacked, 'module4-0.1.dist-info', 'LICENSES')
+        assert_isdir(licenses)
+        assert_isfile(licenses / 'MIT.txt')
+        assert_isfile(licenses / 'dummy.txt')
+
 def test_wheel_src_package(copy_sample):
     td = copy_sample('package2')
     wheel_main(td / 'package2-pkg.ini')
