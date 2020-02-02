@@ -147,6 +147,7 @@ Flit guess.
    is used to install dependencies. Otherwise, Flit builds a wheel and then
    calls pip to install that.
 
+.. _init_cmd:
 
 ``flit init``
 -------------
