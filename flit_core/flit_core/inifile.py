@@ -4,7 +4,7 @@ import io
 import logging
 import os
 import os.path as osp
-import pytoml as toml
+import toml
 import re
 import sys
 

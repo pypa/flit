@@ -121,7 +121,7 @@ Here's the full metadata section from flit itself:
         "requests",
         "docutils",
         "requests_download",
-        "pytoml",
+        "toml",
     ]
     requires-python="3"
     description-file="README.rst"

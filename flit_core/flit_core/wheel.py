@@ -78,7 +78,7 @@ class WheelBuilder:
 
     @classmethod
     def from_ini_path(cls, ini_path, target_fp):
-        # Local import so bootstrapping doesn't try to load pytoml
+        # Local import so bootstrapping doesn't try to load toml
         from . import inifile
         directory = osp.dirname(ini_path)
         ini_info = inifile.read_flit_config(ini_path)
