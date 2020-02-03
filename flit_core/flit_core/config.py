@@ -3,7 +3,7 @@ import errno
 import logging
 import os
 import os.path as osp
-import pytoml as toml
+import toml
 import re
 
 log = logging.getLogger(__name__)

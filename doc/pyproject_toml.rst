@@ -120,7 +120,7 @@ Here's the full metadata section from flit itself:
         "flit_core>=2.2.0",
         "requests",
         "docutils",
-        "pytoml",
+        "toml",
         "zipfile36; python_version in '3.3 3.4 3.5'",
     ]
     requires-python=">=3.5"
