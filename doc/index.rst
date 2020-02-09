@@ -17,6 +17,7 @@ Documentation contents
    cmdline
    upload
    reproducible
+   rationale
 
 .. toctree::
    :maxdepth: 1

@@ -1,4 +1,8 @@
 **Flit** is a simple way to put Python packages and modules on PyPI.
+It tries to require less thought about packaging and help you avoid common
+mistakes.
+See `Why use Flit? <https://flit.readthedocs.io/en/latest/rationale.html>`_ for
+more about how it compares to other Python packaging tools.
 
 Install
 -------
