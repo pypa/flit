@@ -1,3 +1,7 @@
+import os
+import pathlib
+import pytest
+
 from flit import validate as fv
 
 def test_validate_entrypoints():
@@ -107,3 +111,38 @@ def test_validate_project_urls():
     assert len(check(', https://flit.readthedocs.io/')) == 1
     # Name longer than 32 chars
     assert len(check('Supercalifragilisticexpialidocious, https://flit.readthedocs.io/')) == 1
+
+
+@pytest.fixture
+def fixture_env_variable():
+    # storing current environmental variables for resetting later
+    current_xdg = fv.os.environ.get("XDG_CACHE_HOME", None)
+    current_platform = fv.sys.platform
+    curernt_os_name = fv.os.name
+
+    # change the environmental variables for the test
+    fv.os.environ["XDG_CACHE_HOME"] = "/dev/null/nonexistent"
+    fv.sys.platform = "linux"
+    fv.os.name = "posix"
+
+    # return controll to the test function
+    yield
+
+    # reset the previously stored variables
+    if current_xdg is not None:
+        fv.os.environ["XDG_CACHE_HOME"] = current_xdg
+    fv.sys.platform = current_platform
+    fv.os.name = curernt_os_name
+
+
+def test_get_cache_with_temporary_directory(fixture_env_variable):
+    # clear the functools.lru_cache, might be prefilled from other tests
+    fv.get_cache_dir.cache_clear()
+
+    cache_dir = fv.get_cache_dir()
+
+    # only temporary cache directory will not end in "flit"
+    assert cache_dir.name != "flit"
+
+    # two calls to get_cache_dir() should return the same temporary directory
+    assert cache_dir == fv.get_cache_dir()

@@ -1,5 +1,6 @@
 """Validate various pieces of packaging data"""
 
+import functools
 import io
 import logging
 import os
@@ -7,32 +8,42 @@ from pathlib import Path
 import re
 import requests
 import sys
+import tempfile
 
 from .vendorized.readme.rst import render
 
 log = logging.getLogger(__name__)
 
+@functools.lru_cache(maxsize=1)
 def get_cache_dir() -> Path:
     """Locate a platform-appropriate cache directory for flit to use
 
-    Does not ensure that the cache directory exists.
+    Ensures that the cache directory exists.
     """
     # Linux, Unix, AIX, etc.
     if os.name == 'posix' and sys.platform != 'darwin':
         # use ~/.cache if empty OR not set
-        xdg = os.environ.get("XDG_CACHE_HOME", None) \
+        local = os.environ.get("XDG_CACHE_HOME", None) \
               or os.path.expanduser('~/.cache')
-        return Path(xdg, 'flit')
 
     # Mac OS
     elif sys.platform == 'darwin':
-        return Path(os.path.expanduser('~'), 'Library/Caches/flit')
+        local = os.path.expanduser('~/Library/Caches')
 
     # Windows (hopefully)
     else:
         local = os.environ.get('LOCALAPPDATA', None) \
                 or os.path.expanduser('~\\AppData\\Local')
-        return Path(local, 'flit')
+
+    cache_dir = Path(local, "flit")
+    try:
+        cache_dir.mkdir(parents=True)
+    except FileExistsError:
+        pass
+    except (OSError, PermissionError):
+        cache_dir = Path(tempfile.TemporaryDirectory().name)
+        cache_dir.mkdir(parents=True)
+    return cache_dir
 
 def _verify_classifiers_cached(classifiers):
     """Check classifiers against the downloaded list of known classifiers"""
@@ -52,10 +63,6 @@ def _download_classifiers():
     resp.raise_for_status()
 
     cache_dir = get_cache_dir()
-    try:
-        cache_dir.mkdir(parents=True)
-    except FileExistsError:
-        pass
     with (get_cache_dir() / 'classifiers.lst').open('wb') as f:
         f.write(resp.content)
 
