@@ -131,13 +131,18 @@ def patch_for_get_cache_dir():
         fv.os.environ["XDG_CACHE_HOME"] = original_xdg
     fv.os.path.expanduser = original_expanduser
 
+
+# the following test will fail on windows, since windows allows the creation
+# of the directory "/dev/null/nonexistent/flit"
+
+@pytest.mark.skipif(os.name == 'nt', reason="Test will fail on windows")
 def test_get_cache_with_temporary_directory(patch_for_get_cache_dir):
     # clear the functools.lru_cache, might be prefilled from other tests
     fv.get_cache_dir.cache_clear()
 
     cache_dir = fv.get_cache_dir()
 
-    # only temporary cache directory will not end in "flit"
+    # a posix temporary cache directory will not end in "flit"
     assert cache_dir.name != "flit"
 
     # two calls to get_cache_dir() should return the same temporary directory
