@@ -114,28 +114,24 @@ def test_validate_project_urls():
 
 
 @pytest.fixture
-def fixture_env_variable():
+def patch_for_get_cache_dir():
     # storing current environmental variables for resetting later
-    current_xdg = fv.os.environ.get("XDG_CACHE_HOME", None)
-    current_platform = fv.sys.platform
-    curernt_os_name = fv.os.name
+    original_xdg = fv.os.environ.get("XDG_CACHE_HOME", None)
+    original_expanduser = fv.os.path.expanduser
 
     # change the environmental variables for the test
     fv.os.environ["XDG_CACHE_HOME"] = "/dev/null/nonexistent"
-    fv.sys.platform = "linux"
-    fv.os.name = "posix"
+    fv.os.path.expanduser = lambda x: "/dev/null/nonexistent"
 
     # return controll to the test function
     yield
 
     # reset the previously stored variables
-    if current_xdg is not None:
-        fv.os.environ["XDG_CACHE_HOME"] = current_xdg
-    fv.sys.platform = current_platform
-    fv.os.name = curernt_os_name
+    if original_xdg is not None:
+        fv.os.environ["XDG_CACHE_HOME"] = original_xdg
+    fv.os.path.expanduser = original_expanduser
 
-
-def test_get_cache_with_temporary_directory(fixture_env_variable):
+def test_get_cache_with_temporary_directory(patch_for_get_cache_dir):
     # clear the functools.lru_cache, might be prefilled from other tests
     fv.get_cache_dir.cache_clear()
 
