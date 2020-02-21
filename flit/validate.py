@@ -18,15 +18,14 @@ def get_cache_dir() -> Path:
     Does not ensure that the cache directory exists.
     """
     # Linux, Unix, AIX, etc.
-    if os.name == 'posix' and sys.platform != 'darwin':
+    if os.name == 'posix':
+        home = os.environ.get("HOME", None) \
+            or os.path.expanduser('~')
+        cache = 'Library/Caches' if sys.platform == 'darwin' else '.cache'
         # use ~/.cache if empty OR not set
         xdg = os.environ.get("XDG_CACHE_HOME", None) \
-              or os.path.expanduser('~/.cache')
+              or Path(home, cache)
         return Path(xdg, 'flit')
-
-    # Mac OS
-    elif sys.platform == 'darwin':
-        return Path(os.path.expanduser('~'), 'Library/Caches/flit')
 
     # Windows (hopefully)
     else:
