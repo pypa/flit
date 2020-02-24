@@ -125,13 +125,9 @@ def patch_for_get_cache_dir(monkeypatch):
 
 @pytest.mark.skipif(os.name == 'nt', reason="relies on typical unix paths")
 def test_get_cache_with_temporary_directory(patch_for_get_cache_dir):
-    # clear the functools.lru_cache, might be prefilled from other tests
-    fv.get_cache_dir.cache_clear()
 
-    cache_dir = fv.get_cache_dir()
+    with fv.get_cache_dir() as cache_dir:
 
-    # a posix temporary cache directory will not end in "flit"
-    assert cache_dir.name != "flit"
+        # a posix temporary cache directory will not end in "flit"
+        assert cache_dir.name != "flit"
 
-    # two calls to get_cache_dir() should return the same temporary directory
-    assert cache_dir == fv.get_cache_dir()

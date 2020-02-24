@@ -1,6 +1,6 @@
 """Validate various pieces of packaging data"""
 
-import functools
+import contextlib
 import io
 import logging
 import os
@@ -14,7 +14,7 @@ from .vendorized.readme.rst import render
 
 log = logging.getLogger(__name__)
 
-@functools.lru_cache(maxsize=1)
+@contextlib.contextmanager
 def get_cache_dir() -> Path:
     """Locate a platform-appropriate cache directory for flit to use
 
@@ -41,13 +41,13 @@ def get_cache_dir() -> Path:
     except FileExistsError:
         pass
     except (OSError, PermissionError):
-        cache_dir = Path(tempfile.TemporaryDirectory().name)
-        cache_dir.mkdir(parents=True)
-    return cache_dir
+        temp_dir =  tempfile.TemporaryDirectory()
+        cache_dir = Path(temp_dir.name)
+    yield cache_dir
 
-def _verify_classifiers_cached(classifiers):
+def _verify_classifiers_cached(classifiers, cache_dir):
     """Check classifiers against the downloaded list of known classifiers"""
-    with (get_cache_dir() / 'classifiers.lst').open(encoding='utf-8') as f:
+    with (cache_dir / 'classifiers.lst').open(encoding='utf-8') as f:
         valid_classifiers = set(l.strip() for l in f)
 
     invalid = classifiers - valid_classifiers
@@ -55,15 +55,14 @@ def _verify_classifiers_cached(classifiers):
             for c in sorted(invalid)]
 
 
-def _download_classifiers():
+def _download_classifiers(cache_dir):
     """Get the list of valid trove classifiers from PyPI"""
     log.info('Fetching list of valid trove classifiers')
     resp = requests.get(
         'https://pypi.org/pypi?%3Aaction=list_classifiers')
     resp.raise_for_status()
 
-    cache_dir = get_cache_dir()
-    with (get_cache_dir() / 'classifiers.lst').open('wb') as f:
+    with (cache_dir / 'classifiers.lst').open('wb') as f:
         f.write(resp.content)
 
 
@@ -79,33 +78,34 @@ def validate_classifiers(classifiers):
 
     problems = []
     classifiers = set(classifiers)
-    try:
-        problems = _verify_classifiers_cached(classifiers)
-    except FileNotFoundError as e1:
-        # We haven't yet got the classifiers cached
-        pass
-    else:
-        if not problems:
+    with get_cache_dir() as cache_dir:
+        try:
+            problems = _verify_classifiers_cached(classifiers, cache_dir)
+        except FileNotFoundError as e1:
+            # We haven't yet got the classifiers cached
+            pass
+        else:
+            if not problems:
+                return []
+
+        # Either we don't have the list, or there were unexpected classifiers
+        # which might have been added since we last fetched it. Fetch and cache.
+
+        if os.environ.get('FLIT_NO_NETWORK', ''):
+            log.warning(
+                "Not checking classifiers, because FLIT_NO_NETWORK is set")
             return []
 
-    # Either we don't have the list, or there were unexpected classifiers
-    # which might have been added since we last fetched it. Fetch and cache.
-
-    if os.environ.get('FLIT_NO_NETWORK', ''):
-        log.warning(
-            "Not checking classifiers, because FLIT_NO_NETWORK is set")
-        return []
-
-    # Try to download up-to-date list of classifiers
-    try:
-        _download_classifiers()
-    except requests.ConnectionError:
-        # The error you get on a train, going through Oregon, without wifi
-        log.warning(
-            "Couldn't get list of valid classifiers to check against")
-        return problems
-    else:
-        return _verify_classifiers_cached(classifiers)
+        # Try to download up-to-date list of classifiers
+        try:
+            _download_classifiers(cache_dir)
+        except requests.ConnectionError:
+            # The error you get on a train, going through Oregon, without wifi
+            log.warning(
+                "Couldn't get list of valid classifiers to check against")
+            return problems
+        else:
+            return _verify_classifiers_cached(classifiers, cache_dir)
 
 
 def validate_entrypoints(entrypoints):
