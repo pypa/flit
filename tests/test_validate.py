@@ -114,28 +114,16 @@ def test_validate_project_urls():
 
 
 @pytest.fixture
-def patch_for_get_cache_dir():
+def patch_for_get_cache_dir(monkeypatch):
     # storing current environmental variables for resetting later
-    original_xdg = fv.os.environ.get("XDG_CACHE_HOME", None)
-    original_expanduser = fv.os.path.expanduser
-
-    # change the environmental variables for the test
-    fv.os.environ["XDG_CACHE_HOME"] = "/dev/null/nonexistent"
-    fv.os.path.expanduser = lambda x: "/dev/null/nonexistent"
-
-    # return controll to the test function
-    yield
-
-    # reset the previously stored variables
-    if original_xdg is not None:
-        fv.os.environ["XDG_CACHE_HOME"] = original_xdg
-    fv.os.path.expanduser = original_expanduser
+    monkeypatch.setenv("XDG_CACHE_HOME", "/dev/null/nonexistent")
+    monkeypatch.setattr(fv.os.path, "expanduser", lambda x: "/dev/null/nonexistent")
 
 
 # the following test will fail on windows, since windows allows the creation
 # of the directory "/dev/null/nonexistent/flit"
 
-@pytest.mark.skipif(os.name == 'nt', reason="Test will fail on windows")
+@pytest.mark.skipif(os.name == 'nt', reason="relies on typical unix paths")
 def test_get_cache_with_temporary_directory(patch_for_get_cache_dir):
     # clear the functools.lru_cache, might be prefilled from other tests
     fv.get_cache_dir.cache_clear()
