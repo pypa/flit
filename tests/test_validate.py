@@ -1,7 +1,4 @@
-import os
-import pathlib
 import pytest
-
 from flit import validate as fv
 
 def test_validate_entrypoints():
@@ -113,21 +110,72 @@ def test_validate_project_urls():
     assert len(check('Supercalifragilisticexpialidocious, https://flit.readthedocs.io/')) == 1
 
 
-@pytest.fixture
-def patch_for_get_cache_dir(monkeypatch):
-    # storing current environmental variables for resetting later
-    monkeypatch.setenv("XDG_CACHE_HOME", "/dev/null/nonexistent")
-    monkeypatch.setattr(fv.os.path, "expanduser", lambda x: "/dev/null/nonexistent")
+def test_read_classifiers_cached(monkeypatch):
+    def mock_get_cache_dir():
+
+        class MockChache:
+            def open(self, encoding):
+                return self
+            def __truediv__(self, other):
+                return self
+            def __enter__(self):
+                return ["A", "B", "C"]
+            def __exit__(self, *args):
+                pass
+
+        return MockChache()
+
+    monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
+
+    classifiers = fv._read_classifiers_cached()
+
+    assert classifiers == {'A', 'B', 'C'}
 
 
-# the following test will fail on windows, since windows allows the creation
-# of the directory "/dev/null/nonexistent/flit"
+def test_download_and_chache_classifiers():
+    classifiers = fv._download_and_chache_classifiers()
 
-@pytest.mark.skipif(os.name == 'nt', reason="relies on typical unix paths")
-def test_get_cache_with_temporary_directory(patch_for_get_cache_dir):
+    assert isinstance(classifiers, set)
+    assert "Development Status :: 1 - Planning" in classifiers
 
-    with fv.get_cache_dir() as cache_dir:
 
-        # a posix temporary cache directory will not end in "flit"
-        assert cache_dir.name != "flit"
+def test_download_and_chache_classifiers_with_unacessible_dir(monkeypatch):
+    def mock_get_cache_dir():
 
+        class MockChache:
+            def open(self, encoding):
+                raise PermissionError
+            def mkdir(self, parents):
+                raise PermissionError
+            def __truediv__(self, other):
+                return self
+            def __enter__(self):
+                return ["A", "B", "C"]
+            def __exit__(self, *args):
+                pass
+
+        return MockChache()
+
+    monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
+
+    classifiers = fv._download_and_chache_classifiers()
+
+    assert isinstance(classifiers, set)
+    assert "Development Status :: 1 - Planning" in classifiers
+
+
+def test_verify_classifiers_valid_classifiers():
+    classifiers = {"A"}
+    valid_classifiers = {"A", "B"}
+
+    problems = fv._verify_classifiers(classifiers, valid_classifiers)
+
+    assert problems == []
+
+def test_verify_classifiers_invalid_classifiers():
+    classifiers = {"A", "B"}
+    valid_classifiers = {"A"}
+
+    problems = fv._verify_classifiers(classifiers, valid_classifiers)
+
+    assert problems == ["Unrecognised classifier: 'B'"]
