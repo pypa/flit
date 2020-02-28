@@ -39,7 +39,7 @@ instead of the normal PyPI, use a config file looking like this:
 You can select an index server from this config file with the
 :option:`--repository` option::
 
-    flit --repository testpypi publish
+    flit publish --repository testpypi
 
 If you don't use this option,
 Flit will use the server called ``pypi`` in the config file. If that doesn't
