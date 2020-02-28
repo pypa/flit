@@ -12,3 +12,4 @@ __pycache__/
 .idea/
 venv/
 *.pyc
+.python-version
