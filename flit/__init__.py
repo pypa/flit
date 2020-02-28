@@ -51,7 +51,7 @@ def main(argv=None):
     ap.add_argument('-V', '--version', action='version', version='Flit '+__version__)
     # --repository now belongs on 'flit publish' - it's still here for
     # compatibility with scripts passing it before the subcommand.
-    ap.add_argument('--repository', help=argparse.SUPPRESS)
+    ap.add_argument('--repository', dest='deprecated_repository', help=argparse.SUPPRESS)
     ap.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
     ap.add_argument('--logo', action='store_true', help=argparse.SUPPRESS)
     subparsers = ap.add_subparsers(title='subcommands', dest='subcmd')
@@ -158,9 +158,12 @@ def main(argv=None):
         except(common.NoDocstringError, common.VCSError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'publish':
+        if args.deprecated_repository:
+            log.warning("Passing --repository before the 'upload' subcommand is deprecated: pass it after")
+        repository = args.repository or args.deprecated_repository
         from .upload import main
-        main(args.ini_file, args.repository, formats=set(args.format or []),
-             gen_setup_py=args.setup_py)
+        main(args.ini_file, repository, formats=set(args.format or []),
+                gen_setup_py=args.setup_py)
 
     elif args.subcmd == 'install':
         from .install import Installer
