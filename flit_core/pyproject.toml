@@ -1,9 +1,4 @@
 [build-system]
-# Using intreehooks is a workaround until pip supports backend-path;
-# once it does this will be converted to the standard mechanism.
-requires = ["intreehooks"]
-build-backend = "intreehooks:loader"
-
-[tool.intreehooks]
+requires = []
 build-backend = "flit_core.build_thyself"
-#backend-path = "."
+backend-path = "."
