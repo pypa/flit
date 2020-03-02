@@ -116,7 +116,7 @@ def test_read_classifiers_cached(monkeypatch, tmp_path):
 
     def mock_get_cache_dir():
         tmp_file = tmp_path / "classifiers.lst"
-        with open(tmp_file, "w") as fh:
+        with tmp_file.open("w") as fh:
             fh.write("A\nB\nC")
         return tmp_path
 
@@ -128,11 +128,16 @@ def test_read_classifiers_cached(monkeypatch, tmp_path):
 
 
 @responses.activate
-def test_download_and_cache_classifiers():
+def test_download_and_cache_classifiers(monkeypatch, tmp_file):
     responses.add(
         responses.GET,
         'https://pypi.org/pypi?%3Aaction=list_classifiers',
         body="A\nB\nC")
+
+    def mock_get_cache_dir():
+        return tmp_path
+
+    monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
 
     classifiers = fv._download_and_cache_classifiers()
 
