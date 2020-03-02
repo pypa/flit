@@ -132,6 +132,7 @@ def test_read_classifiers_cached(monkeypatch):
     assert classifiers == {'A', 'B', 'C'}
 
 
+@pytest.mark.network
 def test_download_and_cache_classifiers():
     classifiers = fv._download_and_cache_classifiers()
 
@@ -139,6 +140,7 @@ def test_download_and_cache_classifiers():
     assert "Development Status :: 1 - Planning" in classifiers
 
 
+@pytest.mark.network
 def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch):
     def mock_get_cache_dir():
 
