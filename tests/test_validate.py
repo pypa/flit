@@ -128,7 +128,7 @@ def test_read_classifiers_cached(monkeypatch, tmp_path):
 
 
 @responses.activate
-def test_download_and_cache_classifiers(monkeypatch, tmp_file):
+def test_download_and_cache_classifiers(monkeypatch, tmp_path):
     responses.add(
         responses.GET,
         'https://pypi.org/pypi?%3Aaction=list_classifiers',
