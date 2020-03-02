@@ -1,4 +1,6 @@
 import pytest
+import responses
+
 from flit import validate as fv
 
 def test_validate_entrypoints():
@@ -110,20 +112,13 @@ def test_validate_project_urls():
     assert len(check('Supercalifragilisticexpialidocious, https://flit.readthedocs.io/')) == 1
 
 
-def test_read_classifiers_cached(monkeypatch):
+def test_read_classifiers_cached(monkeypatch, tmp_path):
+
     def mock_get_cache_dir():
-
-        class MockChache:
-            def open(self, encoding):
-                return self
-            def __truediv__(self, other):
-                return self
-            def __enter__(self):
-                return ["A", "B", "C"]
-            def __exit__(self, *args):
-                pass
-
-        return MockChache()
+        tmp_file = tmp_path / "classifiers.lst"
+        with open(tmp_file, "w") as fh:
+            fh.write("A\nB\nC")
+        return tmp_path
 
     monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
 
@@ -132,38 +127,36 @@ def test_read_classifiers_cached(monkeypatch):
     assert classifiers == {'A', 'B', 'C'}
 
 
-@pytest.mark.network
+@responses.activate
 def test_download_and_cache_classifiers():
+    responses.add(
+        responses.GET,
+        'https://pypi.org/pypi?%3Aaction=list_classifiers',
+        body="A\nB\nC")
+
     classifiers = fv._download_and_cache_classifiers()
 
-    assert isinstance(classifiers, set)
-    assert "Development Status :: 1 - Planning" in classifiers
+    assert classifiers == {"A", "B", "C"}
 
 
-@pytest.mark.network
+@responses.activate
 def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch):
-    def mock_get_cache_dir():
+    responses.add(
+        responses.GET,
+        'https://pypi.org/pypi?%3Aaction=list_classifiers',
+        body="A\nB\nC")
 
-        class MockChache:
-            def open(self, encoding):
-                raise PermissionError
-            def mkdir(self, parents):
-                raise PermissionError
-            def __truediv__(self, other):
-                return self
-            def __enter__(self):
-                return ["A", "B", "C"]
-            def __exit__(self, *args):
-                pass
+    class MockChacheDir:
+        def mkdir(self, parents):
+            raise PermissionError
+        def __truediv__(self, other):
+            raise PermissionError
 
-        return MockChache()
-
-    monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
+    monkeypatch.setattr(fv, "get_cache_dir", MockChacheDir)
 
     classifiers = fv._download_and_cache_classifiers()
 
-    assert isinstance(classifiers, set)
-    assert "Development Status :: 1 - Planning" in classifiers
+    assert classifiers == {"A", "B", "C"}
 
 
 def test_verify_classifiers_valid_classifiers():

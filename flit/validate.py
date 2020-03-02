@@ -63,7 +63,7 @@ def _download_and_cache_classifiers():
     try:
         with (cache_dir / 'classifiers.lst').open('wb') as f:
             f.write(resp.content)
-    except PermissionError:
+    except (PermissionError, FileNotFoundError):
         # cache file could not be created
         pass
     except OSError as e:
