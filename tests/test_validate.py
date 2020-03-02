@@ -132,14 +132,14 @@ def test_read_classifiers_cached(monkeypatch):
     assert classifiers == {'A', 'B', 'C'}
 
 
-def test_download_and_chache_classifiers():
-    classifiers = fv._download_and_chache_classifiers()
+def test_download_and_cache_classifiers():
+    classifiers = fv._download_and_cache_classifiers()
 
     assert isinstance(classifiers, set)
     assert "Development Status :: 1 - Planning" in classifiers
 
 
-def test_download_and_chache_classifiers_with_unacessible_dir(monkeypatch):
+def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch):
     def mock_get_cache_dir():
 
         class MockChache:
@@ -158,7 +158,7 @@ def test_download_and_chache_classifiers_with_unacessible_dir(monkeypatch):
 
     monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
 
-    classifiers = fv._download_and_chache_classifiers()
+    classifiers = fv._download_and_cache_classifiers()
 
     assert isinstance(classifiers, set)
     assert "Development Status :: 1 - Planning" in classifiers

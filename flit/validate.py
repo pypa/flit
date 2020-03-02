@@ -1,5 +1,6 @@
 """Validate various pieces of packaging data"""
 
+import errno
 import io
 import logging
 import os
@@ -36,13 +37,13 @@ def get_cache_dir() -> Path:
 
 
 def _read_classifiers_cached():
-    """Check classifiers against the downloaded list of known classifiers"""
+    """Reads classifiers from cached file"""
     with (get_cache_dir() / 'classifiers.lst').open(encoding='utf-8') as f:
         valid_classifiers = set(l.strip() for l in f)
     return valid_classifiers
 
 
-def _download_and_chache_classifiers():
+def _download_and_cache_classifiers():
     """Get the list of valid trove classifiers from PyPI"""
     log.info('Fetching list of valid trove classifiers')
     resp = requests.get(
@@ -52,24 +53,30 @@ def _download_and_chache_classifiers():
     cache_dir = get_cache_dir()
     try:
         cache_dir.mkdir(parents=True)
-    except (FileExistsError, PermissionError, OSError):
-        # readonly mounted file raises OSError
+    except (FileExistsError, PermissionError):
         pass
+    except OSError as e:
+        # readonly mounted file raises OSError, only these should be captured
+        if not e.errno == errno.EROFS:
+            raise
 
     try:
         with (cache_dir / 'classifiers.lst').open('wb') as f:
             f.write(resp.content)
-    except (PermissionError, OSError):
-        # readonly mounted file raises OSError
+    except PermissionError:
         # cache file could not be created
         pass
+    except OSError as e:
+        # readonly mounted file raises OSError, only these should be captured
+        if not e.errno == errno.EROFS:
+            raise
 
     valid_classifiers = set(l.strip() for l in resp.text.splitlines())
     return valid_classifiers
 
 
 def _verify_classifiers(classifiers, valid_classifiers):
-    """Check classifiers against the downloaded list of known classifiers"""
+    """Check classifiers against a set of known classifiers"""
     invalid = classifiers - valid_classifiers
     return ["Unrecognised classifier: {!r}".format(c)
             for c in sorted(invalid)]
@@ -107,7 +114,7 @@ def validate_classifiers(classifiers):
 
     # Try to download up-to-date list of classifiers
     try:
-        valid_classifiers = _download_and_chache_classifiers()
+        valid_classifiers = _download_and_cache_classifiers()
     except requests.ConnectionError:
         # The error you get on a train, going through Oregon, without wifi
         log.warning(
