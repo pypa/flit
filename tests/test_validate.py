@@ -1,3 +1,4 @@
+import errno
 import pytest
 import responses
 
@@ -145,7 +146,8 @@ def test_download_and_cache_classifiers(monkeypatch, tmp_path):
 
 
 @responses.activate
-def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch):
+@pytest.mark.parametrize("error", [PermissionError, OSError(errno.EROFS, "")])
+def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch, error):
     responses.add(
         responses.GET,
         'https://pypi.org/pypi?%3Aaction=list_classifiers',
@@ -153,15 +155,53 @@ def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch):
 
     class MockChacheDir:
         def mkdir(self, parents):
-            raise PermissionError
+            raise error
         def __truediv__(self, other):
-            raise PermissionError
+            raise error
 
     monkeypatch.setattr(fv, "get_cache_dir", MockChacheDir)
 
     classifiers = fv._download_and_cache_classifiers()
 
     assert classifiers == {"A", "B", "C"}
+
+
+@responses.activate
+def test_download_and_cache_classifiers_not_catching_oserror_mkdir(monkeypatch):
+    responses.add(
+        responses.GET,
+        'https://pypi.org/pypi?%3Aaction=list_classifiers',
+        body="A\nB\nC")
+
+    unused_error_nr = max(errno.errorcode) + 1
+    class MockChacheDir:
+        def mkdir(self, parents):
+            raise OSError(unused_error_nr, "")
+
+    monkeypatch.setattr(fv, "get_cache_dir", MockChacheDir)
+
+    with pytest.raises(OSError):
+        fv._download_and_cache_classifiers()
+
+
+@responses.activate
+def test_download_and_cache_classifiers_not_catching_oserror_on_write(monkeypatch):
+    responses.add(
+        responses.GET,
+        'https://pypi.org/pypi?%3Aaction=list_classifiers',
+        body="A\nB\nC")
+
+    unused_error_nr = max(errno.errorcode) + 1
+    class MockChacheDir:
+        def mkdir(self, parents):
+            raise PermissionError # will be catched
+        def __truediv__(self, other):
+            raise OSError(unused_error_nr, "")
+
+    monkeypatch.setattr(fv, "get_cache_dir", MockChacheDir)
+
+    with pytest.raises(OSError):
+        fv._download_and_cache_classifiers()
 
 
 def test_verify_classifiers_valid_classifiers():

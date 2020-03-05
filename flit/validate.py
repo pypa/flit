@@ -57,7 +57,7 @@ def _download_and_cache_classifiers():
         pass
     except OSError as e:
         # readonly mounted file raises OSError, only these should be captured
-        if not e.errno == errno.EROFS:
+        if e.errno != errno.EROFS:
             raise
 
     try:
@@ -68,7 +68,7 @@ def _download_and_cache_classifiers():
         pass
     except OSError as e:
         # readonly mounted file raises OSError, only these should be captured
-        if not e.errno == errno.EROFS:
+        if e.errno != errno.EROFS:
             raise
 
     valid_classifiers = set(l.strip() for l in resp.text.splitlines())
