@@ -4,6 +4,7 @@ import logging
 import os
 import os.path as osp
 import csv
+import json
 import pathlib
 import random
 import shutil
@@ -384,6 +385,16 @@ class Installer(object):
             with (dist_info / 'entry_points.txt').open('w') as f:
                 common.write_entry_points(self.ini_info.entrypoints, f)
             self.installed_files.append(dist_info / 'entry_points.txt')
+
+        with (dist_info / 'direct_url.json').open('w', encoding='utf-8') as f:
+            json.dump(
+                {
+                    "url": self.directory.as_uri(),
+                    "dir_info": {"editable": bool(self.symlink or self.pth)}
+                },
+                f
+            )
+        self.installed_files.append(dist_info / 'direct_url.json')
 
         with (dist_info / 'RECORD').open('w', encoding='utf-8') as f:
             cf = csv.writer(f)
