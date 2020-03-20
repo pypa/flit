@@ -118,12 +118,13 @@ Here's the full metadata section from flit itself:
     author-email="thomas@kluyver.me.uk"
     home-page="https://github.com/takluyver/flit"
     requires=[
+        "flit_core>=2.2.0",
         "requests",
         "docutils",
-        "requests_download",
         "pytoml",
+        "zipfile36; python_version in '3.3 3.4 3.5'",
     ]
-    requires-python="3"
+    requires-python=">=3.5"
     description-file="README.rst"
     classifiers=[
         "Intended Audience :: Developers",
