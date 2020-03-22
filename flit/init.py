@@ -210,7 +210,7 @@ class TerminalIniter(IniterBase):
 
 TEMPLATE = """\
 [build-system]
-requires = ["flit_core >=2,<3"]
+requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.flit.metadata]
