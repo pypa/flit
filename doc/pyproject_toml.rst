@@ -21,7 +21,7 @@ defined by PEP 517. For any project using Flit, it will look like this:
 .. code-block:: toml
 
     [build-system]
-    requires = ["flit_core >=2,<3"]
+    requires = ["flit_core >=2,<4"]
     build-backend = "flit_core.buildapi"
 
 Metadata section

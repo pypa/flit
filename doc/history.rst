@@ -45,7 +45,7 @@ to look like this:
 .. code-block:: toml
 
     [build-system]
-    requires = ["flit_core >=2,<3"]
+    requires = ["flit_core >=2,<4"]
     build-backend = "flit_core.buildapi"
 
 Other changes include:
