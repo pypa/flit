@@ -166,44 +166,6 @@ def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch, error)
     assert classifiers == {"A", "B", "C"}
 
 
-@responses.activate
-def test_download_and_cache_classifiers_not_catching_oserror_mkdir(monkeypatch):
-    responses.add(
-        responses.GET,
-        'https://pypi.org/pypi?%3Aaction=list_classifiers',
-        body="A\nB\nC")
-
-    unused_error_nr = max(errno.errorcode) + 1
-    class MockCacheDir:
-        def mkdir(self, parents):
-            raise OSError(unused_error_nr, "")
-
-    monkeypatch.setattr(fv, "get_cache_dir", MockCacheDir)
-
-    with pytest.raises(OSError):
-        fv._download_and_cache_classifiers()
-
-
-@responses.activate
-def test_download_and_cache_classifiers_not_catching_oserror_on_write(monkeypatch):
-    responses.add(
-        responses.GET,
-        'https://pypi.org/pypi?%3Aaction=list_classifiers',
-        body="A\nB\nC")
-
-    unused_error_nr = max(errno.errorcode) + 1
-    class MockCacheDir:
-        def mkdir(self, parents):
-            raise PermissionError # will be catched
-        def __truediv__(self, other):
-            raise OSError(unused_error_nr, "")
-
-    monkeypatch.setattr(fv, "get_cache_dir", MockCacheDir)
-
-    with pytest.raises(OSError):
-        fv._download_and_cache_classifiers()
-
-
 def test_verify_classifiers_valid_classifiers():
     classifiers = {"A"}
     valid_classifiers = {"A", "B"}
