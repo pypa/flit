@@ -35,6 +35,7 @@ def main(ini_file: Path, formats=None, gen_setup_py=True):
 
     sdist_info = wheel_info = None
     dist_dir = ini_file.parent / 'dist'
+    dist_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         # Load the config file to make sure it gets validated
