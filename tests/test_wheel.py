@@ -8,7 +8,7 @@ import zipfile
 import pytest
 from testpath import assert_isfile, assert_isdir
 
-from flit.wheel import wheel_main, WheelBuilder, make_wheel_in
+from flit.wheel import WheelBuilder, make_wheel_in
 from flit.inifile import EntryPointsConflict
 
 samples_dir = Path(__file__).parent / 'samples'
@@ -22,19 +22,19 @@ def unpack(path):
 
 def test_wheel_module(copy_sample):
     td = copy_sample('module1_ini')
-    wheel_main(td / 'flit.ini')
-    assert_isfile(td / 'dist/module1-0.1-py2.py3-none-any.whl')
+    make_wheel_in(td / 'flit.ini', td)
+    assert_isfile(td / 'module1-0.1-py2.py3-none-any.whl')
 
 def test_wheel_package(copy_sample):
     td = copy_sample('package1')
-    wheel_main(td / 'flit.ini')
-    assert_isfile(td / 'dist/package1-0.1-py2.py3-none-any.whl')
+    make_wheel_in(td / 'flit.ini', td)
+    assert_isfile(td / 'package1-0.1-py2.py3-none-any.whl')
 
 def test_wheel_src_module(copy_sample):
     td = copy_sample('module3')
-    wheel_main(td / 'flit.ini')
+    make_wheel_in(td / 'flit.ini', td)
 
-    whl_file = td / 'dist/module3-0.1-py2.py3-none-any.whl'
+    whl_file = td / 'module3-0.1-py2.py3-none-any.whl'
     assert_isfile(whl_file)
     with unpack(whl_file) as unpacked:
         assert_isfile(Path(unpacked, 'module3.py'))
@@ -43,9 +43,9 @@ def test_wheel_src_module(copy_sample):
 
 def test_wheel_src_package(copy_sample):
     td = copy_sample('package2')
-    wheel_main(td / 'package2-pkg.ini')
+    make_wheel_in(td / 'package2-pkg.ini', td)
 
-    whl_file = td / 'dist/package2-0.1-py2.py3-none-any.whl'
+    whl_file = td / 'package2-0.1-py2.py3-none-any.whl'
     assert_isfile(whl_file)
     with unpack(whl_file) as unpacked:
         print(os.listdir(unpacked))
@@ -53,17 +53,17 @@ def test_wheel_src_package(copy_sample):
 
 def test_dist_name(copy_sample):
     td = copy_sample('altdistname')
-    wheel_main(td / 'flit.ini')
-    res = td / 'dist/package_dist1-0.1-py2.py3-none-any.whl'
+    make_wheel_in(td / 'flit.ini', td)
+    res = td / 'package_dist1-0.1-py2.py3-none-any.whl'
     assert_isfile(res)
     with unpack(res) as td_unpack:
         assert_isdir(Path(td_unpack, 'package_dist1-0.1.dist-info'))
 
 def test_entry_points(copy_sample):
     td = copy_sample('entrypoints_valid')
-    wheel_main(td / 'flit.ini')
-    assert_isfile(td / 'dist/package1-0.1-py2.py3-none-any.whl')
-    with unpack(td / 'dist/package1-0.1-py2.py3-none-any.whl') as td_unpack:
+    make_wheel_in(td / 'flit.ini', td)
+    assert_isfile(td / 'package1-0.1-py2.py3-none-any.whl')
+    with unpack(td / 'package1-0.1-py2.py3-none-any.whl') as td_unpack:
         entry_points = Path(td_unpack, 'package1-0.1.dist-info', 'entry_points.txt')
         assert_isfile(entry_points)
         cp = configparser.ConfigParser()
@@ -74,7 +74,7 @@ def test_entry_points(copy_sample):
 def test_entry_points_conflict(copy_sample):
     td = copy_sample('entrypoints_conflict')
     with pytest.raises(EntryPointsConflict):
-        wheel_main(td / 'flit.ini')
+        make_wheel_in(td / 'flit.ini', td)
 
 def test_wheel_builder():
     # Slightly lower level interface
@@ -92,9 +92,9 @@ def test_permissions_normed(copy_sample):
     td = copy_sample('module1_ini')
 
     (td / 'module1.py').chmod(0o620)
-    wheel_main(td / 'flit.ini')
+    make_wheel_in(td / 'flit.ini', td)
 
-    whl = td / 'dist' / 'module1-0.1-py2.py3-none-any.whl'
+    whl = td / 'module1-0.1-py2.py3-none-any.whl'
     assert_isfile(whl)
     with zipfile.ZipFile(str(whl)) as zf:
         info = zf.getinfo('module1.py')
@@ -104,7 +104,7 @@ def test_permissions_normed(copy_sample):
 
     # This time with executable bit set
     (td / 'module1.py').chmod(0o720)
-    wheel_main(td / 'flit.ini')
+    make_wheel_in(td / 'flit.ini', td)
 
     assert_isfile(whl)
     with zipfile.ZipFile(str(whl)) as zf:
