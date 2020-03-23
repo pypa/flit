@@ -11,7 +11,7 @@ import sys
 
 from .inifile import read_flit_config, ConfigError
 from .sdist import SdistBuilder
-from .wheel import wheel_main, make_wheel_in
+from .wheel import make_wheel_in
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +34,7 @@ def main(ini_file: Path, formats=None, gen_setup_py=True):
         raise ValueError("Unknown package formats: {}".format(formats - ALL_FORMATS))
 
     sdist_info = wheel_info = None
+    dist_dir = ini_file.parent / 'dist'
 
     try:
         # Load the config file to make sure it gets validated
@@ -41,18 +42,17 @@ def main(ini_file: Path, formats=None, gen_setup_py=True):
 
         if 'sdist' in formats:
             sb = SdistBuilder.from_ini_path(ini_file)
-            sdist_file = sb.build(ini_file.parent / 'dist', gen_setup_py=gen_setup_py)
+            sdist_file = sb.build(dist_dir, gen_setup_py=gen_setup_py)
             sdist_info = SimpleNamespace(builder=sb, file=sdist_file)
             # When we're building both, build the wheel from the unpacked sdist.
             # This helps ensure that the sdist contains all the necessary files.
             if 'wheel' in formats:
-                dist_dir = ini_file.parent / 'dist'
                 with unpacked_tarball(sdist_file) as tmpdir:
                     log.debug('Building wheel from unpacked sdist %s', tmpdir)
                     tmp_ini_file = Path(tmpdir, ini_file.name)
                     wheel_info = make_wheel_in(tmp_ini_file, dist_dir)
         elif 'wheel' in formats:
-            wheel_info = wheel_main(ini_file)
+            wheel_info = make_wheel_in(ini_file, dist_dir)
     except ConfigError as e:
         sys.exit('Config error: {}'.format(e))
 
