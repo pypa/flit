@@ -8,7 +8,7 @@ from testpath import modified_env
 from unittest.mock import patch
 
 from flit_core import common
-from flit import upload, wheel
+from flit import upload
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 
@@ -34,9 +34,9 @@ def test_upload(copy_sample):
     td = copy_sample('module1_ini')
 
     with patch('flit.upload.get_repository', return_value=repo_settings):
-        wheel.wheel_main(td / 'flit.ini', upload='pypi')
+        upload.main(td / 'flit.ini', repo_name='pypi')
 
-    assert len(responses.calls) == 1
+    assert len(responses.calls) == 2
 
 pypirc1 = """
 [distutils]
