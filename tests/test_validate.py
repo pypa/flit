@@ -1,3 +1,7 @@
+import errno
+import pytest
+import responses
+
 from flit import validate as fv
 
 def test_validate_entrypoints():
@@ -107,3 +111,73 @@ def test_validate_project_urls():
     assert len(check(', https://flit.readthedocs.io/')) == 1
     # Name longer than 32 chars
     assert len(check('Supercalifragilisticexpialidocious, https://flit.readthedocs.io/')) == 1
+
+
+def test_read_classifiers_cached(monkeypatch, tmp_path):
+
+    def mock_get_cache_dir():
+        tmp_file = tmp_path / "classifiers.lst"
+        with tmp_file.open("w") as fh:
+            fh.write("A\nB\nC")
+        return tmp_path
+
+    monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
+
+    classifiers = fv._read_classifiers_cached()
+
+    assert classifiers == {'A', 'B', 'C'}
+
+
+@responses.activate
+def test_download_and_cache_classifiers(monkeypatch, tmp_path):
+    responses.add(
+        responses.GET,
+        'https://pypi.org/pypi?%3Aaction=list_classifiers',
+        body="A\nB\nC")
+
+    def mock_get_cache_dir():
+        return tmp_path
+
+    monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
+
+    classifiers = fv._download_and_cache_classifiers()
+
+    assert classifiers == {"A", "B", "C"}
+
+
+@responses.activate
+@pytest.mark.parametrize("error", [PermissionError, OSError(errno.EROFS, "")])
+def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch, error):
+    responses.add(
+        responses.GET,
+        'https://pypi.org/pypi?%3Aaction=list_classifiers',
+        body="A\nB\nC")
+
+    class MockCacheDir:
+        def mkdir(self, parents):
+            raise error
+        def __truediv__(self, other):
+            raise error
+
+    monkeypatch.setattr(fv, "get_cache_dir", MockCacheDir)
+
+    classifiers = fv._download_and_cache_classifiers()
+
+    assert classifiers == {"A", "B", "C"}
+
+
+def test_verify_classifiers_valid_classifiers():
+    classifiers = {"A"}
+    valid_classifiers = {"A", "B"}
+
+    problems = fv._verify_classifiers(classifiers, valid_classifiers)
+
+    assert problems == []
+
+def test_verify_classifiers_invalid_classifiers():
+    classifiers = {"A", "B"}
+    valid_classifiers = {"A"}
+
+    problems = fv._verify_classifiers(classifiers, valid_classifiers)
+
+    assert problems == ["Unrecognised classifier: 'B'"]

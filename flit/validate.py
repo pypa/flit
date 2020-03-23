@@ -1,5 +1,6 @@
 """Validate various pieces of packaging data"""
 
+import errno
 import io
 import logging
 import os
@@ -34,17 +35,15 @@ def get_cache_dir() -> Path:
                 or os.path.expanduser('~\\AppData\\Local')
         return Path(local, 'flit')
 
-def _verify_classifiers_cached(classifiers):
-    """Check classifiers against the downloaded list of known classifiers"""
+
+def _read_classifiers_cached():
+    """Reads classifiers from cached file"""
     with (get_cache_dir() / 'classifiers.lst').open(encoding='utf-8') as f:
         valid_classifiers = set(l.strip() for l in f)
-
-    invalid = classifiers - valid_classifiers
-    return ["Unrecognised classifier: {!r}".format(c)
-            for c in sorted(invalid)]
+    return valid_classifiers
 
 
-def _download_classifiers():
+def _download_and_cache_classifiers():
     """Get the list of valid trove classifiers from PyPI"""
     log.info('Fetching list of valid trove classifiers')
     resp = requests.get(
@@ -54,10 +53,33 @@ def _download_classifiers():
     cache_dir = get_cache_dir()
     try:
         cache_dir.mkdir(parents=True)
-    except FileExistsError:
+    except (FileExistsError, PermissionError):
         pass
-    with (get_cache_dir() / 'classifiers.lst').open('wb') as f:
-        f.write(resp.content)
+    except OSError as e:
+        # readonly mounted file raises OSError, only these should be captured
+        if e.errno != errno.EROFS:
+            raise
+
+    try:
+        with (cache_dir / 'classifiers.lst').open('wb') as f:
+            f.write(resp.content)
+    except (PermissionError, FileNotFoundError):
+        # cache file could not be created
+        pass
+    except OSError as e:
+        # readonly mounted file raises OSError, only these should be captured
+        if e.errno != errno.EROFS:
+            raise
+
+    valid_classifiers = set(l.strip() for l in resp.text.splitlines())
+    return valid_classifiers
+
+
+def _verify_classifiers(classifiers, valid_classifiers):
+    """Check classifiers against a set of known classifiers"""
+    invalid = classifiers - valid_classifiers
+    return ["Unrecognised classifier: {!r}".format(c)
+            for c in sorted(invalid)]
 
 
 def validate_classifiers(classifiers):
@@ -73,9 +95,10 @@ def validate_classifiers(classifiers):
     problems = []
     classifiers = set(classifiers)
     try:
-        problems = _verify_classifiers_cached(classifiers)
-    except FileNotFoundError as e1:
-        # We haven't yet got the classifiers cached
+        valid_classifiers = _read_classifiers_cached()
+        problems = _verify_classifiers(classifiers, valid_classifiers)
+    except (FileNotFoundError, PermissionError) as e1:
+        # We haven't yet got the classifiers cached or couldn't read it
         pass
     else:
         if not problems:
@@ -91,14 +114,14 @@ def validate_classifiers(classifiers):
 
     # Try to download up-to-date list of classifiers
     try:
-        _download_classifiers()
+        valid_classifiers = _download_and_cache_classifiers()
     except requests.ConnectionError:
         # The error you get on a train, going through Oregon, without wifi
         log.warning(
             "Couldn't get list of valid classifiers to check against")
         return problems
     else:
-        return _verify_classifiers_cached(classifiers)
+        return _verify_classifiers(classifiers, valid_classifiers)
 
 
 def validate_entrypoints(entrypoints):
