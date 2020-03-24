@@ -1,9 +1,13 @@
-from pathlib import Path
 import pytest
 import shutil
 import sys
 from tempfile import TemporaryDirectory
 from testpath import assert_isdir, MockCommand
+
+if sys.version_info[:2] >= (3, 6):
+    from pathlib import Path
+else:
+    from pathlib2 import Path  # Match what pytest uses on older Pythons
 
 from flit_core import common
 from flit import build
