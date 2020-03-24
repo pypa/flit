@@ -1,13 +1,9 @@
+from pathlib import Path
 import pytest
 import shutil
 import sys
 from tempfile import TemporaryDirectory
 from testpath import assert_isdir, MockCommand
-
-if sys.version_info[:2] >= (3, 6):
-    from pathlib import Path
-else:
-    from pathlib2 import Path  # Match what pytest uses on older Pythons
 
 from flit_core import common
 from flit import build
@@ -45,7 +41,8 @@ def test_build_sdist_only(copy_sample):
         res = build.main(td / 'pyproject.toml', formats={'sdist'})
     assert res.wheel is None
 
-    assert list((td / 'dist').iterdir()) == [res.sdist.file]
+    # Compare str path to work around pathlib/pathlib2 mismatch on Py 3.5
+    assert [str(p) for p in (td / 'dist').iterdir()] == [str(res.sdist.file)]
 
 def test_build_wheel_only(copy_sample):
     td = copy_sample('module1_toml')
@@ -56,7 +53,8 @@ def test_build_wheel_only(copy_sample):
         res = build.main(td / 'pyproject.toml', formats={'wheel'})
     assert res.sdist is None
 
-    assert list((td / 'dist').iterdir()) == [res.wheel.file]
+    # Compare str path to work around pathlib/pathlib2 mismatch on Py 3.5
+    assert [str(p) for p in (td / 'dist').iterdir()] == [str(res.wheel.file)]
 
 def test_build_module_no_docstring():
     with TemporaryDirectory() as td:
