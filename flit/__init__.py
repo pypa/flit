@@ -6,6 +6,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+from typing import Optional, Sequence
 
 from flit_core import common
 from .inifile import ConfigError
@@ -18,7 +19,9 @@ log = logging.getLogger(__name__)
 
 class PythonNotFoundError(Exception): pass
 
-def find_python_executable(python):
+
+def find_python_executable(python: Optional[str] = None) -> str:
+    """Returns an absolute filepath to the executable of Python to use."""
     if not python:
         python = os.environ.get("FLIT_INSTALL_PYTHON")
     if not python:
@@ -34,7 +37,7 @@ def find_python_executable(python):
     ).strip()
 
 
-def add_shared_install_options(parser):
+def add_shared_install_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--user', action='store_true', default=None,
         help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
     )
@@ -45,7 +48,8 @@ def add_shared_install_options(parser):
         help="Target Python executable, if different from the one running flit"
     )
 
-def main(argv=None):
+
+def main(argv: Optional[Sequence[str]] = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='pyproject.toml')
     ap.add_argument('-V', '--version', action='version', version='Flit '+__version__)
