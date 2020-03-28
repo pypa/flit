@@ -3,7 +3,6 @@ import argparse
 import logging
 import os
 import pathlib
-import shutil
 import subprocess
 import sys
 from typing import Optional, Sequence
@@ -17,7 +16,7 @@ __version__ = '2.2.0'
 log = logging.getLogger(__name__)
 
 
-class PythonNotFoundError(Exception): pass
+class PythonNotFoundError(FileNotFoundError): pass
 
 
 def find_python_executable(python: Optional[str] = None) -> str:
@@ -28,13 +27,20 @@ def find_python_executable(python: Optional[str] = None) -> str:
         return sys.executable
     if os.path.isabs(python):  # sys.executable is absolute too
         return python
-    python = shutil.which(python)
-    if not python:
-        raise PythonNotFoundError('Python executable {!r} not found'.format(python))
-    return subprocess.check_output(
-        [python, "-c", "import sys; print(sys.executable)"],
-        universal_newlines=True,
-    ).strip()
+    # get absolute filepath of {python}
+    try:
+        return subprocess.check_output(
+            [python, "-c", "import sys; print(sys.executable)"],
+            universal_newlines=True,
+        ).strip()
+    except FileNotFoundError as e:
+        raise PythonNotFoundError("Python executable {!r} not found".format(python)) from e
+    except Exception as e:
+        raise PythonNotFoundError(
+            "{} occurred trying to find the absolute filepath of Python executable {!r}".format(
+                e.__class__.__name__, python
+            )
+        ) from e
 
 
 def add_shared_install_options(parser: argparse.ArgumentParser) -> None:
