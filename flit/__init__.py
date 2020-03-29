@@ -5,7 +5,7 @@ import os
 import pathlib
 import subprocess
 import sys
-from typing import Optional, Sequence
+from typing import Optional
 
 from flit_core import common
 from .inifile import ConfigError
