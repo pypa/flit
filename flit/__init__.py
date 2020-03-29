@@ -43,7 +43,7 @@ def find_python_executable(python: Optional[str] = None) -> str:
         ) from e
 
 
-def add_shared_install_options(parser: argparse.ArgumentParser) -> None:
+def add_shared_install_options(parser: argparse.ArgumentParser):
     parser.add_argument('--user', action='store_true', default=None,
         help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
     )
@@ -55,7 +55,7 @@ def add_shared_install_options(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def main(argv: Optional[Sequence[str]] = None) -> None:
+def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('-f', '--ini-file', type=pathlib.Path, default='pyproject.toml')
     ap.add_argument('-V', '--version', action='version', version='Flit '+__version__)
