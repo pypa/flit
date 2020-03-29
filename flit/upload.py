@@ -235,16 +235,6 @@ def upload_file(file:Path, metadata:Metadata, repo):
                         )
     resp.raise_for_status()
 
-def verify(metadata:Metadata, repo_name):
-    """Verify the metadata with the PyPI server.
-    """
-    repo = get_repository(repo_name)
-    data = build_post_data('verify', metadata)
-    resp = requests.post(repo['url'], data=data,
-                         auth=(repo['username'], repo['password'])
-                        )
-    resp.raise_for_status()
-    log.info('Verification succeeded')
 
 def do_upload(file:Path, metadata:Metadata, repo_name=None):
     """Upload a file to an index server.
