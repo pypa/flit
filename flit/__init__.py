@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 from typing import Optional
@@ -28,17 +29,20 @@ def find_python_executable(python: Optional[str] = None) -> str:
     if os.path.isabs(python):  # sys.executable is absolute too
         return python
     # get absolute filepath of {python}
+    # shutil.which may give a different result to the raw subprocess call
+    # see https://github.com/takluyver/flit/pull/300 and https://bugs.python.org/issue38905
+    resolved_python = shutil.which(python)
+    if resolved_python is None:
+        raise PythonNotFoundError("Unable to resolve Python executable {!r}".format(python))
     try:
         return subprocess.check_output(
-            [python, "-c", "import sys; print(sys.executable)"],
+            [resolved_python, "-c", "import sys; print(sys.executable)"],
             universal_newlines=True,
         ).strip()
-    except FileNotFoundError as e:
-        raise PythonNotFoundError("Python executable {!r} not found".format(python)) from e
     except Exception as e:
         raise PythonNotFoundError(
-            "{} occurred trying to find the absolute filepath of Python executable {!r}".format(
-                e.__class__.__name__, python
+            "{} occurred trying to find the absolute filepath of Python executable {!r} ({!r})".format(
+                e.__class__.__name__, python, resolved_python
             )
         ) from e
 
