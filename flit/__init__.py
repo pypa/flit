@@ -6,6 +6,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+from typing import Optional
 
 from flit_core import common
 from .inifile import ConfigError
@@ -16,25 +17,37 @@ __version__ = '2.2.0'
 log = logging.getLogger(__name__)
 
 
-class PythonNotFoundError(Exception): pass
+class PythonNotFoundError(FileNotFoundError): pass
 
-def find_python_executable(python):
+
+def find_python_executable(python: Optional[str] = None) -> str:
+    """Returns an absolute filepath to the executable of Python to use."""
     if not python:
         python = os.environ.get("FLIT_INSTALL_PYTHON")
     if not python:
         return sys.executable
     if os.path.isabs(python):  # sys.executable is absolute too
         return python
-    python = shutil.which(python)
-    if not python:
-        raise PythonNotFoundError('Python executable {!r} not found'.format(python))
-    return subprocess.check_output(
-        [python, "-c", "import sys; print(sys.executable)"],
-        universal_newlines=True,
-    ).strip()
+    # get absolute filepath of {python}
+    # shutil.which may give a different result to the raw subprocess call
+    # see https://github.com/takluyver/flit/pull/300 and https://bugs.python.org/issue38905
+    resolved_python = shutil.which(python)
+    if resolved_python is None:
+        raise PythonNotFoundError("Unable to resolve Python executable {!r}".format(python))
+    try:
+        return subprocess.check_output(
+            [resolved_python, "-c", "import sys; print(sys.executable)"],
+            universal_newlines=True,
+        ).strip()
+    except Exception as e:
+        raise PythonNotFoundError(
+            "{} occurred trying to find the absolute filepath of Python executable {!r} ({!r})".format(
+                e.__class__.__name__, python, resolved_python
+            )
+        ) from e
 
 
-def add_shared_install_options(parser):
+def add_shared_install_options(parser: argparse.ArgumentParser):
     parser.add_argument('--user', action='store_true', default=None,
         help="Do a user-local install (default if site.ENABLE_USER_SITE is True)"
     )
@@ -44,6 +57,7 @@ def add_shared_install_options(parser):
     parser.add_argument('--python',
         help="Target Python executable, if different from the one running flit"
     )
+
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
