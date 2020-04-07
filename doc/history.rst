@@ -1,6 +1,22 @@
 Release history
 ===============
 
+Version 2.3
+-----------
+
+- New projects created with :ref:`init_cmd` now declare that they require
+  ``flit_core >=2,<4`` (:ghpull:`328`). Any projects using ``pyproject.toml``
+  (not ``flit.ini``) should be compatible with flit 3.x.
+- Fix selecting files from a git submodule to include in an sdist
+  (:ghpull:`324`).
+- Fix checking classifiers when no writeable cache directory is available
+  (:ghpull:`319`).
+- Better errors when trying to install to a mis-spelled or missing Python
+  interpreter (:ghpull:`331`).
+- Fix specifying ``--repository`` before ``upload`` (:ghpull:`322`). Passing the
+  option like this is deprecated, and you should now pass it after ``upload``.
+- Documentation improvements (:ghpull:`327`, :ghpull:`318`, :ghpull:`314`)
+
 Version 2.2
 -----------
 
