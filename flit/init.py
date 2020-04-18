@@ -196,8 +196,8 @@ class TerminalIniter(IniterBase):
 
         readme = self.find_readme()
         if readme:
-            resp = input(f"Readme file found in the root of the project ({readme}) \n"
-                         "- Use this for the 'description-file'? [y/N]: ")
+            resp = input("Readme found in the project root ({}) - Use this for the 'description-file'? [y/N]: ".format(readme))
+
             if (not resp) or resp[0].lower() != 'y':
                 readme = None
 
