@@ -24,7 +24,7 @@ def test_make_sdist():
     # Smoke test of making a complete sdist
     if not which('git'):
         pytest.skip("requires git")
-    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1' / 'flit.ini')
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1' / 'pyproject.toml')
     with TemporaryDirectory() as td:
         td = Path(td)
         builder.build(td)
@@ -39,7 +39,7 @@ def test_sdist_no_setup_py():
     # Smoke test of making a complete sdist
     if not which('git'):
         pytest.skip("requires git")
-    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1' / 'flit.ini')
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1' / 'pyproject.toml')
     with TemporaryDirectory() as td:
         td = Path(td)
         builder.build(td, gen_setup_py=False)
@@ -64,10 +64,10 @@ if '--deleted' not in sys.argv:
 
 
 def test_get_files_list_git(copy_sample):
-    td = copy_sample('module1_ini')
+    td = copy_sample('module1_toml')
     (td / '.git').mkdir()
 
-    builder = sdist.SdistBuilder.from_ini_path(td / 'flit.ini')
+    builder = sdist.SdistBuilder.from_ini_path(td / 'pyproject.toml')
     with MockCommand('git', LIST_FILES):
         files = builder.select_files()
 
@@ -78,9 +78,9 @@ def test_get_files_list_git(copy_sample):
 
 def test_get_files_list_hg(tmp_path):
     dir1 = tmp_path / 'dir1'
-    copytree(str(samples_dir / 'module1_ini'), str(dir1))
+    copytree(str(samples_dir / 'module1_toml'), str(dir1))
     (tmp_path / '.hg').mkdir()
-    builder = sdist.SdistBuilder.from_ini_path(dir1 / 'flit.ini')
+    builder = sdist.SdistBuilder.from_ini_path(dir1 / 'pyproject.toml')
     with MockCommand('hg', LIST_FILES):
         files = builder.select_files()
 
@@ -98,7 +98,7 @@ def get_setup_assigns(setup):
     return ns
 
 def test_make_setup_py():
-    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1' / 'flit.ini')
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'package1' / 'pyproject.toml')
     ns = get_setup_assigns(builder.make_setup_py())
     assert ns['packages'] == ['package1', 'package1.subpkg', 'package1.subpkg2']
     assert 'install_requires' not in ns

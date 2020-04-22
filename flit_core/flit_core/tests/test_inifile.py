@@ -6,16 +6,6 @@ from flit_core import inifile
 
 samples_dir = osp.join(osp.dirname(__file__), 'samples')
 
-def test_requires_with_empty_lines():
-    ini_info = inifile.read_flit_config(
-        osp.join(samples_dir, 'requires_with_empty_lines.ini')
-    )
-    assert ini_info.metadata['requires_dist'] == ['foo', 'bar']
-
-def test_missing_entrypoints():
-    with pytest.raises(inifile.ConfigError, match="does not exist"):
-        inifile.read_flit_config(osp.join(samples_dir, 'entrypoints_missing.ini'))
-
 def test_flatten_entrypoints():
     r = inifile.flatten_entrypoints({'a': {'b': {'c':'d'}, 'e': {'f': {'g':'h'}}, 'i':'j'}})
     assert r == {'a': {'i': 'j'}, 'a.b': {'c': 'd'}, 'a.e.f': {'g': 'h'}}
@@ -27,12 +17,12 @@ def test_load_toml():
 
 def test_misspelled_key():
     with pytest.raises(inifile.ConfigError) as e_info:
-        inifile.read_flit_config(osp.join(samples_dir, 'misspelled-key.ini'))
+        inifile.read_flit_config(osp.join(samples_dir, 'misspelled-key.toml'))
 
     assert 'description-file' in str(e_info.value)
 
 def test_description_file():
-    info = inifile.read_flit_config(osp.join(samples_dir, 'package1-pkg.ini'))
+    info = inifile.read_flit_config(osp.join(samples_dir, 'package1.toml'))
     assert info.metadata['description'] == \
         "Sample description for test.\n"
     assert info.metadata['description_content_type'] == 'text/x-rst'
