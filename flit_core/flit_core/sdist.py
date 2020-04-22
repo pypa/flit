@@ -95,8 +95,8 @@ class SdistBuilder:
     @classmethod
     def from_ini_path(cls, ini_path):
         # Local import so bootstrapping doesn't try to load pytoml
-        from . import inifile
-        ini_info = inifile.read_flit_config(ini_path)
+        from .config import read_flit_config
+        ini_info = read_flit_config(ini_path)
         srcdir = osp.dirname(ini_path)
         module = common.Module(ini_info.module, srcdir)
         metadata = common.make_metadata(module, ini_info)

@@ -1,7 +1,7 @@
 import os
 
-from flit_core.inifile import *
-from flit_core.inifile import read_flit_config as _read_flit_config_core
+from flit_core.config import *
+from flit_core.config import read_flit_config as _read_flit_config_core
 from .validate import validate_config
 
 

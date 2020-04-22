@@ -9,7 +9,7 @@ import pytest
 from testpath import assert_isfile, assert_isdir
 
 from flit.wheel import WheelBuilder, make_wheel_in
-from flit.inifile import EntryPointsConflict
+from flit.config import EntryPointsConflict
 
 samples_dir = Path(__file__).parent / 'samples'
 

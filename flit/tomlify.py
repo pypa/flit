@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import pytoml
 
-from .inifile import metadata_list_fields
+from .config import metadata_list_fields
 from .init import TEMPLATE
 
 class CaseSensitiveConfigParser(configparser.ConfigParser):

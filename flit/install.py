@@ -14,7 +14,7 @@ from subprocess import check_call, check_output
 import sysconfig
 
 from flit_core import common
-from . import inifile
+from .config import read_flit_config
 from .wheel import WheelBuilder
 from ._get_dirs import get_dirs
 
@@ -121,7 +121,7 @@ class Installer(object):
     @classmethod
     def from_ini_path(cls, ini_path, user=None, python=sys.executable,
                       symlink=False, deps='all', extras=(), pth=False):
-        ini_info = inifile.read_flit_config(ini_path)
+        ini_info = read_flit_config(ini_path)
         return cls(ini_path.parent, ini_info, user=user, python=python,
                    symlink=symlink, deps=deps, extras=extras, pth=pth)
 
