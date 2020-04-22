@@ -34,9 +34,6 @@ doc = [
 	"sphinxcontrib_github_alt",
 	"pygments-github-lexers",  # TOML highlighting
 ]
-installfrom = [
-    "requests_download",
-]
 
 [tool.flit.metadata.urls]
 Documentation = "https://flit.readthedocs.io/en/latest/"

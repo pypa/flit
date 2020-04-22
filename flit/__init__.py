@@ -125,15 +125,6 @@ def main(argv=None):
              "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
     )
 
-    # flit installfrom (deprecated) ---------------------------------------
-    parser_installfrom = subparsers.add_parser('installfrom',
-       help="Download and install a package using flit from source"
-    )
-    parser_installfrom.add_argument('location',
-        help="A URL to download, or a shorthand like github:takluyver/flit"
-    )
-    add_shared_install_options(parser_installfrom)
-
     # flit init --------------------------------------------
     parser_init = subparsers.add_parser('init',
         help="Prepare pyproject.toml for a new package"
@@ -143,7 +134,7 @@ def main(argv=None):
 
     cf = args.ini_file
     if (
-        args.subcmd not in {'init', 'installfrom'}
+        args.subcmd not in {'init'}
         and cf == pathlib.Path('pyproject.toml')
         and not cf.is_file()
     ):
@@ -188,14 +179,7 @@ def main(argv=None):
                       pth=args.pth_file).install()
         except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
-    elif args.subcmd == 'installfrom':
-        log.warning("'flit installfrom' is deprecated: use a recent version of pip instead")
-        from .installfrom import installfrom
-        try:
-            python = find_python_executable(args.python)
-        except PythonNotFoundError as e:
-            sys.exit(e.args[0])
-        sys.exit(installfrom(args.location, user=args.user, python=python))
+
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()
