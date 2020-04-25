@@ -77,7 +77,7 @@ class InstallTests(TestCase):
         assert len(calls) == 1
         cmd = calls[0]['argv']
         assert cmd[1:4] == ['-m', 'pip', 'install']
-        assert cmd[4].endswith('package1-0.1-py2.py3-none-any.whl')
+        assert cmd[4].endswith('package1')
 
     def test_symlink_other_python(self):
         if os.name == 'nt':
