@@ -195,11 +195,6 @@ class TerminalIniter(IniterBase):
                     license_choices, self.defaults.get('license'))
 
         readme = self.find_readme()
-        if readme:
-            resp = input("Readme found in the project root ({}) - Use this for the 'description-file'? [y/N]: ".format(readme))
-
-            if (not resp) or resp[0].lower() != 'y':
-                readme = None
 
         self.update_defaults(author=author, author_email=author_email,
                              home_page=home_page, module=module, license=license)

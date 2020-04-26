@@ -202,14 +202,13 @@ def test_find_readme_not_found():
         ib = init.IniterBase(td)
         assert ib.find_readme() is None
 
-@pytest.mark.parametrize("yes",["y","Y","yes"])
-def test_init_readme_found_yes_choosen(yes):
+
+def test_init_readme_found_yes_choosen():
     responses = ['test_module_name',
                  'Test Author',
                  'test_email@example.com',
                  '',   # Home page omitted
                  '4',  # Skip - choose a license later
-                 yes,  # Readme found and yes to include
                 ]
     with make_dir(["readme.md"]) as td, \
           patch_data_dir(), \
@@ -226,28 +225,3 @@ def test_init_readme_found_yes_choosen(yes):
         'module': 'test_module_name',
         'description-file': 'readme.md'
     }
-
-@pytest.mark.parametrize("no",["","N","n"])
-def test_init_readme_found_no_choosen(no):
-    responses = ['test_module_name',
-                 'Test Author',
-                 'test_email@example.com',
-                 '',  # Home page omitted
-                 '4',  # Skip - choose a license later
-                 no,  # Readme found and yes to include
-                 ]
-    with make_dir(["readme.md"]) as td, \
-            patch_data_dir(), \
-            faking_input(responses):
-        ti = init.TerminalIniter(td)
-        ti.initialise()
-        with Path(td, 'pyproject.toml').open() as f:
-            data = pytoml.load(f)
-
-    metadata = data['tool']['flit']['metadata']
-    assert metadata == {
-        'author': 'Test Author',
-        'author-email': 'test_email@example.com',
-        'module': 'test_module_name',
-    }
-
