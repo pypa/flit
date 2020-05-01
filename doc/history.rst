@@ -312,7 +312,7 @@ Version 0.5
 
 - A new ``flit init`` command to quickly define the essential basic metadata
   for a package.
-- Support for :doc:`entrypoints`.
+- Support for entry points.
 - A new ``flit register`` command to register a package without uploading it,
   for when you want to claim a name before you're ready to release.
 - Added a ``--repository`` option for specifying an alternative PyPI instance.

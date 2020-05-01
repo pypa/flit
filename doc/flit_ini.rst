@@ -7,9 +7,9 @@ This file lives next to the module or package.
 
 .. note::
 
-   Flit 0.12 and above uses a :doc:`pyproject.toml file <pyproject_toml>` to
-   store this information. Flit can still read these ``flit.ini`` files for now,
-   but you should switch to ``pyproject.toml`` soon.
+   Flit 0.12 and above uses a :doc:`pyproject.toml file <pyproject_toml>` file
+   to store this information. Run ``python3 -m flit.tomlify`` to convert a
+   ``flit.ini`` file to ``pyproject.toml``.
 
 Metadata section
 ----------------
