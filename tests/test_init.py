@@ -4,6 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from testpath import assert_isfile
 from unittest.mock import patch
+import pytest
 
 import pytoml
 
@@ -182,4 +183,45 @@ def test_author_email_field_is_optional():
         'author': 'Test Author',
         'module': 'test_module_name',
         'home-page': 'https://www.example.org',
+    }
+
+
+@pytest.mark.parametrize(
+    "readme_file",
+    ["readme.md", "README.MD", "README.md",
+     "Readme.md", "readme.MD", "readme.rst",
+     "readme.txt"])
+def test_find_readme(readme_file):
+    with make_dir([readme_file]) as td:
+        ib = init.IniterBase(td)
+        assert ib.find_readme() == readme_file
+
+
+def test_find_readme_not_found():
+    with make_dir() as td:
+        ib = init.IniterBase(td)
+        assert ib.find_readme() is None
+
+
+def test_init_readme_found_yes_choosen():
+    responses = ['test_module_name',
+                 'Test Author',
+                 'test_email@example.com',
+                 '',   # Home page omitted
+                 '4',  # Skip - choose a license later
+                ]
+    with make_dir(["readme.md"]) as td, \
+          patch_data_dir(), \
+          faking_input(responses):
+        ti = init.TerminalIniter(td)
+        ti.initialise()
+        with Path(td, 'pyproject.toml').open() as f:
+            data = pytoml.load(f)
+
+    metadata = data['tool']['flit']['metadata']
+    assert metadata == {
+        'author': 'Test Author',
+        'author-email': 'test_email@example.com',
+        'module': 'test_module_name',
+        'description-file': 'readme.md'
     }

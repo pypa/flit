@@ -126,6 +126,13 @@ class IniterBase:
         with (self.directory / 'LICENSE').open('w', encoding='utf-8') as f:
             f.write(license_text.format(year=year, author=author))
 
+    def find_readme(self):
+        allowed = ("readme.md","readme.rst","readme.txt")
+        for fl in self.directory.glob("*.*"):
+            if fl.name.lower() in allowed:
+                return fl.name
+        return None
+
 
 class TerminalIniter(IniterBase):
     def prompt_text(self, prompt, default, validator, retry_msg="Try again."):
@@ -187,6 +194,8 @@ class TerminalIniter(IniterBase):
         license = self.prompt_options('Choose a license (see http://choosealicense.com/ for more info)',
                     license_choices, self.defaults.get('license'))
 
+        readme = self.find_readme()
+
         self.update_defaults(author=author, author_email=author_email,
                              home_page=home_page, module=module, license=license)
 
@@ -201,6 +210,8 @@ class TerminalIniter(IniterBase):
         if license != 'skip':
             metadata['classifiers'] = [license_names_to_classifiers[license]]
             self.write_license(license, author)
+        if readme:
+            metadata['description-file'] = readme
 
         with (self.directory / 'pyproject.toml').open('w', encoding='utf-8') as f:
             f.write(TEMPLATE.format(metadata=toml.dumps(metadata)))
