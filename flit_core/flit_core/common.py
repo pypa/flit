@@ -89,7 +89,7 @@ class Module(object):
                 dirs[:] = [d for d in sorted(dirs) if _include(d)]
 
         else:
-            yield self.path
+            yield str(self.path)
 
 class ProblemInModule(ValueError): pass
 class NoDocstringError(ProblemInModule): pass

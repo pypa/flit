@@ -285,7 +285,7 @@ class Installer(object):
         os.makedirs(dirs['purelib'], exist_ok=True)
         os.makedirs(dirs['scripts'], exist_ok=True)
 
-        dst = osp.join(dirs['purelib'], osp.basename(self.module.path))
+        dst = osp.join(dirs['purelib'], self.module.path.name)
         if osp.lexists(dst):
             if osp.isdir(dst) and not osp.islink(dst):
                 shutil.rmtree(dst)
@@ -303,12 +303,12 @@ class Installer(object):
         src = str(self.module.path)
         if self.symlink:
             log.info("Symlinking %s -> %s", src, dst)
-            os.symlink(osp.abspath(self.module.path), dst)
+            os.symlink(osp.abspath(src), dst)
             self.installed_files.append(dst)
         elif self.pth:
             # .pth points to the the folder containing the module (which is
             # added to sys.path)
-            pth_target = osp.dirname(osp.abspath(self.module.path))
+            pth_target = osp.dirname(osp.abspath(src))
             pth_file = pathlib.Path(dst).with_suffix('.pth')
             log.info("Adding .pth file %s for %s", pth_file, pth_target)
             with pth_file.open("w") as f:
