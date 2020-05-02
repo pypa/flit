@@ -229,20 +229,11 @@ def make_wheel_in(ini_path, wheel_directory):
             wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build()
 
-        _replace(temp_path, str(wheel_path))
         wheel_path = wheel_directory / wb.wheel_filename
+        os.replace(temp_path, str(wheel_path))
     except:
         os.unlink(temp_path)
         raise
 
     log.info("Built wheel: %s", wheel_path)
     return SimpleNamespace(builder=wb, file=wheel_path)
-
-
-if sys.version_info[0] >= 3:
-    _replace = os.replace
-else:
-    def _replace(src, dst):
-        if os.path.exists(dst):
-            os.unlink(dst)
-        os.rename(src, dst)

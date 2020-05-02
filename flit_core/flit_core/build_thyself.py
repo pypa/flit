@@ -73,7 +73,7 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
             wb.build()
 
         wheel_path = osp.join(wheel_directory, wb.wheel_filename)
-        _replace(temp_path, str(wheel_path))
+        os.replace(temp_path, wheel_path)
     except:
         os.unlink(temp_path)
         raise

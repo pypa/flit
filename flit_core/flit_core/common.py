@@ -140,31 +140,21 @@ def get_docstring_and_version_via_ast(target):
     return ast.get_docstring(node), version
 
 
-if sys.version_info[0] >= 3:
-    def get_docstring_and_version_via_import(target):
-        """
-        Return a tuple like (docstring, version) for the given module,
-        extracted by importing the module and pulling __doc__ & __version__
-        from it.
-        """
-        log.debug("Loading module %s", target.file)
-        from importlib.machinery import SourceFileLoader
-        sl = SourceFileLoader(target.name, target.file)
-        with _module_load_ctx():
-            m = sl.load_module()
-        docstring = m.__dict__.get('__doc__', None)
-        version = m.__dict__.get('__version__', None)
-        return docstring, version
-else:
-    def get_docstring_and_version_via_import(target):
-        log.debug("Loading module %s", target.file)
-        import imp
-        mod_info = imp.find_module(target.name, [target.source_dir])
-        with _module_load_ctx():
-            m = imp.load_module(target.name, *mod_info)
-        docstring = m.__dict__.get('__doc__', None)
-        version = m.__dict__.get('__version__', None)
-        return docstring, version
+def get_docstring_and_version_via_import(target):
+    """
+    Return a tuple like (docstring, version) for the given module,
+    extracted by importing the module and pulling __doc__ & __version__
+    from it.
+    """
+    log.debug("Loading module %s", target.file)
+    from importlib.machinery import SourceFileLoader
+    sl = SourceFileLoader(target.name, str(target.file))
+    with _module_load_ctx():
+        m = sl.load_module()
+    docstring = m.__dict__.get('__doc__', None)
+    version = m.__dict__.get('__version__', None)
+    return docstring, version
+
 
 def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__
