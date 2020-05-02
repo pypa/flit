@@ -381,7 +381,7 @@ class Installer(object):
         with (dist_info / 'direct_url.json').open('w', encoding='utf-8') as f:
             json.dump(
                 {
-                    "url": self.directory.as_uri(),
+                    "url": self.directory.resolve().as_uri(),
                     "dir_info": {"editable": bool(self.symlink or self.pth)}
                 },
                 f

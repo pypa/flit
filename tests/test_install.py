@@ -51,7 +51,12 @@ class InstallTests(TestCase):
         )
 
     def test_install_package(self):
-        Installer.from_ini_path(samples_dir / 'package1' / 'flit.ini').install_directly()
+        oldcwd = os.getcwd()
+        os.chdir(str(samples_dir / 'package1'))
+        try:
+            Installer.from_ini_path(pathlib.Path('flit.ini')).install_directly()
+        finally:
+            os.chdir(oldcwd)
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
         assert_isdir(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
