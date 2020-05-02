@@ -180,7 +180,7 @@ class WheelBuilder:
 
     def copy_module(self):
         log.info('Copying package file(s) from %s', self.module.path)
-        source_dir = self.module.source_dir
+        source_dir = str(self.module.source_dir)
 
         for full_path in self.module.iter_files():
             rel_path = osp.relpath(full_path, source_dir)

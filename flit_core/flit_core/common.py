@@ -123,7 +123,7 @@ def get_docstring_and_version_via_ast(target):
     extracted by parsing its AST.
     """
     # read as bytes to enable custom encodings
-    with open(target.file, 'rb') as f:
+    with target.file.open('rb') as f:
         node = ast.parse(f.read())
     for child in node.body:
         # Only use the version from the given module if it's a simple

@@ -90,8 +90,8 @@ class SdistBuilder:
         self.reqs_by_extra = reqs_by_extra
         self.entrypoints = entrypoints
         self.extra_files = extra_files
-        self.includes = FilePatterns(include_patterns, cfgdir)
-        self.excludes = FilePatterns(exclude_patterns, cfgdir)
+        self.includes = FilePatterns(include_patterns, str(cfgdir))
+        self.excludes = FilePatterns(exclude_patterns, str(cfgdir))
 
     @classmethod
     def from_ini_path(cls, ini_path: Path):
@@ -123,11 +123,13 @@ class SdistBuilder:
         This is overridden in flit itself to use information from a VCS to
         include tests, docs, etc. for a 'gold standard' sdist.
         """
+        cfgdir_s = str(self.cfgdir)
         return [
-            osp.relpath(p, self.cfgdir) for p in self.module.iter_files()
+            osp.relpath(p, cfgdir_s) for p in self.module.iter_files()
         ] + self.extra_files
 
     def apply_includes_excludes(self, files):
+        cfgdir_s = str(self.cfgdir)
         files = {f for f in files if not self.excludes.match_file(f)}
 
         for f_rel in self.includes.files:
@@ -138,17 +140,17 @@ class SdistBuilder:
             for dirpath, dirs, dfiles in os.walk(osp.join(self.cfgdir, rel_d)):
                 for file in dfiles:
                     f_abs = osp.join(dirpath, file)
-                    f_rel = osp.relpath(f_abs, self.cfgdir)
+                    f_rel = osp.relpath(f_abs, cfgdir_s)
                     if not self.excludes.match_file(f_rel):
                         files.add(f_rel)
 
                 # Filter subdirectories before os.walk scans them
                 dirs[:] = [d for d in dirs if not self.excludes.match_dir(
-                    osp.relpath(osp.join(dirpath, d), self.cfgdir)
+                    osp.relpath(osp.join(dirpath, d), cfgdir_s)
                 )]
 
         crucial_files = set(
-            self.extra_files + [osp.relpath(self.module.file, self.cfgdir)]
+            self.extra_files + [str(self.module.file.relative_to(self.cfgdir))]
         )
         missing_crucial = crucial_files - files
         if missing_crucial:
