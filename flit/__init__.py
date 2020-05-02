@@ -9,7 +9,7 @@ import sys
 from typing import Optional
 
 from flit_core import common
-from .inifile import ConfigError
+from .config import ConfigError
 from .log import enable_colourful_output
 
 __version__ = '2.3.0'
@@ -132,19 +132,12 @@ def main(argv=None):
 
     args = ap.parse_args(argv)
 
-    cf = args.ini_file
-    if (
-        args.subcmd not in {'init'}
-        and cf == pathlib.Path('pyproject.toml')
-        and not cf.is_file()
-    ):
-        # Fallback to flit.ini if it's present
-        cf_ini = pathlib.Path('flit.ini')
-        if cf_ini.is_file():
-            args.ini_file = cf_ini
-        else:
-            sys.exit('Neither pyproject.toml nor flit.ini found, '
-                     'and no other config file path specified')
+    if args.ini_file.suffix == '.ini':
+        sys.exit("flit.ini format is no longer supported. You can use "
+                 "'python3 -m flit.tomlify' to convert it to pyproject.toml")
+
+    if args.subcmd not in {'init'} and not args.ini_file.is_file():
+        sys.exit('Config file {} does not exist'.format(args.ini_file))
 
     enable_colourful_output(logging.DEBUG if args.debug else logging.INFO)
 

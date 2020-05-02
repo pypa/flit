@@ -9,7 +9,7 @@ import pytest
 from testpath import assert_isfile, assert_isdir
 
 from flit.wheel import WheelBuilder, make_wheel_in
-from flit.inifile import EntryPointsConflict
+from flit.config import EntryPointsConflict
 
 samples_dir = Path(__file__).parent / 'samples'
 
@@ -21,18 +21,18 @@ def unpack(path):
     return t
 
 def test_wheel_module(copy_sample):
-    td = copy_sample('module1_ini')
-    make_wheel_in(td / 'flit.ini', td)
+    td = copy_sample('module1_toml')
+    make_wheel_in(td / 'pyproject.toml', td)
     assert_isfile(td / 'module1-0.1-py2.py3-none-any.whl')
 
 def test_wheel_package(copy_sample):
     td = copy_sample('package1')
-    make_wheel_in(td / 'flit.ini', td)
+    make_wheel_in(td / 'pyproject.toml', td)
     assert_isfile(td / 'package1-0.1-py2.py3-none-any.whl')
 
 def test_wheel_src_module(copy_sample):
     td = copy_sample('module3')
-    make_wheel_in(td / 'flit.ini', td)
+    make_wheel_in(td / 'pyproject.toml', td)
 
     whl_file = td / 'module3-0.1-py2.py3-none-any.whl'
     assert_isfile(whl_file)
@@ -43,7 +43,7 @@ def test_wheel_src_module(copy_sample):
 
 def test_wheel_src_package(copy_sample):
     td = copy_sample('package2')
-    make_wheel_in(td / 'package2-pkg.ini', td)
+    make_wheel_in(td / 'pyproject.toml', td)
 
     whl_file = td / 'package2-0.1-py2.py3-none-any.whl'
     assert_isfile(whl_file)
@@ -53,7 +53,7 @@ def test_wheel_src_package(copy_sample):
 
 def test_dist_name(copy_sample):
     td = copy_sample('altdistname')
-    make_wheel_in(td / 'flit.ini', td)
+    make_wheel_in(td / 'pyproject.toml', td)
     res = td / 'package_dist1-0.1-py2.py3-none-any.whl'
     assert_isfile(res)
     with unpack(res) as td_unpack:
@@ -61,7 +61,7 @@ def test_dist_name(copy_sample):
 
 def test_entry_points(copy_sample):
     td = copy_sample('entrypoints_valid')
-    make_wheel_in(td / 'flit.ini', td)
+    make_wheel_in(td / 'pyproject.toml', td)
     assert_isfile(td / 'package1-0.1-py2.py3-none-any.whl')
     with unpack(td / 'package1-0.1-py2.py3-none-any.whl') as td_unpack:
         entry_points = Path(td_unpack, 'package1-0.1.dist-info', 'entry_points.txt')
@@ -74,14 +74,14 @@ def test_entry_points(copy_sample):
 def test_entry_points_conflict(copy_sample):
     td = copy_sample('entrypoints_conflict')
     with pytest.raises(EntryPointsConflict):
-        make_wheel_in(td / 'flit.ini', td)
+        make_wheel_in(td / 'pyproject.toml', td)
 
 def test_wheel_builder():
     # Slightly lower level interface
     with tempfile.TemporaryDirectory() as td:
         target = Path(td, 'sample.whl')
         with target.open('wb') as f:
-            wb = WheelBuilder.from_ini_path(samples_dir / 'package1' / 'flit.ini', f)
+            wb = WheelBuilder.from_ini_path(samples_dir / 'package1' / 'pyproject.toml', f)
             wb.build()
 
         assert zipfile.is_zipfile(str(target))
@@ -89,10 +89,10 @@ def test_wheel_builder():
 
 @skipIf(os.name == 'nt', 'Windows does not preserve necessary permissions')
 def test_permissions_normed(copy_sample):
-    td = copy_sample('module1_ini')
+    td = copy_sample('module1_toml')
 
     (td / 'module1.py').chmod(0o620)
-    make_wheel_in(td / 'flit.ini', td)
+    make_wheel_in(td / 'pyproject.toml', td)
 
     whl = td / 'module1-0.1-py2.py3-none-any.whl'
     assert_isfile(whl)
@@ -104,7 +104,7 @@ def test_permissions_normed(copy_sample):
 
     # This time with executable bit set
     (td / 'module1.py').chmod(0o720)
-    make_wheel_in(td / 'flit.ini', td)
+    make_wheel_in(td / 'pyproject.toml', td)
 
     assert_isfile(whl)
     with zipfile.ZipFile(str(whl)) as zf:
@@ -113,7 +113,7 @@ def test_permissions_normed(copy_sample):
         assert perms == 0o755, oct(perms)
 
 def test_compression(tmp_path):
-    info = make_wheel_in(samples_dir / 'module1_ini' / 'flit.ini', tmp_path)
+    info = make_wheel_in(samples_dir / 'module1_toml' / 'pyproject.toml', tmp_path)
     assert_isfile(info.file)
     with zipfile.ZipFile(str(info.file)) as zf:
         for name in [

@@ -12,7 +12,7 @@ Common options
 .. option:: -f <path>, --ini-file <path>
 
    Path to a config file specifying the module to build. The default is
-   ``pyproject.toml`` or ``flit.ini``
+   ``pyproject.toml``.
 
 .. option::  --version
 

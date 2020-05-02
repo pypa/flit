@@ -370,9 +370,9 @@ def make_metadata(module, ini_info):
     return Metadata(md_dict)
 
 def metadata_and_module_from_ini_path(ini_path):
-    from . import inifile
+    from .config import read_flit_config
     ini_path = str(ini_path)
-    ini_info = inifile.read_flit_config(ini_path)
+    ini_info = read_flit_config(ini_path)
     module = Module(ini_info.module, osp.dirname(ini_path))
     metadata = make_metadata(module, ini_info)
     return metadata,module

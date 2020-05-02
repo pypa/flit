@@ -57,8 +57,7 @@ or as a directory — and you want to distribute it.
    of the documentation.
 
    If you have already got a ``flit.ini`` file to use with older versions of
-   Flit, it will still work for now, but you should convert it to
-   ``pyproject.toml`` when convenient.
+   Flit, convert it to ``pyproject.toml`` by running ``python3 -m flit.tomlify``.
 
 4. Run this command to upload your code to PyPI::
 

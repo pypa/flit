@@ -40,7 +40,6 @@ metadata_allowed_fields = {
     'keywords',
     'requires-python',
     'dist-name',
-    'entry-points-file',
     'description-file',
     'requires-extra',
 } | metadata_list_fields
@@ -52,21 +51,11 @@ metadata_required_fields = {
 
 
 def read_flit_config(path):
-    """Read and check the `pyproject.toml` or `flit.ini` file with data about the package.
+    """Read and check the `pyproject.toml` file with data about the package.
     """
-    if path.endswith('.toml'):
-        with io.open(path, 'r', encoding='utf-8') as f:
-            d = toml.load(f)
-        return prep_toml_config(d, path)
-    else:
-        # Treat all other extensions as the older flit.ini format
-        log.warning(
-            "The flit.ini metadata format is deprecated; "
-            "please use a pyproject.toml file instead. "
-            "Convert with: python3 -m flit.tomlify"
-        )
-        cp = _read_pkg_ini(path)
-        return prep_ini_config(cp, path)
+    with io.open(path, 'r', encoding='utf-8') as f:
+        d = toml.load(f)
+    return prep_toml_config(d, path)
 
 
 class EntryPointsConflict(ConfigError):
@@ -188,18 +177,6 @@ def _check_glob_patterns(pats, clude):
 
     return normed
 
-
-def _read_pkg_ini(path):
-    """Reads old-style flit.ini
-    """
-    # This is only used for flit.ini; importing it locally so that projects
-    # with pyproject.toml don't need the backported package on Python 2.
-    import configparser
-    cp = configparser.ConfigParser()
-    with io.open(path, 'r', encoding='utf-8') as f:
-        cp.read_file(f)
-
-    return cp
 
 class LoadedConfig(object):
     def __init__(self):
@@ -352,52 +329,3 @@ def _expand_requires_extra(re):
                 yield '{} ; extra == "{}" and ({})'.format(name, extra, envmark)
             else:
                 yield '{} ; extra == "{}"'.format(req, extra)
-
-def prep_ini_config(cp, path):
-    """Validate and process config loaded from a flit.ini file.
-    
-    Returns a LoadedConfig object.
-    """
-    unknown_sections = set(cp.sections()) - {'metadata', 'scripts'}
-    unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
-    if unknown_sections:
-        raise ConfigError('Unknown sections: ' + ', '.join(unknown_sections))
-
-    if not cp.has_section('metadata'):
-        raise ConfigError('[metadata] section is required')
-
-    md_sect = {}
-    for k, v in cp['metadata'].items():
-        if k in metadata_list_fields:
-            md_sect[k] = [l for l in v.splitlines() if l.strip()]
-        else:
-            md_sect[k] = v
-
-    if 'entry-points-file' in md_sect:
-        ep_rel_path = md_sect.pop('entry-points-file')
-        entry_points_file = osp.join(osp.dirname(path), ep_rel_path)
-        if not osp.isfile(entry_points_file):
-            raise ConfigError(
-                "Entry points file {} does not exist".format(entry_points_file)
-            )
-    else:
-        entry_points_file = osp.join(osp.dirname(path), 'entry_points.txt')
-        if not osp.isfile(entry_points_file):
-            entry_points_file = None
-
-    loaded_cfg = _prep_metadata(md_sect, path)
-
-    if entry_points_file:
-        import configparser  # See _read_pkg_ini for why it's a local import
-        ep_cp = configparser.ConfigParser()
-        with io.open(entry_points_file, 'r', encoding='utf-8') as f:
-            ep_cp.read_file(f)
-        # Convert to regular dict
-        loaded_cfg.entrypoints = {k: dict(v) for k, v in ep_cp.items()}
-        loaded_cfg.referenced_files.append(entry_points_file)
-
-    # Scripts ---------------
-    if cp.has_section('scripts'):
-        loaded_cfg.add_scripts(dict(cp['scripts']))
-
-    return loaded_cfg

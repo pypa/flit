@@ -15,7 +15,7 @@ os.chdir(str(my_dir))
 sys.path.insert(0, 'flit_core')
 
 from flit_core import build_thyself
-from flit_core.inifile import LoadedConfig
+from flit_core.config import LoadedConfig
 from flit.install import Installer
 
 ap = argparse.ArgumentParser()

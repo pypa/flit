@@ -20,10 +20,10 @@ repo_settings = {'url': upload.PYPI,
 @responses.activate
 def test_upload(copy_sample):
     responses.add(responses.POST, upload.PYPI, status=200)
-    td = copy_sample('module1_ini')
+    td = copy_sample('module1_toml')
 
     with patch('flit.upload.get_repository', return_value=repo_settings):
-        upload.main(td / 'flit.ini', repo_name='pypi')
+        upload.main(td / 'pyproject.toml', repo_name='pypi')
 
     assert len(responses.calls) == 2
 

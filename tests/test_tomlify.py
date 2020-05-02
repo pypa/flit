@@ -9,7 +9,7 @@ from flit import tomlify
 samples_dir = Path(__file__).parent / 'samples'
 
 def test_tomlify(copy_sample, monkeypatch):
-    td = copy_sample('entrypoints_valid')
+    td = copy_sample('with_flit_ini')
     monkeypatch.chdir(td)
 
     tomlify.main(argv=[])

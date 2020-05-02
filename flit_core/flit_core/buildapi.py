@@ -5,7 +5,7 @@ import os
 import os.path as osp
 
 from .common import Module, make_metadata, write_entry_points, dist_info_name
-from .inifile import read_flit_config
+from .config import read_flit_config
 from .wheel import make_wheel_in, _write_wheel_file
 from .sdist import SdistBuilder
 

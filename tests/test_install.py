@@ -43,7 +43,7 @@ class InstallTests(TestCase):
             assert direct_url['dir_info'].get('editable') is expected_editable
 
     def test_install_module(self):
-        Installer.from_ini_path(samples_dir / 'module1_ini' / 'flit.ini').install_directly()
+        Installer.from_ini_path(samples_dir / 'module1_toml' / 'pyproject.toml').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
         assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
         self._assert_direct_url(
@@ -54,7 +54,7 @@ class InstallTests(TestCase):
         oldcwd = os.getcwd()
         os.chdir(str(samples_dir / 'package1'))
         try:
-            Installer.from_ini_path(pathlib.Path('flit.ini')).install_directly()
+            Installer.from_ini_path(pathlib.Path('pyproject.toml')).install_directly()
         finally:
             os.chdir(oldcwd)
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
@@ -69,7 +69,7 @@ class InstallTests(TestCase):
     def test_symlink_package(self):
         if os.name == 'nt':
             raise SkipTest("symlink")
-        Installer.from_ini_path(samples_dir / 'package1' / 'flit.ini', symlink=True).install()
+        Installer.from_ini_path(samples_dir / 'package1' / 'pyproject.toml', symlink=True).install()
         assert_islink(self.tmpdir / 'site-packages' / 'package1',
                       to=samples_dir / 'package1' / 'package1')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
@@ -80,7 +80,7 @@ class InstallTests(TestCase):
         )
 
     def test_pth_package(self):
-        Installer.from_ini_path(samples_dir / 'package1' / 'flit.ini', pth=True).install()
+        Installer.from_ini_path(samples_dir / 'package1' / 'pyproject.toml', pth=True).install()
         assert_isfile(self.tmpdir / 'site-packages' / 'package1.pth')
         with open(str(self.tmpdir / 'site-packages' / 'package1.pth')) as f:
             assert f.read() == str(samples_dir / 'package1')
@@ -90,16 +90,16 @@ class InstallTests(TestCase):
         )
 
     def test_dist_name(self):
-        Installer.from_ini_path(samples_dir / 'altdistname' / 'flit.ini').install_directly()
+        Installer.from_ini_path(samples_dir / 'altdistname' / 'pyproject.toml').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
         assert_isdir(self.tmpdir / 'site-packages' / 'package_dist1-0.1.dist-info')
 
     def test_entry_points(self):
-        Installer.from_ini_path(samples_dir / 'entrypoints_valid' / 'flit.ini').install_directly()
+        Installer.from_ini_path(samples_dir / 'entrypoints_valid' / 'pyproject.toml').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info' / 'entry_points.txt')
 
     def test_pip_install(self):
-        ins = Installer.from_ini_path(samples_dir / 'package1' / 'flit.ini', python='mock_python',
+        ins = Installer.from_ini_path(samples_dir / 'package1' / 'pyproject.toml', python='mock_python',
                         user=False)
 
         with MockCommand('mock_python') as mock_py:
@@ -135,7 +135,7 @@ class InstallTests(TestCase):
                            scripts=str(self.tmpdir / 'scripts2'))
 
         with MockCommand('mock_python', content=script1):
-            ins = Installer.from_ini_path(samples_dir / 'package1' / 'flit.ini', python='mock_python',
+            ins = Installer.from_ini_path(samples_dir / 'package1' / 'pyproject.toml', python='mock_python',
                       symlink=True)
         with MockCommand('mock_python', content=script2):
             ins.install()

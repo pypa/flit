@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import sys
 
-from .inifile import read_flit_config, ConfigError
+from .config import read_flit_config, ConfigError
 from .sdist import SdistBuilder
 from .wheel import make_wheel_in
 

@@ -10,7 +10,7 @@ samples_dir = osp.join(osp.dirname(__file__), 'samples')
 
 def test_make_sdist():
     # Smoke test of making a complete sdist
-    builder = sdist.SdistBuilder.from_ini_path(osp.join(samples_dir, 'package1-pkg.ini'))
+    builder = sdist.SdistBuilder.from_ini_path(osp.join(samples_dir, 'package1.toml'))
     with TemporaryDirectory() as td:
         builder.build(td)
         assert_isfile(osp.join(td, 'package1-0.1.tar.gz'))

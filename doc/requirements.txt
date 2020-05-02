@@ -1,1 +1,2 @@
 sphinxcontrib_github_alt
+sphinx-rtd-theme
