@@ -53,7 +53,7 @@ metadata_required_fields = {
 def read_flit_config(path):
     """Read and check the `pyproject.toml` file with data about the package.
     """
-    with io.open(path, 'r', encoding='utf-8') as f:
+    with path.open('r', encoding='utf-8') as f:
         d = toml.load(f)
     return prep_toml_config(d, path)
 

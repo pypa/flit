@@ -105,7 +105,7 @@ class Installer(object):
         if deps == 'none' and extras:
             raise DependencyError()
 
-        self.module = common.Module(self.ini_info.module, str(directory))
+        self.module = common.Module(self.ini_info.module, directory)
 
         if (hasattr(os, 'getuid') and (os.getuid() == 0) and
                 (not os.environ.get('FLIT_ROOT_INSTALL'))):

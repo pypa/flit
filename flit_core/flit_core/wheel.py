@@ -80,7 +80,7 @@ class WheelBuilder:
     def from_ini_path(cls, ini_path, target_fp):
         # Local import so bootstrapping doesn't try to load pytoml
         from .config import read_flit_config
-        directory = osp.dirname(ini_path)
+        directory = ini_path.parent
         ini_info = read_flit_config(ini_path)
         entrypoints = ini_info.entrypoints
         module = common.Module(ini_info.module, directory)
@@ -229,8 +229,8 @@ def make_wheel_in(ini_path, wheel_directory):
             wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build()
 
-        wheel_path = osp.join(wheel_directory, wb.wheel_filename)
         _replace(temp_path, str(wheel_path))
+        wheel_path = wheel_directory / wb.wheel_filename
     except:
         os.unlink(temp_path)
         raise

@@ -6,6 +6,7 @@ import io
 import logging
 import os
 import os.path as osp
+from pathlib import Path
 from posixpath import join as pjoin
 import tarfile
 
@@ -93,14 +94,14 @@ class SdistBuilder:
         self.excludes = FilePatterns(exclude_patterns, cfgdir)
 
     @classmethod
-    def from_ini_path(cls, ini_path):
+    def from_ini_path(cls, ini_path: Path):
         # Local import so bootstrapping doesn't try to load pytoml
         from .config import read_flit_config
         ini_info = read_flit_config(ini_path)
-        srcdir = osp.dirname(ini_path)
+        srcdir = ini_path.parent
         module = common.Module(ini_info.module, srcdir)
         metadata = common.make_metadata(module, ini_info)
-        extra_files = [osp.basename(ini_path)] + ini_info.referenced_files
+        extra_files = [ini_path.name] + ini_info.referenced_files
         return cls(
             module, metadata, srcdir, ini_info.reqs_by_extra,
             ini_info.entrypoints, extra_files, ini_info.sdist_include_patterns,
@@ -165,12 +166,10 @@ class SdistBuilder:
         return '{}-{}'.format(self.metadata.name, self.metadata.version)
 
     def build(self, target_dir, gen_setup_py=True):
-        if not osp.isdir(target_dir):
-            os.makedirs(target_dir)
-        target = osp.join(
-            target_dir, '{}-{}.tar.gz'.format(
+        os.makedirs(str(target_dir), exist_ok=True)
+        target = target_dir / '{}-{}.tar.gz'.format(
                 self.metadata.name, self.metadata.version
-        ))
+        )
         source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
         mtime = int(source_date_epoch) if source_date_epoch else None
         gz = GzipFile(str(target), mode='wb', mtime=mtime)

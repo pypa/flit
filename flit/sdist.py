@@ -140,10 +140,6 @@ class SdistBuilder(SdistBuilderCore):
     - Add a generated setup.py for compatibility with tools which don't yet know
       about PEP 517.
     """
-    @classmethod
-    def from_ini_path(cls, ini_path: Path):
-        return super().from_ini_path(str(ini_path))
-
     def select_files(self):
         cfgdir_path = Path(self.cfgdir)
         vcs_mod = identify_vcs(cfgdir_path)
@@ -219,5 +215,3 @@ class SdistBuilder(SdistBuilderCore):
             extra='\n      '.join(extra),
         ).encode('utf-8')
 
-    def build(self, target_dir, gen_setup_py=True):
-        return Path(super().build(str(target_dir), gen_setup_py=gen_setup_py))

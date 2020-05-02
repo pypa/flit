@@ -3,6 +3,7 @@ import logging
 import io
 import os
 import os.path as osp
+from pathlib import Path
 
 from .common import Module, make_metadata, write_entry_points, dist_info_name
 from .config import read_flit_config
@@ -12,7 +13,7 @@ from .sdist import SdistBuilder
 log = logging.getLogger(__name__)
 
 # PEP 517 specifies that the CWD will always be the source tree
-pyproj_toml = 'pyproject.toml'
+pyproj_toml = Path('pyproject.toml')
 
 def get_requires_for_build_wheel(config_settings=None):
     """Returns a list of requirements for building, as strings"""
@@ -25,7 +26,7 @@ get_requires_for_build_sdist = get_requires_for_build_wheel
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     """Creates {metadata_directory}/foo-1.2.dist-info"""
     ini_info = read_flit_config(pyproj_toml)
-    module = Module(ini_info.module, os.getcwd())
+    module = Module(ini_info.module, Path.cwd())
     metadata = make_metadata(module, ini_info)
 
     dist_info = osp.join(metadata_directory,
@@ -46,10 +47,10 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
 
 def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     """Builds a wheel, places it in wheel_directory"""
-    info = make_wheel_in(pyproj_toml, wheel_directory)
-    return osp.basename(info.file)
+    info = make_wheel_in(pyproj_toml, Path(wheel_directory))
+    return info.file.name
 
 def build_sdist(sdist_directory, config_settings=None):
     """Builds an sdist, places it in sdist_directory"""
-    path = SdistBuilder.from_ini_path(pyproj_toml).build(sdist_directory)
-    return osp.basename(path)
+    path = SdistBuilder.from_ini_path(pyproj_toml).build(Path(sdist_directory))
+    return path.name
