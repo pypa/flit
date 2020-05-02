@@ -182,7 +182,7 @@ class SdistBuilder:
             files_to_add = self.apply_includes_excludes(self.select_files())
 
             for relpath in files_to_add:
-                path = osp.join(self.cfgdir, relpath)
+                path = str(self.cfgdir / relpath)
                 ti = tf.gettarinfo(path, arcname=pjoin(self.dir_name, relpath))
                 ti = clean_tarinfo(ti, mtime)
 

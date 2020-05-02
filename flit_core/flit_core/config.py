@@ -1,6 +1,5 @@
 import difflib
 import errno
-import io
 import logging
 import os
 import os.path as osp
@@ -216,9 +215,9 @@ def _prep_metadata(md_sect, path):
     if 'description-file' in md_sect:
         desc_path = md_sect.get('description-file')
         res.referenced_files.append(desc_path)
-        description_file = osp.join(osp.dirname(path), desc_path)
+        description_file = path.parent / desc_path
         try:
-            with io.open(description_file, 'r', encoding='utf-8') as f:
+            with description_file.open('r', encoding='utf-8') as f:
                 raw_desc = f.read()
         except IOError as e:
             if e.errno == errno.ENOENT:
@@ -226,7 +225,7 @@ def _prep_metadata(md_sect, path):
                     "Description file {} does not exist".format(description_file)
                 )
             raise
-        _, ext = osp.splitext(description_file)
+        ext = description_file.suffix
         try:
             mimetype = readme_ext_to_content_type[ext]
         except KeyError:
