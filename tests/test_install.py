@@ -47,7 +47,7 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
         assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
         self._assert_direct_url(
-            samples_dir / 'module1_ini', 'module1', '0.1', expected_editable=False
+            samples_dir / 'module1_toml', 'module1', '0.1', expected_editable=False
         )
 
     def test_install_package(self):
