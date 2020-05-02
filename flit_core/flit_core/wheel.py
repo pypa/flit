@@ -194,7 +194,7 @@ class WheelBuilder:
                 common.write_entry_points(self.entrypoints, f)
 
         for base in ('COPYING', 'LICENSE'):
-            for path in sorted(glob(str(self.directory / base + '*'))):
+            for path in sorted(glob(str(self.directory / (base + '*')))):
                 self._add_file(path, '%s/%s' % (self.dist_info, osp.basename(path)))
 
         with self._write_to_zip(self.dist_info + '/WHEEL') as f:
