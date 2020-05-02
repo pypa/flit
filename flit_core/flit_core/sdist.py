@@ -137,7 +137,7 @@ class SdistBuilder:
                 files.add(f_rel)
 
         for rel_d in self.includes.dirs:
-            for dirpath, dirs, dfiles in os.walk(osp.join(self.cfgdir, rel_d)):
+            for dirpath, dirs, dfiles in os.walk(osp.join(cfgdir_s, rel_d)):
                 for file in dfiles:
                     f_abs = osp.join(dirpath, file)
                     f_rel = osp.relpath(f_abs, cfgdir_s)
