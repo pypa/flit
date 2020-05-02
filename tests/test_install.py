@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import sys
@@ -27,10 +28,27 @@ class InstallTests(TestCase):
     def tearDown(self):
         self.get_dirs_patch.stop()
 
+    def _assert_direct_url(self, directory, package, version, expected_editable):
+        direct_url_file = (
+            self.tmpdir
+            / 'site-packages'
+            / '{}-{}.dist-info'.format(package, version)
+            / 'direct_url.json'
+        )
+        assert_isfile(direct_url_file)
+        with direct_url_file.open() as f:
+            direct_url = json.load(f)
+            assert direct_url['url'].startswith('file:///')
+            assert direct_url['url'] == directory.as_uri()
+            assert direct_url['dir_info'].get('editable') is expected_editable
+
     def test_install_module(self):
         Installer.from_ini_path(samples_dir / 'module1_ini' / 'flit.ini').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
         assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
+        self._assert_direct_url(
+            samples_dir / 'module1_ini', 'module1', '0.1', expected_editable=False
+        )
 
     def test_install_package(self):
         Installer.from_ini_path(samples_dir / 'package1' / 'flit.ini').install_directly()
@@ -39,6 +57,9 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
         with (self.tmpdir / 'scripts' / 'pkg_script').open() as f:
             assert f.readline().strip() == "#!" + sys.executable
+        self._assert_direct_url(
+            samples_dir / 'package1', 'package1', '0.1', expected_editable=False
+        )
 
     def test_symlink_package(self):
         if os.name == 'nt':
@@ -49,6 +70,9 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
         with (self.tmpdir / 'scripts' / 'pkg_script').open() as f:
             assert f.readline().strip() == "#!" + sys.executable
+        self._assert_direct_url(
+            samples_dir / 'package1', 'package1', '0.1', expected_editable=True
+        )
 
     def test_pth_package(self):
         Installer.from_ini_path(samples_dir / 'package1' / 'flit.ini', pth=True).install()
@@ -56,6 +80,9 @@ class InstallTests(TestCase):
         with open(str(self.tmpdir / 'site-packages' / 'package1.pth')) as f:
             assert f.read() == str(samples_dir / 'package1')
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
+        self._assert_direct_url(
+            samples_dir / 'package1', 'package1', '0.1', expected_editable=True
+        )
 
     def test_dist_name(self):
         Installer.from_ini_path(samples_dir / 'altdistname' / 'flit.ini').install_directly()
@@ -77,7 +104,7 @@ class InstallTests(TestCase):
         assert len(calls) == 1
         cmd = calls[0]['argv']
         assert cmd[1:4] == ['-m', 'pip', 'install']
-        assert cmd[4].endswith('package1-0.1-py2.py3-none-any.whl')
+        assert cmd[4].endswith('package1')
 
     def test_symlink_other_python(self):
         if os.name == 'nt':

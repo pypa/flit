@@ -4,6 +4,7 @@ import logging
 import os
 import os.path as osp
 import csv
+import json
 import pathlib
 import random
 import shutil
@@ -328,34 +329,26 @@ class Installer(object):
         self.write_dist_info(dirs['purelib'])
 
     def install_with_pip(self):
+        """Let pip install the project directory
+
+        pip will create an isolated build environment and install build
+        dependencies, which means downloading flit_core from PyPI. We ask pip
+        to install the project directory (instead of building a temporary wheel
+        and asking pip to install it), so pip will record the project directory
+        in direct_url.json.
+        """
         self.install_reqs_my_python_if_needed()
-
-        with tempfile.TemporaryDirectory() as td:
-            temp_whl = osp.join(td, 'temp.whl')
-            with open(temp_whl, 'w+b') as fp:
-                wb = WheelBuilder(
-                    str(self.directory),
-                    self.module,
-                    metadata=common.make_metadata(self.module, self.ini_info),
-                    entrypoints=self.ini_info.entrypoints,
-                    target_fp=fp,
-                )
-                wb.build()
-
-            renamed_whl = osp.join(td, wb.wheel_filename)
-            os.rename(temp_whl, renamed_whl)
-            extras = self._extras_to_install()
-            extras.discard('.none')
-            whl_with_extras = '{}[{}]'.format(renamed_whl, ','.join(extras)) \
-                if extras else renamed_whl
-
-            cmd = [self.python, '-m', 'pip', 'install', whl_with_extras]
-            if self.user:
-                cmd.append('--user')
-            if self.deps == 'none':
-                cmd.append('--no-deps')
-            shell = (os.name == 'nt')
-            check_call(cmd, shell=shell)
+        extras = self._extras_to_install()
+        extras.discard('.none')
+        req_with_extras = '{}[{}]'.format(self.directory, ','.join(extras)) \
+            if extras else str(self.directory)
+        cmd = [self.python, '-m', 'pip', 'install', req_with_extras]
+        if self.user:
+            cmd.append('--user')
+        if self.deps == 'none':
+            cmd.append('--no-deps')
+        shell = (os.name == 'nt')
+        check_call(cmd, shell=shell)
 
     def write_dist_info(self, site_pkgs):
         """Write dist-info folder, according to PEP 376"""
@@ -384,6 +377,16 @@ class Installer(object):
             with (dist_info / 'entry_points.txt').open('w') as f:
                 common.write_entry_points(self.ini_info.entrypoints, f)
             self.installed_files.append(dist_info / 'entry_points.txt')
+
+        with (dist_info / 'direct_url.json').open('w', encoding='utf-8') as f:
+            json.dump(
+                {
+                    "url": self.directory.as_uri(),
+                    "dir_info": {"editable": bool(self.symlink or self.pth)}
+                },
+                f
+            )
+        self.installed_files.append(dist_info / 'direct_url.json')
 
         with (dist_info / 'RECORD').open('w', encoding='utf-8') as f:
             cf = csv.writer(f)
