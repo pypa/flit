@@ -7,10 +7,11 @@ Building any other packages occurs through flit_core.buildapi
 import io
 import os
 import os.path as osp
+from pathlib import Path
 import tempfile
 
 from .common import Metadata, Module, dist_info_name
-from .wheel import WheelBuilder, _write_wheel_file, _replace
+from .wheel import WheelBuilder, _write_wheel_file
 from .sdist import SdistBuilder
 
 from . import __version__
@@ -26,7 +27,7 @@ metadata_dict = {
     'requires_dist': [
         'pytoml',
     ],
-    'requires_python': '>=2.7, !=3.0, !=3.1, !=3.2, != 3.3',
+    'requires_python': '>=3.4',
     'classifiers': [
         "License :: OSI Approved :: BSD License",
         "Topic :: Software Development :: Libraries :: Python Modules",
@@ -58,8 +59,8 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
 
 def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     """Builds a wheel, places it in wheel_directory"""
-    srcdir = os.getcwd()
-    module = Module('flit_core', srcdir)
+    cwd = Path.cwd()
+    module = Module('flit_core', cwd)
 
     # We don't know the final filename until metadata is loaded, so write to
     # a temporary_file, and rename it afterwards.
@@ -67,12 +68,12 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     try:
         with io.open(fd, 'w+b') as fp:
             wb = WheelBuilder(
-                srcdir, module, metadata, entrypoints={}, target_fp=fp
+                cwd, module, metadata, entrypoints={}, target_fp=fp
             )
             wb.build()
 
         wheel_path = osp.join(wheel_directory, wb.wheel_filename)
-        _replace(temp_path, str(wheel_path))
+        os.replace(temp_path, wheel_path)
     except:
         os.unlink(temp_path)
         raise
@@ -81,14 +82,14 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
 
 def build_sdist(sdist_directory, config_settings=None):
     """Builds an sdist, places it in sdist_directory"""
-    srcdir = os.getcwd()
-    module = Module('flit_core', srcdir)
+    cwd = Path.cwd()
+    module = Module('flit_core', cwd)
     reqs_by_extra = {'.none': metadata.requires}
 
     sb = SdistBuilder(
-        module, metadata, srcdir, reqs_by_extra, entrypoints={},
+        module, metadata, cwd, reqs_by_extra, entrypoints={},
         extra_files=['pyproject.toml']
     )
-    path = sb.build(sdist_directory)
-    return osp.basename(path)
+    path = sb.build(Path(sdist_directory))
+    return path.name
 

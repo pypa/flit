@@ -6,6 +6,7 @@ import io
 import logging
 import os
 import os.path as osp
+from pathlib import Path
 from posixpath import join as pjoin
 import tarfile
 
@@ -89,18 +90,18 @@ class SdistBuilder:
         self.reqs_by_extra = reqs_by_extra
         self.entrypoints = entrypoints
         self.extra_files = extra_files
-        self.includes = FilePatterns(include_patterns, cfgdir)
-        self.excludes = FilePatterns(exclude_patterns, cfgdir)
+        self.includes = FilePatterns(include_patterns, str(cfgdir))
+        self.excludes = FilePatterns(exclude_patterns, str(cfgdir))
 
     @classmethod
-    def from_ini_path(cls, ini_path):
+    def from_ini_path(cls, ini_path: Path):
         # Local import so bootstrapping doesn't try to load pytoml
         from .config import read_flit_config
         ini_info = read_flit_config(ini_path)
-        srcdir = osp.dirname(ini_path)
+        srcdir = ini_path.parent
         module = common.Module(ini_info.module, srcdir)
         metadata = common.make_metadata(module, ini_info)
-        extra_files = [osp.basename(ini_path)] + ini_info.referenced_files
+        extra_files = [ini_path.name] + ini_info.referenced_files
         return cls(
             module, metadata, srcdir, ini_info.reqs_by_extra,
             ini_info.entrypoints, extra_files, ini_info.sdist_include_patterns,
@@ -122,11 +123,13 @@ class SdistBuilder:
         This is overridden in flit itself to use information from a VCS to
         include tests, docs, etc. for a 'gold standard' sdist.
         """
+        cfgdir_s = str(self.cfgdir)
         return [
-            osp.relpath(p, self.cfgdir) for p in self.module.iter_files()
+            osp.relpath(p, cfgdir_s) for p in self.module.iter_files()
         ] + self.extra_files
 
     def apply_includes_excludes(self, files):
+        cfgdir_s = str(self.cfgdir)
         files = {f for f in files if not self.excludes.match_file(f)}
 
         for f_rel in self.includes.files:
@@ -134,20 +137,20 @@ class SdistBuilder:
                 files.add(f_rel)
 
         for rel_d in self.includes.dirs:
-            for dirpath, dirs, dfiles in os.walk(osp.join(self.cfgdir, rel_d)):
+            for dirpath, dirs, dfiles in os.walk(osp.join(cfgdir_s, rel_d)):
                 for file in dfiles:
                     f_abs = osp.join(dirpath, file)
-                    f_rel = osp.relpath(f_abs, self.cfgdir)
+                    f_rel = osp.relpath(f_abs, cfgdir_s)
                     if not self.excludes.match_file(f_rel):
                         files.add(f_rel)
 
                 # Filter subdirectories before os.walk scans them
                 dirs[:] = [d for d in dirs if not self.excludes.match_dir(
-                    osp.relpath(osp.join(dirpath, d), self.cfgdir)
+                    osp.relpath(osp.join(dirpath, d), cfgdir_s)
                 )]
 
         crucial_files = set(
-            self.extra_files + [osp.relpath(self.module.file, self.cfgdir)]
+            self.extra_files + [str(self.module.file.relative_to(self.cfgdir))]
         )
         missing_crucial = crucial_files - files
         if missing_crucial:
@@ -165,12 +168,10 @@ class SdistBuilder:
         return '{}-{}'.format(self.metadata.name, self.metadata.version)
 
     def build(self, target_dir, gen_setup_py=True):
-        if not osp.isdir(target_dir):
-            os.makedirs(target_dir)
-        target = osp.join(
-            target_dir, '{}-{}.tar.gz'.format(
+        os.makedirs(str(target_dir), exist_ok=True)
+        target = target_dir / '{}-{}.tar.gz'.format(
                 self.metadata.name, self.metadata.version
-        ))
+        )
         source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
         mtime = int(source_date_epoch) if source_date_epoch else None
         gz = GzipFile(str(target), mode='wb', mtime=mtime)
@@ -181,7 +182,7 @@ class SdistBuilder:
             files_to_add = self.apply_includes_excludes(self.select_files())
 
             for relpath in files_to_add:
-                path = osp.join(self.cfgdir, relpath)
+                path = str(self.cfgdir / relpath)
                 ti = tf.gettarinfo(path, arcname=pjoin(self.dir_name, relpath))
                 ti = clean_tarinfo(ti, mtime)
 

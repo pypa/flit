@@ -4,8 +4,6 @@ environment:
       TOX_APPVEYOR_X64: "1"
     - TOXENV: "py35"
       TOX_APPVEYOR_X64: "0"
-    - TOXENV: "py27"
-      TOX_APPVEYOR_X64: "1"
 
 # The Python version here doesn't matter (except that the commands have the same),
 # as Tox will set up an environment using the Python specified above.

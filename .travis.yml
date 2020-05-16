@@ -6,7 +6,6 @@ python:
   - "3.6"
   - "3.5"
   - "3.4"  # 3.4 & 2.7 only test flit_core - see tox.ini
-  - "2.7"
 
 jobs:
   include:

@@ -80,7 +80,7 @@ class WheelBuilder:
     def from_ini_path(cls, ini_path, target_fp):
         # Local import so bootstrapping doesn't try to load pytoml
         from .config import read_flit_config
-        directory = osp.dirname(ini_path)
+        directory = ini_path.parent
         ini_info = read_flit_config(ini_path)
         entrypoints = ini_info.entrypoints
         module = common.Module(ini_info.module, directory)
@@ -180,7 +180,7 @@ class WheelBuilder:
 
     def copy_module(self):
         log.info('Copying package file(s) from %s', self.module.path)
-        source_dir = self.module.source_dir
+        source_dir = str(self.module.source_dir)
 
         for full_path in self.module.iter_files():
             rel_path = osp.relpath(full_path, source_dir)
@@ -194,7 +194,7 @@ class WheelBuilder:
                 common.write_entry_points(self.entrypoints, f)
 
         for base in ('COPYING', 'LICENSE'):
-            for path in sorted(glob(osp.join(self.directory, base + '*'))):
+            for path in sorted(glob(str(self.directory / (base + '*')))):
                 self._add_file(path, '%s/%s' % (self.dist_info, osp.basename(path)))
 
         with self._write_to_zip(self.dist_info + '/WHEEL') as f:
@@ -229,20 +229,11 @@ def make_wheel_in(ini_path, wheel_directory):
             wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build()
 
-        wheel_path = osp.join(wheel_directory, wb.wheel_filename)
-        _replace(temp_path, str(wheel_path))
+        wheel_path = wheel_directory / wb.wheel_filename
+        os.replace(temp_path, str(wheel_path))
     except:
         os.unlink(temp_path)
         raise
 
     log.info("Built wheel: %s", wheel_path)
     return SimpleNamespace(builder=wb, file=wheel_path)
-
-
-if sys.version_info[0] >= 3:
-    _replace = os.replace
-else:
-    def _replace(src, dst):
-        if os.path.exists(dst):
-            os.unlink(dst)
-        os.rename(src, dst)

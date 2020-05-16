@@ -1,24 +1,13 @@
 import difflib
 import errno
-import io
 import logging
 import os
 import os.path as osp
 import pytoml as toml
 import re
-import sys
 
 log = logging.getLogger(__name__)
 
-if sys.version_info[0] >= 3:
-    isidentifier = str.isidentifier
-
-    text_types = (str,)
-else:
-    def isidentifier(s):
-        return bool(re.match('[A-Za-z_][A-Za-z0-9_]*$', s))
-
-    text_types = (str, unicode)
 
 class ConfigError(ValueError):
     pass
@@ -53,7 +42,7 @@ metadata_required_fields = {
 def read_flit_config(path):
     """Read and check the `pyproject.toml` file with data about the package.
     """
-    with io.open(path, 'r', encoding='utf-8') as f:
+    with path.open('r', encoding='utf-8') as f:
         d = toml.load(f)
     return prep_toml_config(d, path)
 
@@ -217,7 +206,7 @@ def _prep_metadata(md_sect, path):
     res = LoadedConfig()
 
     res.module = md_sect.get('module')
-    if not isidentifier(res.module):
+    if not str.isidentifier(res.module):
         raise ConfigError("Module name %r is not a valid identifier" % res.module)
 
     md_dict = res.metadata
@@ -226,9 +215,9 @@ def _prep_metadata(md_sect, path):
     if 'description-file' in md_sect:
         desc_path = md_sect.get('description-file')
         res.referenced_files.append(desc_path)
-        description_file = osp.join(osp.dirname(path), desc_path)
+        description_file = path.parent / desc_path
         try:
-            with io.open(description_file, 'r', encoding='utf-8') as f:
+            with description_file.open('r', encoding='utf-8') as f:
                 raw_desc = f.read()
         except IOError as e:
             if e.errno == errno.ENOENT:
@@ -236,7 +225,7 @@ def _prep_metadata(md_sect, path):
                     "Description file {} does not exist".format(description_file)
                 )
             raise
-        _, ext = osp.splitext(description_file)
+        ext = description_file.suffix
         try:
             mimetype = readme_ext_to_content_type[ext]
         except KeyError:
@@ -270,7 +259,7 @@ def _prep_metadata(md_sect, path):
             if not isinstance(value, list):
                 raise ConfigError('Expected a list for {} field, found {!r}'
                                     .format(key, value))
-            if not all(isinstance(a, text_types) for a in value):
+            if not all(isinstance(a, str) for a in value):
                 raise ConfigError('Expected a list of strings for {} field'
                                     .format(key))
         elif key == 'requires-extra':
@@ -280,11 +269,11 @@ def _prep_metadata(md_sect, path):
             if not all(isinstance(e, list) for e in value.values()):
                 raise ConfigError('Expected a dict of lists for requires-extra field')
             for e, reqs in value.items():
-                if not all(isinstance(a, text_types) for a in reqs):
+                if not all(isinstance(a, str) for a in reqs):
                     raise ConfigError('Expected a string list for requires-extra. (extra {})'
                                         .format(e))
         else:
-            if not isinstance(value, text_types):
+            if not isinstance(value, str):
                 raise ConfigError('Expected a string for {} field, found {!r}'
                                     .format(key, value))
 

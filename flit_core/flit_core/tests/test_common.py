@@ -1,24 +1,24 @@
-import os.path as osp
-from unittest import TestCase
+from pathlib import Path
 import pytest
+from unittest import TestCase
 
 from flit_core.common import (
     Module, get_info_from_module, InvalidVersion, NoVersionError, check_version,
     normalize_file_permissions, Metadata
 )
 
-samples_dir = osp.join(osp.dirname(__file__), 'samples')
+samples_dir = Path(__file__).parent / 'samples'
 
 class ModuleTests(TestCase):
     def test_package_importable(self):
         i = Module('package1', samples_dir)
-        assert i.path == osp.join(samples_dir, 'package1')
-        assert i.file == osp.join(samples_dir, 'package1', '__init__.py')
+        assert i.path == samples_dir / 'package1'
+        assert i.file == samples_dir / 'package1' / '__init__.py'
         assert i.is_package
 
     def test_module_importable(self):
         i = Module('module1', samples_dir)
-        assert i.path == osp.join(samples_dir, 'module1.py')
+        assert i.path == samples_dir / 'module1.py'
         assert not i.is_package
 
     def test_missing_name(self):
@@ -27,7 +27,7 @@ class ModuleTests(TestCase):
 
     def test_conflicting_modules(self):
         with pytest.raises(ValueError, match="Multiple"):
-            Module('module1', osp.join(samples_dir, 'conflicting_modules'))
+            Module('module1', samples_dir / 'conflicting_modules')
 
     def test_get_info_from_module(self):
         info = get_info_from_module(Module('module1', samples_dir))

@@ -4,8 +4,8 @@ import hashlib
 import logging
 import os
 import os.path as osp
+from pathlib import Path
 import re
-import sys
 
 log = logging.getLogger(__name__)
 
@@ -14,33 +14,33 @@ from .versionno import normalise_version
 class Module(object):
     """This represents the module/package that we are going to distribute
     """
-    def __init__(self, name, directory='.'):
+    def __init__(self, name, directory=Path()):
         self.name = name
         self.directory = directory
 
         # It must exist either as a .py file or a directory, but not both
-        pkg_dir = osp.join(directory, name)
-        py_file = osp.join(directory, name+'.py')
-        src_pkg_dir = osp.join(directory, 'src', name)
-        src_py_file = osp.join(directory, 'src', name+'.py')
+        pkg_dir = directory / name
+        py_file = directory / (name+'.py')
+        src_pkg_dir = directory / 'src' / name
+        src_py_file = directory / 'src' / (name+'.py')
 
         existing = set()
-        if osp.isdir(pkg_dir):
+        if pkg_dir.is_dir():
             self.path = pkg_dir
             self.is_package = True
             self.prefix = ''
             existing.add(pkg_dir)
-        if osp.isfile(py_file):
+        if py_file.is_file():
             self.path = py_file
             self.is_package = False
             self.prefix = ''
             existing.add(py_file)
-        if osp.isdir(src_pkg_dir):
+        if src_pkg_dir.is_dir():
             self.path = src_pkg_dir
             self.is_package = True
             self.prefix = 'src'
             existing.add(src_pkg_dir)
-        if osp.isfile(src_py_file):
+        if src_py_file.is_file():
             self.path = src_py_file
             self.is_package = False
             self.prefix = 'src'
@@ -49,7 +49,7 @@ class Module(object):
         if len(existing) > 1:
             raise ValueError(
                 "Multiple files or folders could be module {}: {}"
-                .format(name, ", ".join(sorted(existing)))
+                .format(name, ", ".join([str(p) for p in sorted(existing)]))
             )
         elif not existing:
             raise ValueError("No file/folder found for module {}".format(name))
@@ -57,12 +57,12 @@ class Module(object):
     @property
     def source_dir(self):
         """Path of folder containing the module (src/ or project root)"""
-        return osp.dirname(self.path)
+        return self.path.parent
 
     @property
     def file(self):
         if self.is_package:
-            return osp.join(self.path, '__init__.py')
+            return self.path / '__init__.py'
         else:
             return self.path
 
@@ -89,7 +89,7 @@ class Module(object):
                 dirs[:] = [d for d in sorted(dirs) if _include(d)]
 
         else:
-            yield self.path
+            yield str(self.path)
 
 class ProblemInModule(ValueError): pass
 class NoDocstringError(ProblemInModule): pass
@@ -123,7 +123,7 @@ def get_docstring_and_version_via_ast(target):
     extracted by parsing its AST.
     """
     # read as bytes to enable custom encodings
-    with open(target.file, 'rb') as f:
+    with target.file.open('rb') as f:
         node = ast.parse(f.read())
     for child in node.body:
         # Only use the version from the given module if it's a simple
@@ -140,31 +140,21 @@ def get_docstring_and_version_via_ast(target):
     return ast.get_docstring(node), version
 
 
-if sys.version_info[0] >= 3:
-    def get_docstring_and_version_via_import(target):
-        """
-        Return a tuple like (docstring, version) for the given module,
-        extracted by importing the module and pulling __doc__ & __version__
-        from it.
-        """
-        log.debug("Loading module %s", target.file)
-        from importlib.machinery import SourceFileLoader
-        sl = SourceFileLoader(target.name, target.file)
-        with _module_load_ctx():
-            m = sl.load_module()
-        docstring = m.__dict__.get('__doc__', None)
-        version = m.__dict__.get('__version__', None)
-        return docstring, version
-else:
-    def get_docstring_and_version_via_import(target):
-        log.debug("Loading module %s", target.file)
-        import imp
-        mod_info = imp.find_module(target.name, [target.source_dir])
-        with _module_load_ctx():
-            m = imp.load_module(target.name, *mod_info)
-        docstring = m.__dict__.get('__doc__', None)
-        version = m.__dict__.get('__version__', None)
-        return docstring, version
+def get_docstring_and_version_via_import(target):
+    """
+    Return a tuple like (docstring, version) for the given module,
+    extracted by importing the module and pulling __doc__ & __version__
+    from it.
+    """
+    log.debug("Loading module %s", target.file)
+    from importlib.machinery import SourceFileLoader
+    sl = SourceFileLoader(target.name, str(target.file))
+    with _module_load_ctx():
+        m = sl.load_module()
+    docstring = m.__dict__.get('__doc__', None)
+    version = m.__dict__.get('__version__', None)
+    return docstring, version
+
 
 def get_info_from_module(target):
     """Load the module/package, get its docstring and __version__

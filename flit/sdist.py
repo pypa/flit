@@ -140,15 +140,10 @@ class SdistBuilder(SdistBuilderCore):
     - Add a generated setup.py for compatibility with tools which don't yet know
       about PEP 517.
     """
-    @classmethod
-    def from_ini_path(cls, ini_path: Path):
-        return super().from_ini_path(str(ini_path))
-
     def select_files(self):
-        cfgdir_path = Path(self.cfgdir)
-        vcs_mod = identify_vcs(cfgdir_path)
+        vcs_mod = identify_vcs(self.cfgdir)
         if vcs_mod is not None:
-            untracked_deleted = vcs_mod.list_untracked_deleted_files(cfgdir_path)
+            untracked_deleted = vcs_mod.list_untracked_deleted_files(self.cfgdir)
             if any(include_path(p) and not self.excludes.match_file(p)
                    for p in untracked_deleted):
                 raise VCSError(
@@ -157,7 +152,7 @@ class SdistBuilder(SdistBuilderCore):
                     self.cfgdir)
 
             files = [os.path.normpath(p)
-                     for p in vcs_mod.list_tracked_files(cfgdir_path)]
+                     for p in vcs_mod.list_tracked_files(self.cfgdir)]
             files = sorted(filter(include_path, files))
             log.info("Found %d files tracked in %s", len(files), vcs_mod.name)
         else:
@@ -219,5 +214,3 @@ class SdistBuilder(SdistBuilderCore):
             extra='\n      '.join(extra),
         ).encode('utf-8')
 
-    def build(self, target_dir, gen_setup_py=True):
-        return Path(super().build(str(target_dir), gen_setup_py=gen_setup_py))
