@@ -55,12 +55,23 @@ LIST_FILES = """\
 import sys
 from os.path import join
 if '--deleted' not in sys.argv:
-    print('foo')
-    print(join('dir1', 'bar'))
-    print(join('dir1', 'subdir', 'qux'))
-    print(join('dir2', 'abc'))
-    print(join('dist', 'def'))
-""".format(python=sys.executable)
+    files = [
+        'foo',
+        join('dir1', 'bar'),
+        join('dir1', 'subdir', 'qux'),
+        join('dir2', 'abc'),
+        join('dist', 'def'),
+    ]
+    mode = '{vcs}'
+    if mode == 'git':
+        print('\\0'.join(files), end='\\0')
+    elif mode == 'hg':
+        for f in files:
+            print(f)
+"""
+
+LIST_FILES_GIT = LIST_FILES.format(python=sys.executable, vcs='git')
+LIST_FILES_HG = LIST_FILES.format(python=sys.executable, vcs='hg')
 
 
 def test_get_files_list_git(copy_sample):
@@ -68,7 +79,7 @@ def test_get_files_list_git(copy_sample):
     (td / '.git').mkdir()
 
     builder = sdist.SdistBuilder.from_ini_path(td / 'pyproject.toml')
-    with MockCommand('git', LIST_FILES):
+    with MockCommand('git', LIST_FILES_GIT):
         files = builder.select_files()
 
     assert set(files) == {
@@ -81,7 +92,7 @@ def test_get_files_list_hg(tmp_path):
     copytree(str(samples_dir / 'module1_toml'), str(dir1))
     (tmp_path / '.hg').mkdir()
     builder = sdist.SdistBuilder.from_ini_path(dir1 / 'pyproject.toml')
-    with MockCommand('hg', LIST_FILES):
+    with MockCommand('hg', LIST_FILES_HG):
         files = builder.select_files()
 
     assert set(files) == {

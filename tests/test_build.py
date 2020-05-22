@@ -15,9 +15,8 @@ LIST_FILES_TEMPLATE = """\
 import sys
 from os.path import join
 if '--deleted' not in sys.argv:
-    print('pyproject.toml')
-    print('{module}')
-    print('EG_README.rst')
+    files = ['pyproject.toml', '{module}', 'EG_README.rst']
+    print('\\0'.join(files), end='\\0')
 """
 
 def test_build_main(copy_sample):
