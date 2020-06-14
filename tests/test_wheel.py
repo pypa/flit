@@ -71,6 +71,16 @@ def test_entry_points(copy_sample):
         assert 'console_scripts' in cp.sections()
         assert 'myplugins' in cp.sections()
 
+def test_requires_external(copy_sample):
+    td = copy_sample('requires-external')
+    make_wheel_in(td / 'pyproject.toml', td)
+    assert_isfile(td / 'module1-0.1-py2.py3-none-any.whl')
+    with unpack(td / 'module1-0.1-py2.py3-none-any.whl') as td_unpack:
+        with open(Path(td_unpack) / 'module1-0.1.dist-info' / 'METADATA') as f:
+            txt = f.read()
+            assert 'Requires-External: git' in txt
+            assert 'Requires-External: ffmpeg' in txt
+
 def test_entry_points_conflict(copy_sample):
     td = copy_sample('entrypoints_conflict')
     with pytest.raises(EntryPointsConflict):

@@ -341,6 +341,9 @@ class Metadata(object):
         for extra in self.provides_extra:
             fp.write(u'Provides-Extra: {}\n'.format(extra))
 
+        for ext in self.requires_external:
+            fp.write(u'Requires-External: {}\n'.format(ext))
+
         if self.description is not None:
             fp.write(u'\n' + self.description + u'\n')
 
