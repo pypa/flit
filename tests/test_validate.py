@@ -181,3 +181,42 @@ def test_verify_classifiers_invalid_classifiers():
     problems = fv._verify_classifiers(classifiers, valid_classifiers)
 
     assert problems == ["Unrecognised classifier: 'B'"]
+
+def test_validate_readme_rst():
+    metadata = {
+        'description_content_type': 'text/x-rst',
+        'description': "Invalid ``rst'",
+    }
+    problems = fv.validate_readme_rst(metadata)
+
+    assert len(problems) == 2  # 1 message that rst is invalid + 1 with details
+    assert "valid rst" in problems[0]
+
+    # Markdown should be ignored
+    metadata = {
+        'description_content_type': 'text/markdown',
+        'description': "Invalid `rst'",
+    }
+    problems = fv.validate_readme_rst(metadata)
+
+    assert problems == []
+
+RST_WITH_CODE = """
+Code snippet:
+
+.. code-block:: python
+
+   a = [i ** 2 for i in range(5)]
+"""
+
+def test_validate_readme_rst_code():
+    # Syntax highlighting shouldn't require pygments
+    metadata = {
+        'description_content_type': 'text/x-rst',
+        'description': RST_WITH_CODE,
+    }
+    problems = fv.validate_readme_rst(metadata)
+    for p in problems:
+        print(p)
+
+    assert problems == []
