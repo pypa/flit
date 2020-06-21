@@ -80,7 +80,7 @@ def test_build_package_with_unicode(copy_sample):
 import sys
 from os.path import join
 if '--deleted' not in sys.argv:
-    files = ['pyproject.toml', 'packageunicode/__init__.py', 'packageunicode/Noël.jpg']
+    files = ['pyproject.toml', 'packageunicode/__init__.py', 'packageunicode/No\\u00ebl.jpg']
     print('\\0'.join(files), end='\\0')
 """
     td = copy_sample('packageunicode')
