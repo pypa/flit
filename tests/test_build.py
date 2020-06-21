@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from pathlib import Path
 import pytest
@@ -76,11 +75,14 @@ def test_build_module_no_docstring():
 def test_build_package_with_unicode(copy_sample):
     list_files_template = """\
 #!{python}
-# -*- coding: utf-8 -*-
 import sys
 from os.path import join
 if '--deleted' not in sys.argv:
-    files = ['pyproject.toml', 'packageunicode/__init__.py', 'packageunicode/No\\u00ebl.jpg']
+    files = ['pyproject.toml', 'packageunicode/__init__.py']
+    if sys.platform == 'win32':
+        files.append('packageunicode/No\\xc3\\xabl.jpg')
+    else:
+        files.append('packageunicode/No\\u00ebl.jpg')
     print('\\0'.join(files), end='\\0')
 """
     td = copy_sample('packageunicode')
