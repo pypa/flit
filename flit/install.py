@@ -171,13 +171,14 @@ class Installer(object):
 
     def install_scripts(self, script_defs, scripts_dir):
         for name, ep in script_defs.items():
-            module, func = common.parse_entry_point(ep)
+            module, import_name, func = common.parse_entry_point(ep)
             script_file = pathlib.Path(scripts_dir) / name
             log.info('Writing script to %s', script_file)
             with script_file.open('w', encoding='utf-8') as f:
                 f.write(common.script_template.format(
                     interpreter=self.python,
                     module=module,
+                    import_name=import_name,
                     func=func
                 ))
             script_file.chmod(0o755)

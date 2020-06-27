@@ -209,27 +209,32 @@ def check_version(version):
 
 script_template = """\
 #!{interpreter}
-from {module} import {func}
+# -*- coding: utf-8 -*-
+import re
+import sys
+from {module} import {import_name}
 if __name__ == '__main__':
-    {func}()
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit({func}())
 """
 
 def parse_entry_point(ep):
     """Check and parse a 'package.module:func' style entry point specification.
 
-    Returns (modulename, funcname)
+    Returns (modulename, import_name, funcname)
     """
     if ':' not in ep:
         raise ValueError("Invalid entry point (no ':'): %r" % ep)
     mod, func = ep.split(':')
 
-    if not func.isidentifier():
-        raise ValueError("Invalid entry point: %r is not an identifier" % func)
+    for piece in func.split('.'):
+        if not piece.isidentifier():
+            raise ValueError("Invalid entry point: %r is not an identifier" % piece)
     for piece in mod.split('.'):
         if not piece.isidentifier():
             raise ValueError("Invalid entry point: %r is not a module path" % piece)
 
-    return mod, func
+    return mod, func.split('.')[0], func
 
 def write_entry_points(d, fp):
     """Write entry_points.txt from a two-level dict
