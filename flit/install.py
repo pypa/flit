@@ -171,7 +171,8 @@ class Installer(object):
 
     def install_scripts(self, script_defs, scripts_dir):
         for name, ep in script_defs.items():
-            module, import_name, func = common.parse_entry_point(ep)
+            module, func = common.parse_entry_point(ep)
+            import_name = func.split('.')[0]
             script_file = pathlib.Path(scripts_dir) / name
             log.info('Writing script to %s', script_file)
             with script_file.open('w', encoding='utf-8') as f:

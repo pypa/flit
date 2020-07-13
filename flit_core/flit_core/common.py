@@ -234,7 +234,7 @@ def parse_entry_point(ep):
         if not piece.isidentifier():
             raise ValueError("Invalid entry point: %r is not a module path" % piece)
 
-    return mod, func.split('.')[0], func
+    return mod, func
 
 def write_entry_points(d, fp):
     """Write entry_points.txt from a two-level dict
