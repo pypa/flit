@@ -221,7 +221,7 @@ if __name__ == '__main__':
 def parse_entry_point(ep):
     """Check and parse a 'package.module:func' style entry point specification.
 
-    Returns (modulename, import_name, funcname)
+    Returns (modulename, funcname)
     """
     if ':' not in ep:
         raise ValueError("Invalid entry point (no ':'): %r" % ep)
