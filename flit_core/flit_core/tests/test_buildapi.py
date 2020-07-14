@@ -20,8 +20,17 @@ def cwd(directory):
         os.chdir(prev)
 
 def test_get_build_requires():
-    expected = ["requests >= 2.18", "docutils"]
+    # This module can be inspected (for docstring & __version__) without
+    # importing it, so there are no build dependencies.
     with cwd(osp.join(samples_dir,'pep517')):
+        assert buildapi.get_requires_for_build_wheel() == []
+        assert buildapi.get_requires_for_build_sdist() == []
+
+def test_get_build_requires_import():
+    # This one has to be imported, so its runtime dependencies are also
+    # build dependencies.
+    expected = ["numpy >=1.16.0"]
+    with cwd(osp.join(samples_dir, 'constructed_version')):
         assert buildapi.get_requires_for_build_wheel() == expected
         assert buildapi.get_requires_for_build_sdist() == expected
 
