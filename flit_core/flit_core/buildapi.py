@@ -5,7 +5,10 @@ import os
 import os.path as osp
 from pathlib import Path
 
-from .common import Module, make_metadata, write_entry_points, dist_info_name
+from .common import (
+    Module, make_metadata, write_entry_points, dist_info_name,
+    get_docstring_and_version_via_ast,
+)
 from .config import read_flit_config
 from .wheel import make_wheel_in, _write_wheel_file
 from .sdist import SdistBuilder
@@ -18,9 +21,17 @@ pyproj_toml = Path('pyproject.toml')
 def get_requires_for_build_wheel(config_settings=None):
     """Returns a list of requirements for building, as strings"""
     info = read_flit_config(pyproj_toml)
-    return info.metadata.get('requires_dist', [])
+    # If we can get the module info from the AST, we don't need any extra
+    # dependencies. If not, we'll need to try importing it, so report any
+    # runtime dependencies as build dependencies.
+    module = Module(info.module, Path.cwd())
+    docstring, version = get_docstring_and_version_via_ast(module)
+    if (docstring is None) or (version is None):
+        return info.metadata.get('requires_dist', [])
+    else:
+        return []
 
-# For now, we require all dependencies to build either a wheel or an sdist.
+# Requirements to build an sdist are the same as for a wheel
 get_requires_for_build_sdist = get_requires_for_build_wheel
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
