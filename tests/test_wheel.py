@@ -112,6 +112,10 @@ def test_permissions_normed(copy_sample):
         perms = (info.external_attr >> 16) & 0o777
         assert perms == 0o755, oct(perms)
 
+        info = zf.getinfo('module1-0.1.dist-info/METADATA')
+        perms = (info.external_attr >> 16) & 0o777
+        assert perms == 0o644, oct(perms)
+
 def test_compression(tmp_path):
     info = make_wheel_in(samples_dir / 'module1_toml' / 'pyproject.toml', tmp_path)
     assert_isfile(info.file)

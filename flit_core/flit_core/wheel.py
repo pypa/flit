@@ -44,6 +44,11 @@ def _write_wheel_file(f, supports_py2=False):
     f.write(u"Tag: py3-none-any\n")
 
 
+def _set_zinfo_mode(zinfo, mode):
+    # Set the bits for the mode and bit 0xFFFF for “regular file”
+    zinfo.external_attr = mode << 16
+
+
 class WheelBuilder:
     def __init__(self, directory, module, metadata, entrypoints, target_fp):
         """Build a wheel from a module/package
@@ -139,7 +144,7 @@ class WheelBuilder:
         # Normalize permission bits to either 755 (executable) or 644
         st_mode = os.stat(full_path).st_mode
         new_mode = common.normalize_file_permissions(st_mode)
-        zinfo.external_attr = (new_mode & 0xFFFF) << 16      # Unix attributes
+        _set_zinfo_mode(zinfo, new_mode & 0xFFFF)  # Unix attributes
 
         if stat.S_ISDIR(st_mode):
             zinfo.external_attr |= 0x10  # MS-DOS directory flag
@@ -162,7 +167,7 @@ class WheelBuilder:
     _add_file = _add_file_zf36 if HAVE_ZIPFILE36 else _add_file_old
 
     @contextlib.contextmanager
-    def _write_to_zip(self, rel_path):
+    def _write_to_zip(self, rel_path, mode=0o644):
         sio = io.StringIO()
         yield sio
 
@@ -172,6 +177,7 @@ class WheelBuilder:
         # give you the exact same result.
         date_time = self.source_time_stamp or (2016, 1, 1, 0, 0, 0)
         zi = zipfile.ZipInfo(rel_path, date_time)
+        _set_zinfo_mode(zi, mode)
         b = sio.getvalue().encode('utf-8')
         hashsum = hashlib.sha256(b)
         hash_digest = urlsafe_b64encode(hashsum.digest()).decode('ascii').rstrip('=')
