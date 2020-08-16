@@ -392,7 +392,7 @@ class Installer(object):
 
         with (dist_info / 'RECORD').open('w', encoding='utf-8') as f:
             cf = csv.writer(f)
-            for path in self.installed_files:
+            for path in sorted(self.installed_files, key=lambda s: str(s)):
                 path = pathlib.Path(path)
                 if path.is_symlink() or path.suffix in {'.pyc', '.pyo'}:
                     hash, size = '', ''
