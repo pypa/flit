@@ -393,7 +393,7 @@ class Installer(object):
         # newline='' because the csv module does its own newline translation
         with (dist_info / 'RECORD').open('w', encoding='utf-8', newline='') as f:
             cf = csv.writer(f)
-            for path in self.installed_files:
+            for path in sorted(self.installed_files, key=str):
                 path = pathlib.Path(path)
                 if path.is_symlink() or path.suffix in {'.pyc', '.pyo'}:
                     hash, size = '', ''
