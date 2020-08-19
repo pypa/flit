@@ -390,6 +390,7 @@ class Installer(object):
             )
         self.installed_files.append(dist_info / 'direct_url.json')
 
+        # newline='' because the csv module does its own newline translation
         with (dist_info / 'RECORD').open('w', encoding='utf-8', newline='') as f:
             cf = csv.writer(f)
             for path in self.installed_files:
