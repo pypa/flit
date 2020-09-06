@@ -1,6 +1,39 @@
 Release history
 ===============
 
+Version 3.0
+-----------
+
+Breaking changes:
+
+- Projects must now provide Flit with information in ``pyproject.toml`` files,
+  not the older ``flit.ini`` format (:ghpull:`338`).
+- ``flit_core`` once again requires Python 3 (>=3.4). Packages that support
+  Python 2 can still be built by ``flit_core`` 2.x, but can't rely on new
+  features (:ghpull:`342`).
+- The deprecated ``flit installfrom`` command was removed (:ghpull:`334`).
+  You can use ``pip install git+https://github.com/...`` instead.
+
+Features and fixes:
+
+- Fix building sdists from a git repository with non-ASCII characters in
+  filenames (:ghpull:`346`).
+- Fix identifying the version number when the code contains a subscript
+  assignment before ``__version__ =`` (:ghpull:`348`).
+- Script entry points can now use a class method (:ghpull:`359`).
+- Set suitable permission bits on metadata files in wheels (:ghpull:`256`).
+- Fixed line endings in the ``RECORD`` file when installing on Windows
+  (:ghpull:`368`).
+- Support for recording the source of local installations, as in :pep:`610`
+  (:ghpull:`335`).
+- ``flit init`` will check for a README in the root of the project and
+  automatically set it as ``description-file`` (:ghpull:`337`).
+- Pygments is not required for checking reStructuredText READMEs (:ghpull:`357`).
+- Packages where the version number can be recognised without executing their
+  code don't need their dependencies installed to build, which should make them
+  build faster (:ghpull:`361`).
+- Ensure the installed ``RECORD`` file is predictably ordered (:ghpull:`366`).
+
 Version 2.3
 -----------
 
