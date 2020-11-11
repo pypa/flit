@@ -30,20 +30,20 @@ jobs:
   # tox-gh-actions requires Python >= 3.5, so test 3.4 separately
   test-py34:
     runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-        - name: Setup Python 3.4
-          uses: actions/setup-python@v2
-          with:
-            python-version: 3.4
+      - name: Setup Python 3.4
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.4
 
-        - name: Install dependencies
-          run: |
-            pip install tox codecov
+      - name: Install dependencies
+        run: |
+          pip install tox codecov
 
-        - name: Run tests
-          run: tox -e py34
+      - name: Run tests
+        run: tox -e py34
 
-        - name: Codecov upload
-          run: codecov
+      - name: Codecov upload
+        run: codecov
