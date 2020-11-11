@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, ]
+        python-version: [ 3.5, 3.6, 3.7, 3.8, 3.9, ]
     steps:
       - uses: actions/checkout@v2
 
@@ -26,3 +26,24 @@ jobs:
 
       - name: Codecov upload
         run: codecov
+
+  # tox-gh-actions requires Python >= 3.5, so test 3.4 separately
+  test-py34:
+    runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+
+        - name: Setup Python 3.4
+          uses: actions/setup-python@v2
+          with:
+            python-version: 3.4
+
+        - name: Install dependencies
+          run: |
+            pip install tox codecov
+
+        - name: Run tests
+          run: tox -e py34
+
+        - name: Codecov upload
+          run: codecov
