@@ -95,7 +95,7 @@ class SdistBuilder:
 
     @classmethod
     def from_ini_path(cls, ini_path: Path):
-        # Local import so bootstrapping doesn't try to load pytoml
+        # Local import so bootstrapping doesn't try to load toml
         from .config import read_flit_config
         ini_info = read_flit_config(ini_path)
         srcdir = ini_path.parent

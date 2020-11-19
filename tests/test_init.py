@@ -6,7 +6,7 @@ from testpath import assert_isfile
 from unittest.mock import patch
 import pytest
 
-import pytoml
+import toml
 
 from flit import init
 
@@ -107,7 +107,7 @@ def test_init():
         generated = Path(td) / 'pyproject.toml'
         assert_isfile(generated)
         with generated.open() as f:
-            data = pytoml.load(f)
+            data = toml.load(f)
         assert data['tool']['flit']['metadata'][
                    'author-email'] == "test@example.com"
         license = Path(td) / 'LICENSE'
@@ -131,7 +131,7 @@ def test_init_homepage_and_license_are_optional():
         ti = init.TerminalIniter(td)
         ti.initialise()
         with Path(td, 'pyproject.toml').open() as f:
-            data = pytoml.load(f)
+            data = toml.load(f)
         assert not Path(td, 'LICENSE').exists()
     metadata = data['tool']['flit']['metadata']
     assert metadata == {
@@ -154,7 +154,7 @@ def test_init_homepage_validator():
         ti = init.TerminalIniter(td)
         ti.initialise()
         with Path(td, 'pyproject.toml').open() as f:
-            data = pytoml.load(f)
+            data = toml.load(f)
     metadata = data['tool']['flit']['metadata']
     assert metadata == {
         'author': 'Test Author',
@@ -176,7 +176,7 @@ def test_author_email_field_is_optional():
         ti = init.TerminalIniter(td)
         ti.initialise()
         with Path(td, 'pyproject.toml').open() as f:
-            data = pytoml.load(f)
+            data = toml.load(f)
         assert not Path(td, 'LICENSE').exists()
     metadata = data['tool']['flit']['metadata']
     assert metadata == {
@@ -216,7 +216,7 @@ def test_init_readme_found_yes_choosen():
         ti = init.TerminalIniter(td)
         ti.initialise()
         with Path(td, 'pyproject.toml').open() as f:
-            data = pytoml.load(f)
+            data = toml.load(f)
 
     metadata = data['tool']['flit']['metadata']
     assert metadata == {

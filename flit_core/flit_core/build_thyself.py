@@ -25,7 +25,7 @@ metadata_dict = {
     'summary': ('Distribution-building parts of Flit. '
                     'See flit package for more information'),
     'requires_dist': [
-        'pytoml',
+        'toml',
     ],
     'requires_python': '>=3.4',
     'classifiers': [
