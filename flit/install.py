@@ -91,7 +91,7 @@ class DependencyError(Exception):
 
 class Installer(object):
     def __init__(self, directory, ini_info, user=None, python=sys.executable,
-                 symlink=False, deps='all', extras=(), pth=False):
+                 symlink=False, deps='all', extras=(), pth=False, extra_index_url=None):
         self.directory = directory
         self.ini_info = ini_info
         self.python = python
@@ -99,6 +99,7 @@ class Installer(object):
         self.pth = pth
         self.deps = deps
         self.extras = extras
+        self.extra_index_url = extra_index_url
         if deps != 'none' and os.environ.get('FLIT_NO_NETWORK', ''):
             self.deps = 'none'
             log.warning('Not installing dependencies, because FLIT_NO_NETWORK is set')
@@ -121,10 +122,10 @@ class Installer(object):
 
     @classmethod
     def from_ini_path(cls, ini_path, user=None, python=sys.executable,
-                      symlink=False, deps='all', extras=(), pth=False):
+                      symlink=False, deps='all', extras=(), pth=False, extra_index_url=None):
         ini_info = read_flit_config(ini_path)
         return cls(ini_path.parent, ini_info, user=user, python=python,
-                   symlink=symlink, deps=deps, extras=extras, pth=pth)
+                   symlink=symlink, deps=deps, extras=extras, pth=pth, extra_index_url=extra_index_url)
 
     def _run_python(self, code=None, file=None, extra_args=()):
         if code and file:
@@ -242,6 +243,8 @@ class Installer(object):
         cmd = [self.python, '-m', 'pip', 'install']
         if self.user:
             cmd.append('--user')
+        if self.extra_index_url:
+            cmd.extend(["--extra-index-url", self.extra_index_url])
         with tempfile.NamedTemporaryFile(mode='w',
                                          suffix='requirements.txt',
                                          delete=False) as tf:
@@ -349,6 +352,8 @@ class Installer(object):
             cmd.append('--user')
         if self.deps == 'none':
             cmd.append('--no-deps')
+        if self.extra_index_url:
+            cmd.extend(["--extra-index-url", self.extra_index_url])
         shell = (os.name == 'nt')
         check_call(cmd, shell=shell)
 

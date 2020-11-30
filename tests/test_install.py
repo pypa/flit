@@ -111,6 +111,21 @@ class InstallTests(TestCase):
         assert cmd[1:4] == ['-m', 'pip', 'install']
         assert cmd[4].endswith('package1')
 
+    def test_pip_install_with_extra_index_url(self):
+        ins = Installer.from_ini_path(samples_dir / 'package1' / 'pyproject.toml', python='mock_python',
+                                      user=False, extra_index_url='https://fake.index')
+
+        with MockCommand('mock_python') as mock_py:
+            ins.install()
+
+        calls = mock_py.get_calls()
+        assert len(calls) == 1
+        cmd = calls[0]['argv']
+        assert cmd[1:4] == ['-m', 'pip', 'install']
+        assert cmd[4].endswith('package1')
+        assert cmd[5:7] == ['--extra-index-url', 'https://fake.index']
+        assert len(cmd) == 7
+
     def test_symlink_other_python(self):
         if os.name == 'nt':
             raise SkipTest('symlink')
@@ -155,6 +170,16 @@ class InstallTests(TestCase):
         calls = mockpy.get_calls()
         assert len(calls) == 1
         assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
+
+    def test_install_requires_with_extra_index_url(self):
+        ins = Installer.from_ini_path(samples_dir / 'requires-requests.toml',
+                                      user=False, python='mock_python', extra_index_url='https://fake.index')
+
+        with MockCommand('mock_python') as mockpy:
+            ins.install_requirements()
+        calls = mockpy.get_calls()
+        assert len(calls) == 1
+        assert calls[0]['argv'][1:7] == ['-m', 'pip', 'install', '--extra-index-url', 'https://fake.index', '-r']
 
     def test_extras_error(self):
         with pytest.raises(DependencyError):

@@ -124,6 +124,9 @@ def main(argv=None):
         help="Install the dependencies of these (comma separated) extras additionally to the ones implied by --deps. "
              "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
     )
+    parser_install.add_argument('--extra-index-url', default=None, type=str,
+        help="Extra URL of package indexes to use in addition to pypi.org"
+    )
 
     # flit init --------------------------------------------
     parser_init = subparsers.add_parser('init',
@@ -169,7 +172,7 @@ def main(argv=None):
             python = find_python_executable(args.python)
             Installer.from_ini_path(args.ini_file, user=args.user, python=python,
                       symlink=args.symlink, deps=args.deps, extras=args.extras,
-                      pth=args.pth_file).install()
+                      pth=args.pth_file, extra_index_url=args.extra_index_url).install()
         except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
 
