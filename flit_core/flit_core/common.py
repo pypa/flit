@@ -150,7 +150,6 @@ def get_docstring_and_version_via_import(target):
     from it.
     """
     log.debug("Loading module %s", target.file)
-    from importlib.machinery import PathFinder
     from importlib.util import spec_from_file_location, module_from_spec
     spec = spec_from_file_location(target.name, str(target.file))
     m = module_from_spec(spec)
