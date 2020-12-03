@@ -153,13 +153,13 @@ def get_docstring_and_version_via_import(target):
     from importlib.machinery import PathFinder
     from importlib.util import spec_from_file_location, module_from_spec
     spec = spec_from_file_location(target.name, str(target.file))
-    module = module_from_spec(spec)
-    error = None
-    with _module_load_ctx():
-        try:
-            spec.loader.exec_module(module)
-        except ImportError as e:
-            error = e
+    m = module_from_spec(spec)
+    try:
+        error = None
+        with _module_load_ctx():
+            spec.loader.exec_module(m)
+    except ImportError as e:
+        error = e
     docstring = m.__dict__.get('__doc__', None)
     version = m.__dict__.get('__version__', None)
     return docstring, version, error
