@@ -55,8 +55,17 @@ class ModuleTests(TestCase):
                                 'version': '1.2.3'}
                          )
 
+        info = get_info_from_module(Module('module2', samples_dir / 'constructed_version'))
+        self.assertEqual(info, {'summary': 'This module imports things that aren’t importable',
+                                'version': '2.2'}
+                         )
+
         with self.assertRaises(InvalidVersion):
             get_info_from_module(Module('invalid_version1', samples_dir))
+
+        with self.assertRaises(NoVersionError) as cm:
+            get_info_from_module(Module('cannot_set_version', samples_dir / 'constructed_version'))
+        assert "error while retrieving version: No module named '_a_package_" in str(cm.exception)
 
     def test_version_raise(self):
         with pytest.raises(InvalidVersion):
