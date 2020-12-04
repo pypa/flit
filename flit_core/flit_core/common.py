@@ -189,7 +189,7 @@ def get_info_from_module(target):
     return {'summary': docstring_lines[0],
             'version': version}
 
-def check_version(version, error):
+def check_version(version, error=None):
     """
     Check whether a given version string match PEP 440, and do normalisation.
 
@@ -205,7 +205,7 @@ def check_version(version, error):
                'Please define a `__version__ = "x.y.z"` in your module.')
         if error:
             msg += (' Encountered error while retrieving version: {} '
-                    .format(str(error))
+                    .format(str(error)))
         raise NoVersionError(msg)
     if not isinstance(version, str):
         raise InvalidVersion('__version__ must be a string, not {}.'
