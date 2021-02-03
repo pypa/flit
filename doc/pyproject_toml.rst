@@ -92,6 +92,8 @@ description-file
   (``.rst``, ``.md`` or ``.txt``).
 classifiers
   A list of `Trove classifiers <https://pypi.python.org/pypi?%3Aaction=list_classifiers>`_.
+  Add ``Private :: Do Not Upload`` into the list to prevent a private package
+  from uploading on PyPI by accident.
 requires-python
   A version specifier for the versions of Python this requires, e.g. ``~=3.3`` or
   ``>=3.3,<4`` which are equivalents.
