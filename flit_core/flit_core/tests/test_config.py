@@ -15,6 +15,13 @@ def test_load_toml():
     assert inf.module == 'module1'
     assert inf.metadata['home_page'] == 'http://github.com/sirrobin/module1'
 
+def test_load_pep621():
+    inf = config.read_flit_config(samples_dir / 'pep621' / 'pyproject.toml')
+    assert inf.metadata['name'] == 'module1'
+    assert inf.metadata['description_content_type'] == 'text/x-rst'
+    assert inf.metadata['requires_dist'] == ["requests >= 2.18", "docutils"]
+    assert inf.entrypoints['flit_test_example']['foo'] == 'module1:main'
+
 def test_misspelled_key():
     with pytest.raises(config.ConfigError) as e_info:
         config.read_flit_config(samples_dir / 'misspelled-key.toml')
