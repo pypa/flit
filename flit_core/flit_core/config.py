@@ -111,7 +111,7 @@ def prep_toml_config(d, path):
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
         raise ConfigError('Unexpected tables in pyproject.toml: ' + ', '.join(
-            f'[tool.flit.{s}]' for s in unknown_sections
+            '[tool.flit.{}]'.format(s) for s in unknown_sections
         ))
 
     if 'sdist' in dtool:
@@ -372,7 +372,7 @@ def _expand_requires_extra(re):
 def _check_type(d, field_name, cls):
     if not isinstance(d[field_name], cls):
         raise ConfigError(
-            f"{field_name} field should be {cls}, not {type(d[field_name])}"
+            "{} field should be {}, not {}".format(field_name, cls, type(d[field_name]))
         )
 
 def _check_list_of_str(d, field_name):
@@ -380,7 +380,7 @@ def _check_list_of_str(d, field_name):
         isinstance(e, str) for e in d[field_name]
     ):
         raise ConfigError(
-            f"{field_name} field should be a list of strings"
+            "{} field should be a list of strings".format(field_name)
         )
 
 def read_pep621_metadata(proj, path) -> LoadedConfig:
@@ -412,14 +412,14 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
             unrec_keys = set(readme.keys()) - {'text', 'file', 'content-type'}
             if unrec_keys:
                 raise ConfigError(
-                    f"Unrecognised keys in [project.readme]: {unrec_keys}"
+                    "Unrecognised keys in [project.readme]: {}".format(unrec_keys)
                 )
             if 'content-type' in readme:
                 mimetype = readme['content-type']
                 mtype_base = mimetype.split(';')[0].strip()  # e.g. text/x-rst
                 if mtype_base not in readme_ext_to_content_type.values():
                     raise ConfigError(
-                        f"Unrecognised readme content type: {mtype_base!r}"
+                        "Unrecognised readme content type: {!r}".format(mtype_base)
                     )
                 # TODO: validate content-type parameters (charset, md variant)?
             else:
@@ -458,7 +458,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         unrec_keys = set(license_tbl.keys()) - {'text', 'file'}
         if unrec_keys:
             raise ConfigError(
-                f"Unrecognised keys in [project.license]: {unrec_keys}"
+                "Unrecognised keys in [project.license]: {}".format(unrec_keys)
             )
 
         # TODO: Do something with license info.
@@ -548,7 +548,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         for e, reqs in optdeps.items():
             if not all(isinstance(a, str) for a in reqs):
                 raise ConfigError(
-                    f'Expected a string list for optional-dependencies ({e})'
+                    'Expected a string list for optional-dependencies ({})'.format(e)
                 )
 
         # Move dev-requires into requires-extra
@@ -585,16 +585,16 @@ def pep621_people(people, group_name='author') -> (str, str):
     names, emails = [], []
     for person in people:
         if not isinstance(person, dict):
-            raise ConfigError(f"{group_name} info must be list of dicts")
+            raise ConfigError("{} info must be list of dicts".format(group_name))
         unrec_keys = set(person.keys()) - {'name', 'email'}
         if unrec_keys:
             raise ConfigError(
-                f"Unrecognised keys in {group_name} info: {unrec_keys}"
+                "Unrecognised keys in {} info: {}".format(group_name, unrec_keys)
             )
         if 'email' in person:
             email = person['email']
             if 'name' in person:
-                email = f'{person["name"]} <{email}>'
+                email = '{} <{}>'.format(person["name"], email)
             emails.append(email)
         elif 'name' in person:
             names.append(person['name'])
