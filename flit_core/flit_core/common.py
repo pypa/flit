@@ -143,15 +143,24 @@ def get_docstring_and_version_via_ast(target):
     return ast.get_docstring(node), version
 
 
+# To ensure we're actually loading the specified file, give it a unique name to
+# avoid any cached import. In normal use we'll only load one module per process,
+# so it should only matter for the tests, but we'll do it anyway.
+_import_i = 0
+
+
 def get_docstring_and_version_via_import(target):
     """
     Return a tuple like (docstring, version) for the given module,
     extracted by importing the module and pulling __doc__ & __version__
     from it.
     """
+    global _import_i
+    _import_i += 1
+
     log.debug("Loading module %s", target.file)
     from importlib.machinery import SourceFileLoader
-    sl = SourceFileLoader(target.name, str(target.file))
+    sl = SourceFileLoader(f'flit_core.dummy.import{_import_i}', str(target.file))
     with _module_load_ctx():
         m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
