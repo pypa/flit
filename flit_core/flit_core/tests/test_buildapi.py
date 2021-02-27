@@ -26,6 +26,13 @@ def test_get_build_requires():
         assert buildapi.get_requires_for_build_wheel() == []
         assert buildapi.get_requires_for_build_sdist() == []
 
+def test_get_build_requires_pep621_nodynamic():
+    # This module isn't inspected because version & description are specified
+    # as static metadata in pyproject.toml, so there are no build dependencies
+    with cwd(osp.join(samples_dir, 'pep621_nodynamic')):
+        assert buildapi.get_requires_for_build_wheel() == []
+        assert buildapi.get_requires_for_build_sdist() == []
+
 def test_get_build_requires_import():
     # This one has to be imported, so its runtime dependencies are also
     # build dependencies.
