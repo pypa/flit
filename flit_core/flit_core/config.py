@@ -391,7 +391,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
     if 'name' not in proj:
         raise ConfigError('name must be specified in [project] table')
     _check_type(proj, 'name', str)
-    md_dict['name'] = proj['name']
+    lc.module = md_dict['name'] = proj['name']
 
     unexpected_keys = proj.keys() - pep621_allowed_fields
     if unexpected_keys:
