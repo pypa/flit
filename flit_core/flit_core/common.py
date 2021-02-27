@@ -188,9 +188,6 @@ def get_info_from_module(target, for_fields=('version', 'description')):
     if (want_summary and not docstring) or (want_version and not version):
         docstring, version = get_docstring_and_version_via_import(target)
 
-    print(docstring, want_summary)
-    print(version, want_version)
-
     res = {}
 
     if want_summary:
