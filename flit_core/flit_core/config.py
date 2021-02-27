@@ -578,9 +578,18 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
             )
         lc.dynamic_metadata = dynamic
 
+    if ('version' not in proj) and ('version' not in lc.dynamic_metadata):
+        raise ConfigError(
+            "version must be specified under [project] or listed as a dynamic field"
+        )
+    if ('description' not in proj) and ('description' not in lc.dynamic_metadata):
+        raise ConfigError(
+            "description must be specified under [project] or listed as a dynamic field"
+        )
+
     return lc
 
-def pep621_people(people, group_name='author') -> (str, str):
+def pep621_people(people, group_name='author') -> dict:
     """Convert authors/maintainers from PEP 621 to core metadata fields"""
     names, emails = [], []
     for person in people:

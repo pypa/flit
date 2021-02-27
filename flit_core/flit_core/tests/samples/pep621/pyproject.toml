@@ -11,6 +11,10 @@ dependencies = [
     "requests >= 2.18",
     "docutils",
 ]
+dynamic = [
+    "version",
+    "description",
+]
 
 [project.urls]
 homepage = "http://github.com/sirrobin/module1"
