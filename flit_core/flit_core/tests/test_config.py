@@ -21,6 +21,7 @@ def test_load_pep621():
     assert inf.metadata['name'] == 'module1'
     assert inf.metadata['description_content_type'] == 'text/x-rst'
     assert inf.metadata['requires_dist'] == ["requests >= 2.18", "docutils"]
+    assert inf.metadata['author_email'] == "Sir Robin <robin@camelot.uk>"
     assert inf.entrypoints['flit_test_example']['foo'] == 'module1:main'
     assert set(inf.dynamic_metadata) == {'version', 'description'}
 

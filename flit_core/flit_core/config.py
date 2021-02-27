@@ -485,7 +485,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
 
     if 'maintainers' in proj:
         _check_type(proj, 'maintainers', list)
-        md_dict.update(pep621_people(proj['maintainers']))
+        md_dict.update(pep621_people(proj['maintainers'], group_name='maintainer'))
 
     if 'keywords' in proj:
         _check_list_of_str(proj, 'keywords')
