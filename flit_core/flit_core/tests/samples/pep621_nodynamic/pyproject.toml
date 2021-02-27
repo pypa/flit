@@ -1,0 +1,21 @@
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "module1"
+version = "0.3"
+description = "Statically specified description"
+authors = [
+    {name = "Sir Robin", email = "robin@camelot.uk"}
+]
+readme = "README.rst"
+dependencies = [
+    "requests >= 2.18",
+    "docutils",
+]
+
+[project.urls]
+homepage = "http://github.com/sirrobin/module1"
+
+[project.entry-points.flit_test_example]
+foo = "module1:main"

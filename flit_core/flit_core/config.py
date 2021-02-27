@@ -96,6 +96,7 @@ def prep_toml_config(d, path):
     elif 'metadata' in dtool:
         # Metadata in [tool.flit.metadata] (pre PEP 621 format)
         loaded_cfg = _prep_metadata(dtool['metadata'], path)
+        loaded_cfg.dynamic_metadata = ['version', 'description']
 
         if 'entrypoints' in dtool:
             loaded_cfg.entrypoints = flatten_entrypoints(dtool['entrypoints'])

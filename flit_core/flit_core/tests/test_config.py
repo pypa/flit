@@ -17,10 +17,20 @@ def test_load_toml():
 
 def test_load_pep621():
     inf = config.read_flit_config(samples_dir / 'pep621' / 'pyproject.toml')
+    assert inf.module == 'module1'
     assert inf.metadata['name'] == 'module1'
     assert inf.metadata['description_content_type'] == 'text/x-rst'
     assert inf.metadata['requires_dist'] == ["requests >= 2.18", "docutils"]
     assert inf.entrypoints['flit_test_example']['foo'] == 'module1:main'
+    assert set(inf.dynamic_metadata) == {'version', 'description'}
+
+def test_load_pep621_nodynamic():
+    inf = config.read_flit_config(samples_dir / 'pep621_nodynamic' / 'pyproject.toml')
+    assert inf.module == 'module1'
+    assert inf.metadata['name'] == 'module1'
+    assert inf.metadata['version'] == '0.3'
+    assert inf.metadata['summary'] == 'Statically specified description'
+    assert set(inf.dynamic_metadata) == set()
 
 def test_misspelled_key():
     with pytest.raises(config.ConfigError) as e_info:
