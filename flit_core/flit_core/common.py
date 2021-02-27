@@ -367,13 +367,6 @@ def make_metadata(module, ini_info):
     md_dict.update(ini_info.metadata)
     return Metadata(md_dict)
 
-def metadata_and_module_from_ini_path(ini_path):
-    from .config import read_flit_config
-    ini_path = str(ini_path)
-    ini_info = read_flit_config(ini_path)
-    module = Module(ini_info.module, osp.dirname(ini_path))
-    metadata = make_metadata(module, ini_info)
-    return metadata,module
 
 
 def normalize_dist_name(name: str, version: str) -> str:
