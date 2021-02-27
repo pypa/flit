@@ -41,6 +41,13 @@ def test_build_wheel():
         assert_isfile(osp.join(td, filename))
         assert zipfile.is_zipfile(osp.join(td, filename))
 
+def test_build_wheel_pep621():
+    with TemporaryDirectory() as td, cwd(osp.join(samples_dir, 'pep621')):
+        filename = buildapi.build_wheel(td)
+        assert filename.endswith('.whl'), filename
+        assert_isfile(osp.join(td, filename))
+        assert zipfile.is_zipfile(osp.join(td, filename))
+
 def test_build_sdist():
     with TemporaryDirectory() as td, cwd(osp.join(samples_dir,'pep517')):
         filename = buildapi.build_sdist(td)
