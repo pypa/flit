@@ -160,7 +160,7 @@ def get_docstring_and_version_via_import(target):
 
     log.debug("Loading module %s", target.file)
     from importlib.machinery import SourceFileLoader
-    sl = SourceFileLoader(f'flit_core.dummy.import{_import_i}', str(target.file))
+    sl = SourceFileLoader('flit_core.dummy.import%d' % _import_i, str(target.file))
     with _module_load_ctx():
         m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
