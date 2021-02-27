@@ -168,9 +168,16 @@ def get_docstring_and_version_via_import(target):
     return docstring, version
 
 
-def get_info_from_module(target):
+def get_info_from_module(target, for_fields=('version', 'description')):
     """Load the module/package, get its docstring and __version__
     """
+    if not for_fields:
+        return {}
+
+    # What core metadata calls Summary, PEP 621 calls description
+    want_summary = 'description' in for_fields
+    want_version = 'version' in for_fields
+
     log.debug("Loading module %s", target.file)
 
     # Attempt to extract our docstring & version by parsing our target's
@@ -178,19 +185,26 @@ def get_info_from_module(target):
     # build without necessarily requiring that our built package's
     # requirements are installed.
     docstring, version = get_docstring_and_version_via_ast(target)
-    if not (docstring and version):
+    if (want_summary and not docstring) or (want_version and not version):
         docstring, version = get_docstring_and_version_via_import(target)
 
-    if (not docstring) or not docstring.strip():
-        raise NoDocstringError('Flit cannot package module without docstring, '
-                'or empty docstring. Please add a docstring to your module '
-                '({}).'.format(target.file))
+    print(docstring, want_summary)
+    print(version, want_version)
 
-    version = check_version(version)
+    res = {}
 
-    docstring_lines = docstring.lstrip().splitlines()
-    return {'summary': docstring_lines[0],
-            'version': version}
+    if want_summary:
+        if (not docstring) or not docstring.strip():
+            raise NoDocstringError(
+                'Flit cannot package module without docstring, or empty docstring'
+                'Please add a docstring to your module ({}).'.format(target.file)
+            )
+        res['summary'] = docstring.lstrip().splitlines()[0]
+
+    if want_version:
+        res['version'] = check_version(version)
+
+    return res
 
 def check_version(version):
     """
@@ -372,7 +386,7 @@ class Metadata(object):
 
 def make_metadata(module, ini_info):
     md_dict = {'name': module.name, 'provides': [module.name]}
-    md_dict.update(get_info_from_module(module))
+    md_dict.update(get_info_from_module(module, ini_info.dynamic_metadata))
     md_dict.update(ini_info.metadata)
     return Metadata(md_dict)
 
