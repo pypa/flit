@@ -317,6 +317,7 @@ class Metadata(object):
     metadata_version = "2.1"
 
     def __init__(self, data):
+        data = data.copy()
         self.name = data.pop('name')
         self.version = data.pop('version')
         self.summary = data.pop('summary')
