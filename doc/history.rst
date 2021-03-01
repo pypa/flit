@@ -1,6 +1,15 @@
 Release history
 ===============
 
+Version 3.1
+-----------
+
+- Update handling of names & version numbers in wheel filenames and
+  ``.dist-info`` folders in line with changes in the specs (:ghpull:`395`).
+- Switch from the deprecated ``pytoml`` package to ``toml`` (:ghpull:`378`).
+- Fix specifying backend-path in ``pyproject.toml`` for flit-core (as a list
+  instead of a string).
+
 Version 3.0
 -----------
 
