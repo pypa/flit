@@ -150,13 +150,18 @@ def get_docstring_and_version_via_import(target):
     from it.
     """
     log.debug("Loading module %s", target.file)
-    from importlib.machinery import SourceFileLoader
-    sl = SourceFileLoader(target.name, str(target.file))
-    with _module_load_ctx():
-        m = sl.load_module()
+    from importlib.util import spec_from_file_location, module_from_spec
+    spec = spec_from_file_location(target.name, str(target.file))
+    m = module_from_spec(spec)
+    try:
+        error = None
+        with _module_load_ctx():
+            spec.loader.exec_module(m)
+    except ImportError as e:
+        error = e
     docstring = m.__dict__.get('__doc__', None)
     version = m.__dict__.get('__version__', None)
-    return docstring, version
+    return docstring, version, error
 
 
 def get_info_from_module(target):
@@ -169,21 +174,22 @@ def get_info_from_module(target):
     # build without necessarily requiring that our built package's
     # requirements are installed.
     docstring, version = get_docstring_and_version_via_ast(target)
+    error = None
     if not (docstring and version):
-        docstring, version = get_docstring_and_version_via_import(target)
+        docstring, version, error = get_docstring_and_version_via_import(target)
 
     if (not docstring) or not docstring.strip():
         raise NoDocstringError('Flit cannot package module without docstring, '
                 'or empty docstring. Please add a docstring to your module '
                 '({}).'.format(target.file))
 
-    version = check_version(version)
+    version = check_version(version, error)
 
     docstring_lines = docstring.lstrip().splitlines()
     return {'summary': docstring_lines[0],
             'version': version}
 
-def check_version(version):
+def check_version(version, error=None):
     """
     Check whether a given version string match PEP 440, and do normalisation.
 
@@ -195,8 +201,12 @@ def check_version(version):
     Returns the version in canonical PEP 440 format.
     """
     if not version:
-        raise NoVersionError('Cannot package module without a version string. '
-                             'Please define a `__version__ = "x.y.z"` in your module.')
+        msg = ('Cannot package module without a version string. '
+               'Please define a `__version__ = "x.y.z"` in your module.')
+        if error:
+            msg += (' Encountered error while retrieving version: {} '
+                    .format(str(error)))
+        raise NoVersionError(msg)
     if not isinstance(version, str):
         raise InvalidVersion('__version__ must be a string, not {}.'
                                 .format(type(version)))
