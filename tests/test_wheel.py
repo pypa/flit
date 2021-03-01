@@ -125,3 +125,14 @@ def test_compression(tmp_path):
             'module1-0.1.dist-info/METADATA',
         ]:
             assert zf.getinfo(name).compress_type == zipfile.ZIP_DEFLATED
+
+def test_wheel_module_local_version(copy_sample):
+    """Test if a local version specifier is preserved in wheel filename and dist-info dir name"""
+    td = copy_sample('modulewithlocalversion')
+    make_wheel_in(td / 'pyproject.toml', td)
+
+    whl_file = td / 'modulewithlocalversion-0.1.dev0+test-py2.py3-none-any.whl'
+    assert_isfile(whl_file)
+    with unpack(whl_file) as unpacked:
+        assert_isfile(Path(unpacked, 'modulewithlocalversion.py'))
+        assert_isdir(Path(unpacked, 'modulewithlocalversion-0.1.dev0+test.dist-info'))

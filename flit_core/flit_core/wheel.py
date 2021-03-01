@@ -7,7 +7,6 @@ import io
 import logging
 import os
 import os.path as osp
-import re
 import stat
 import sys
 import tempfile
@@ -98,11 +97,9 @@ class WheelBuilder:
 
     @property
     def wheel_filename(self):
+        dist_name = common.normalize_dist_name(self.metadata.name, self.metadata.version)
         tag = ('py2.' if self.metadata.supports_py2 else '') + 'py3-none-any'
-        return '{}-{}-{}.whl'.format(
-                re.sub(r"[^\w\d.]+", "_", self.metadata.name, flags=re.UNICODE),
-                re.sub(r"[^\w\d.]+", "_", self.metadata.version, flags=re.UNICODE),
-                tag)
+        return '{}-{}.whl'.format(dist_name, tag)
 
     def _add_file_old(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)

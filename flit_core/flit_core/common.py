@@ -375,8 +375,21 @@ def metadata_and_module_from_ini_path(ini_path):
     metadata = make_metadata(module, ini_info)
     return metadata,module
 
+
+def normalize_dist_name(name: str, version: str) -> str:
+    """Normalizes a name and a PEP 440 version
+
+    The resulting string is valid as dist-info folder name
+    and as first part of a wheel filename
+
+    See https://packaging.python.org/specifications/binary-distribution-format/#escaping-and-unicode
+    """
+    normalized_name = re.sub(r'[-_.]+', '_', name, flags=re.UNICODE)
+    assert check_version(version) == version
+    assert '-' not in version, 'Normalized versions can’t have dashes'
+    return '{}-{}'.format(normalized_name, version)
+
+
 def dist_info_name(distribution, version):
     """Get the correct name of the .dist-info folder"""
-    escaped_name = re.sub(r"[^\w\d.]+", "_", distribution, flags=re.UNICODE)
-    escaped_version = re.sub(r"[^\w\d.]+", "_", version, flags=re.UNICODE)
-    return u'{}-{}.dist-info'.format(escaped_name, escaped_version)
+    return normalize_dist_name(distribution, version) + '.dist-info'
