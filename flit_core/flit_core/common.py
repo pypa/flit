@@ -193,7 +193,7 @@ def get_info_from_module(target, for_fields=('version', 'description')):
     if want_summary:
         if (not docstring) or not docstring.strip():
             raise NoDocstringError(
-                'Flit cannot package module without docstring, or empty docstring'
+                'Flit cannot package module without docstring, or empty docstring. '
                 'Please add a docstring to your module ({}).'.format(target.file)
             )
         res['summary'] = docstring.lstrip().splitlines()[0]
