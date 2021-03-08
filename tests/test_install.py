@@ -183,6 +183,15 @@ class InstallTests(TestCase):
         assert len(calls) == 1
         assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
 
+    def test_install_reqs_my_python_if_needed_pep621(self):
+        ins = Installer.from_ini_path(
+            core_samples_dir / 'pep621_nodynamic' / 'pyproject.toml',
+            deps='none',
+        )
+
+        # This shouldn't try to get version & docstring from the module
+        ins.install_reqs_my_python_if_needed()
+
     def test_extras_error(self):
         with pytest.raises(DependencyError):
             Installer.from_ini_path(samples_dir / 'requires-requests.toml',

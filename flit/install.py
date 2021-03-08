@@ -256,12 +256,12 @@ class Installer(object):
     def install_reqs_my_python_if_needed(self):
         """Install requirements to this environment if needed.
 
-        We can normally get the module's docstring and version number without
-        importing it, but if we do need to import it, we may need to install
+        We can normally get the summary and version number without import the
+        module, but if we do need to import it, we may need to install
         its requirements for the Python where flit is running.
         """
         try:
-            common.get_info_from_module(self.module)
+            common.get_info_from_module(self.module, self.ini_info.dynamic_metadata)
         except ImportError:
             if self.deps == 'none':
                 raise  # We were asked not to install deps, so bail out.
