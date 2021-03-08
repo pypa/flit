@@ -7,6 +7,8 @@ from pathlib import Path
 import toml
 import re
 
+from .versionno import normalise_version
+
 log = logging.getLogger(__name__)
 
 
@@ -399,7 +401,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
 
     if 'version' in proj:
         _check_type(proj, 'version', str)
-        md_dict['version'] = proj['version']
+        md_dict['version'] = normalise_version(proj['version'])
     if 'description' in proj:
         _check_type(proj, 'description', str)
         md_dict['summary'] = proj['description']
