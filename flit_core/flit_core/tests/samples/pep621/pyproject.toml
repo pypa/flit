@@ -12,6 +12,7 @@ maintainers = [
 ]
 readme = "README.rst"
 license = {file = "LICENSE"}
+requires-python = ">=3.7"
 dependencies = [
     "requests >= 2.18",
     "docutils",
