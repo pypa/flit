@@ -135,6 +135,7 @@ def test_bad_pep621_info(proj_bad, err_match):
     ('/opt/README.rst', 'relative'),
     ({'file': 'README.rst', 'text': '', 'content-type': 'text/x-rst'}, 'both'),
     ({'content-type': 'text/x-rst'}, 'required'),
+    ({'file': 'README.rst', 'content-type': 'text/x-rst', 'a': 'b'}, '[Uu]nrecognised'),
     (5, r'readme.*string'),
 ])
 def test_bad_pep621_readme(readme, err_match):
