@@ -103,3 +103,42 @@ def test_bad_include_paths(path, err_match):
 
     with pytest.raises(config.ConfigError, match=err_match):
         config.prep_toml_config(toml_cfg, None)
+
+@pytest.mark.parametrize(('proj_bad', 'err_match'), [
+    ({'version': 1}, r'\bstr\b'),
+    ({'license': {'fromage': 2}}, '[Uu]nrecognised'),
+    ({'license': {'file': 'LICENSE', 'text': 'xyz'}}, 'both'),
+    ({'license': {}}, 'required'),
+    ({'keywords': 'foo'}, 'list'),
+    ({'keywords': ['foo', 7]}, 'strings'),
+    ({'entry-points': {'foo': 'module1:main'}}, 'entry-point.*tables'),
+    ({'entry-points': {'group': {'foo': 7}}}, 'entry-point.*string'),
+    ({'entry-points': {'gui_scripts': {'foo': 'a:b'}}}, r'\[project\.gui-scripts\]'),
+    ({'scripts': {'foo': 7}}, 'scripts.*string'),
+    ({'gui-scripts': {'foo': 7}}, 'gui-scripts.*string'),
+    ({'optional-dependencies': {'test': 'requests'}}, 'list.*optional-dep'),
+    ({'optional-dependencies': {'test': [7]}}, 'string.*optional-dep'),
+    ({'dynamic': ['classifiers']}, 'dynamic'),
+    ({'dynamic': ['version']}, r'dynamic.*\[project\]'),
+    ({'authors': ['thomas']}, r'author.*\bdict'),
+    ({'maintainers': [{'title': 'Dr'}]}, r'maintainer.*title'),
+])
+def test_bad_pep621_info(proj_bad, err_match):
+    proj = {'name': 'module1', 'version': '1.0', 'description': 'x'}
+    proj.update(proj_bad)
+    with pytest.raises(config.ConfigError, match=err_match):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621')
+
+@pytest.mark.parametrize(('readme', 'err_match'), [
+    ({'file': 'README.rst'}, 'required'),
+    ({'file': 'README.rst', 'content-type': 'text/x-python'}, 'content-type'),
+    ({'file': 'README.rst', 'text': '', 'content-type': 'text/x-rst'}, 'both'),
+    ({'content-type': 'text/x-rst'}, 'required'),
+    (5, r'readme.*string'),
+])
+def test_bad_pep621_readme(readme, err_match):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x', 'readme': readme
+    }
+    with pytest.raises(config.ConfigError, match=err_match):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621')

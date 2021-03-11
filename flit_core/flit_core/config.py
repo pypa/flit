@@ -422,7 +422,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                 mtype_base = mimetype.split(';')[0].strip()  # e.g. text/x-rst
                 if mtype_base not in readme_ext_to_content_type.values():
                     raise ConfigError(
-                        "Unrecognised readme content type: {!r}".format(mtype_base)
+                        "Unrecognised readme content-type: {!r}".format(mtype_base)
                     )
                 # TODO: validate content-type parameters (charset, md variant)?
             else:
@@ -512,7 +512,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                 )
             if not all(isinstance(k, str) for k in grp.values()):
                 raise ConfigError(
-                    "[projects.entry-points.*] tables should have string keys"
+                    "[projects.entry-points.*] tables should have string values"
                 )
         if set(proj['entry-points'].keys()) & {'console_scripts', 'gui_scripts'}:
             raise ConfigError(
@@ -525,7 +525,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         _check_type(proj, 'scripts', dict)
         if not all(isinstance(k, str) for k in proj['scripts'].values()):
             raise ConfigError(
-                "[projects.scripts] table should have string keys"
+                "[projects.scripts] table should have string values"
             )
         lc.entrypoints['console_scripts'] = proj['scripts']
 
@@ -533,7 +533,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         _check_type(proj, 'gui-scripts', dict)
         if not all(isinstance(k, str) for k in proj['gui-scripts'].values()):
             raise ConfigError(
-                "[projects.gui-scripts] table should have string keys"
+                "[projects.gui-scripts] table should have string values"
             )
         lc.entrypoints['gui_scripts'] = proj['gui-scripts']
 
