@@ -132,6 +132,7 @@ def test_bad_pep621_info(proj_bad, err_match):
 @pytest.mark.parametrize(('readme', 'err_match'), [
     ({'file': 'README.rst'}, 'required'),
     ({'file': 'README.rst', 'content-type': 'text/x-python'}, 'content-type'),
+    ('/opt/README.rst', 'relative'),
     ({'file': 'README.rst', 'text': '', 'content-type': 'text/x-rst'}, 'both'),
     ({'content-type': 'text/x-rst'}, 'required'),
     (5, r'readme.*string'),
