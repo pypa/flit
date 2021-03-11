@@ -18,8 +18,8 @@ dependencies = [
 [project.urls]
 homepage = "http://github.com/sirrobin/module1"
 
-[scripts]
+[project.scripts]
 foo = "module1:main"
 
-[gui-scripts]
+[project.gui-scripts]
 foo-gui = "module1:main"
