@@ -9,7 +9,7 @@ description = "Statically specified description"
 authors = [
     {name = "Sir Robin", email = "robin@camelot.uk"}
 ]
-readme = "README.rst"
+readme = {file = "README.rst", content-type = "text/x-rst"}
 dependencies = [
     "requests >= 2.18",
     "docutils",
@@ -18,5 +18,8 @@ dependencies = [
 [project.urls]
 homepage = "http://github.com/sirrobin/module1"
 
-[project.entry-points.flit_test_example]
+[scripts]
 foo = "module1:main"
+
+[gui-scripts]
+foo-gui = "module1:main"

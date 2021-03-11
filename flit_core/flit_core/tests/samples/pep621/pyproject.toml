@@ -7,7 +7,11 @@ name = "module1"
 authors = [
     {name = "Sir Robin", email = "robin@camelot.uk"}
 ]
+maintainers = [
+    {name = "Sir Galahad"}
+]
 readme = "README.rst"
+license = {file = "LICENSE"}
 dependencies = [
     "requests >= 2.18",
     "docutils",
@@ -15,6 +19,12 @@ dependencies = [
 dynamic = [
     "version",
     "description",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "mock; python_version<'3.6'"
 ]
 
 [project.urls]
