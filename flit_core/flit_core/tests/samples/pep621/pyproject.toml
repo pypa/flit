@@ -16,6 +16,7 @@ dependencies = [
     "requests >= 2.18",
     "docutils",
 ]
+keywords = ["example", "test"]
 dynamic = [
     "version",
     "description",

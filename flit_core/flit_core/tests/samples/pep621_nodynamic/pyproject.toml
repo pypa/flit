@@ -10,6 +10,9 @@ authors = [
     {name = "Sir Robin", email = "robin@camelot.uk"}
 ]
 readme = {file = "README.rst", content-type = "text/x-rst"}
+classifiers = [
+    "Topic :: Internet :: WWW/HTTP",
+]
 dependencies = [
     "requests >= 2.18",
     "docutils",

@@ -494,7 +494,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         md_dict['keywords'] = ",".join(proj['keywords'])
 
     if 'classifiers' in proj:
-        _check_list_of_str(proj, 'keywords')
+        _check_list_of_str(proj, 'classifiers')
         md_dict['classifiers'] = proj['classifiers']
 
     if 'urls' in proj:
