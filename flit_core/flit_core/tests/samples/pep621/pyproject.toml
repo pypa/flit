@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "module1"
 authors = [
-    {name = "Sir Robin", email = "robin@camelot.uk"}
+    {name = "Sir Röbin", email = "robin@camelot.uk"}
 ]
 maintainers = [
     {name = "Sir Galahad"}

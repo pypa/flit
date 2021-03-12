@@ -1,4 +1,5 @@
 import difflib
+from email.headerregistry import Address
 import errno
 import logging
 import os
@@ -606,7 +607,7 @@ def pep621_people(people, group_name='author') -> dict:
         if 'email' in person:
             email = person['email']
             if 'name' in person:
-                email = '{} <{}>'.format(person["name"], email)
+                email = str(Address(person['name'], addr_spec=email))
             emails.append(email)
         elif 'name' in person:
             names.append(person['name'])
