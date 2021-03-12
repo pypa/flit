@@ -96,8 +96,17 @@ def prep_toml_config(d, path):
                 "[project.gui-scripts] or [project.entry-points] as replacements."
             )
         loaded_cfg = read_pep621_metadata(d['project'], path)
+
+        module_tbl = dtool.get('module', {})
+        if 'name' in module_tbl:
+            loaded_cfg.module = module_tbl['name']
     elif 'metadata' in dtool:
         # Metadata in [tool.flit.metadata] (pre PEP 621 format)
+        if 'module' in dtool:
+            raise ConfigError(
+                "Use [tool.flit.module] table with new-style [project] metadata, "
+                "not [tool.flit.metadata]"
+            )
         loaded_cfg = _prep_metadata(dtool['metadata'], path)
         loaded_cfg.dynamic_metadata = ['version', 'description']
 
@@ -111,7 +120,9 @@ def prep_toml_config(d, path):
             "Neither [project] nor [tool.flit.metadata] found in pyproject.toml"
         )
 
-    unknown_sections = set(dtool) - {'metadata', 'scripts', 'entrypoints', 'sdist'}
+    unknown_sections = set(dtool) - {
+        'metadata', 'module', 'scripts', 'entrypoints', 'sdist'
+    }
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
         raise ConfigError('Unexpected tables in pyproject.toml: ' + ', '.join(

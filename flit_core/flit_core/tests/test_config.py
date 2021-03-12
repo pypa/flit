@@ -17,7 +17,7 @@ def test_load_toml():
 
 def test_load_pep621():
     inf = config.read_flit_config(samples_dir / 'pep621' / 'pyproject.toml')
-    assert inf.module == 'module1'
+    assert inf.module == 'module1a'
     assert inf.metadata['name'] == 'module1'
     assert inf.metadata['description_content_type'] == 'text/x-rst'
     assert inf.metadata['requires_dist'] == ["requests >= 2.18", "docutils"]

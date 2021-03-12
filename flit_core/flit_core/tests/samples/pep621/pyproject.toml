@@ -34,3 +34,6 @@ homepage = "http://github.com/sirrobin/module1"
 
 [project.entry-points.flit_test_example]
 foo = "module1:main"
+
+[tool.flit.module]
+name = "module1a"
