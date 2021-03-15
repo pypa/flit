@@ -15,6 +15,22 @@ def test_make_sdist(tmp_path):
     assert_isfile(tmp_path / 'package1-0.1.tar.gz')
 
 
+def test_make_sdist_pep621(tmp_path):
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'pep621' / 'pyproject.toml')
+    path = builder.build(tmp_path)
+    assert path == tmp_path / 'module1-0.1.tar.gz'
+    assert_isfile(path)
+
+
+def test_make_sdist_pep621_nodynamic(tmp_path):
+    builder = sdist.SdistBuilder.from_ini_path(
+        samples_dir / 'pep621_nodynamic' / 'pyproject.toml'
+    )
+    path = builder.build(tmp_path)
+    assert path == tmp_path / 'module1-0.3.tar.gz'
+    assert_isfile(path)
+
+
 def test_clean_tarinfo():
     with tarfile.open(mode='w', fileobj=BytesIO()) as tf:
         ti = tf.gettarinfo(str(samples_dir / 'module1.py'))

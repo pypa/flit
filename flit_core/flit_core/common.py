@@ -143,15 +143,24 @@ def get_docstring_and_version_via_ast(target):
     return ast.get_docstring(node), version
 
 
+# To ensure we're actually loading the specified file, give it a unique name to
+# avoid any cached import. In normal use we'll only load one module per process,
+# so it should only matter for the tests, but we'll do it anyway.
+_import_i = 0
+
+
 def get_docstring_and_version_via_import(target):
     """
     Return a tuple like (docstring, version) for the given module,
     extracted by importing the module and pulling __doc__ & __version__
     from it.
     """
+    global _import_i
+    _import_i += 1
+
     log.debug("Loading module %s", target.file)
     from importlib.machinery import SourceFileLoader
-    sl = SourceFileLoader(target.name, str(target.file))
+    sl = SourceFileLoader('flit_core.dummy.import%d' % _import_i, str(target.file))
     with _module_load_ctx():
         m = sl.load_module()
     docstring = m.__dict__.get('__doc__', None)
@@ -159,9 +168,16 @@ def get_docstring_and_version_via_import(target):
     return docstring, version
 
 
-def get_info_from_module(target):
+def get_info_from_module(target, for_fields=('version', 'description')):
     """Load the module/package, get its docstring and __version__
     """
+    if not for_fields:
+        return {}
+
+    # What core metadata calls Summary, PEP 621 calls description
+    want_summary = 'description' in for_fields
+    want_version = 'version' in for_fields
+
     log.debug("Loading module %s", target.file)
 
     # Attempt to extract our docstring & version by parsing our target's
@@ -169,19 +185,23 @@ def get_info_from_module(target):
     # build without necessarily requiring that our built package's
     # requirements are installed.
     docstring, version = get_docstring_and_version_via_ast(target)
-    if not (docstring and version):
+    if (want_summary and not docstring) or (want_version and not version):
         docstring, version = get_docstring_and_version_via_import(target)
 
-    if (not docstring) or not docstring.strip():
-        raise NoDocstringError('Flit cannot package module without docstring, '
-                'or empty docstring. Please add a docstring to your module '
-                '({}).'.format(target.file))
+    res = {}
 
-    version = check_version(version)
+    if want_summary:
+        if (not docstring) or not docstring.strip():
+            raise NoDocstringError(
+                'Flit cannot package module without docstring, or empty docstring. '
+                'Please add a docstring to your module ({}).'.format(target.file)
+            )
+        res['summary'] = docstring.lstrip().splitlines()[0]
 
-    docstring_lines = docstring.lstrip().splitlines()
-    return {'summary': docstring_lines[0],
-            'version': version}
+    if want_version:
+        res['version'] = check_version(version)
+
+    return res
 
 def check_version(version):
     """
@@ -297,6 +317,7 @@ class Metadata(object):
     metadata_version = "2.1"
 
     def __init__(self, data):
+        data = data.copy()
         self.name = data.pop('name')
         self.version = data.pop('version')
         self.summary = data.pop('summary')
@@ -363,17 +384,10 @@ class Metadata(object):
 
 def make_metadata(module, ini_info):
     md_dict = {'name': module.name, 'provides': [module.name]}
-    md_dict.update(get_info_from_module(module))
+    md_dict.update(get_info_from_module(module, ini_info.dynamic_metadata))
     md_dict.update(ini_info.metadata)
     return Metadata(md_dict)
 
-def metadata_and_module_from_ini_path(ini_path):
-    from .config import read_flit_config
-    ini_path = str(ini_path)
-    ini_info = read_flit_config(ini_path)
-    module = Module(ini_info.module, osp.dirname(ini_path))
-    metadata = make_metadata(module, ini_info)
-    return metadata,module
 
 
 def normalize_dist_name(name: str, version: str) -> str:

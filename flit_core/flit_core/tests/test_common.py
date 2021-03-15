@@ -2,9 +2,10 @@ from pathlib import Path
 import pytest
 from unittest import TestCase
 
+from flit_core import config
 from flit_core.common import (
     Module, get_info_from_module, InvalidVersion, NoVersionError, check_version,
-    normalize_file_permissions, Metadata
+    normalize_file_permissions, Metadata, make_metadata,
 )
 
 samples_dir = Path(__file__).parent / 'samples'
@@ -40,10 +41,17 @@ class ModuleTests(TestCase):
                                 'version': '7.0'}
                          )
 
-        info = get_info_from_module(Module('package1', samples_dir))
+        pkg1 = Module('package1', samples_dir)
+        info = get_info_from_module(pkg1)
         self.assertEqual(info, {'summary': 'A sample package',
                                 'version': '0.1'}
                          )
+        info = get_info_from_module(pkg1, for_fields=['version'])
+        self.assertEqual(info, {'version': '0.1'})
+        info = get_info_from_module(pkg1, for_fields=['description'])
+        self.assertEqual(info, {'summary': 'A sample package'})
+        info = get_info_from_module(pkg1, for_fields=[])
+        self.assertEqual(info, {})
 
         info = get_info_from_module(Module('moduleunimportable', samples_dir))
         self.assertEqual(info, {'summary': 'A sample unimportable module',
@@ -95,3 +103,12 @@ def test_supports_py2(requires_python, expected_result):
     metadata.requires_python = requires_python
     result = metadata.supports_py2
     assert result == expected_result
+
+def test_make_metadata():
+    project_dir = samples_dir / 'pep621_nodynamic'
+    ini_info = config.read_flit_config(project_dir / 'pyproject.toml')
+    module = Module(ini_info.module, project_dir)
+    print(module.file)
+    md = make_metadata(module, ini_info)
+    assert md.version == '0.3'
+    assert md.summary == "Statically specified description"

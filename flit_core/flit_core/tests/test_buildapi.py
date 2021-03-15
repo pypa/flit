@@ -26,6 +26,13 @@ def test_get_build_requires():
         assert buildapi.get_requires_for_build_wheel() == []
         assert buildapi.get_requires_for_build_sdist() == []
 
+def test_get_build_requires_pep621_nodynamic():
+    # This module isn't inspected because version & description are specified
+    # as static metadata in pyproject.toml, so there are no build dependencies
+    with cwd(osp.join(samples_dir, 'pep621_nodynamic')):
+        assert buildapi.get_requires_for_build_wheel() == []
+        assert buildapi.get_requires_for_build_sdist() == []
+
 def test_get_build_requires_import():
     # This one has to be imported, so its runtime dependencies are also
     # build dependencies.
@@ -36,6 +43,13 @@ def test_get_build_requires_import():
 
 def test_build_wheel():
     with TemporaryDirectory() as td, cwd(osp.join(samples_dir,'pep517')):
+        filename = buildapi.build_wheel(td)
+        assert filename.endswith('.whl'), filename
+        assert_isfile(osp.join(td, filename))
+        assert zipfile.is_zipfile(osp.join(td, filename))
+
+def test_build_wheel_pep621():
+    with TemporaryDirectory() as td, cwd(osp.join(samples_dir, 'pep621')):
         filename = buildapi.build_wheel(td)
         assert filename.endswith('.whl'), filename
         assert_isfile(osp.join(td, filename))
