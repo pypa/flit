@@ -356,6 +356,11 @@ class Metadata(object):
         for field in optional_fields:
             value = getattr(self, self._normalise_name(field))
             if value is not None:
+                # TODO: verify which fields can be multiline
+                # The spec has multiline examples for Author, Maintainer &
+                # License (& Description, but we put that in the body)
+                # Indent following lines with 8 spaces:
+                value = '\n        '.join(value.splitlines())
                 fp.write(u"{}: {}\n".format(field, value))
 
         for clsfr in self.classifiers:

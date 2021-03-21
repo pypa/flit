@@ -1,3 +1,6 @@
+import email.parser
+import email.policy
+from io import StringIO
 from pathlib import Path
 import pytest
 from unittest import TestCase
@@ -112,3 +115,22 @@ def test_make_metadata():
     md = make_metadata(module, ini_info)
     assert md.version == '0.3'
     assert md.summary == "Statically specified description"
+
+def test_metadata_multiline(tmp_path):
+    d = {
+        'name': 'foo',
+        'version': '1.0',
+        # Example from: https://packaging.python.org/specifications/core-metadata/#author
+        'author': ('C. Schultz, Universal Features Syndicate\n'
+                   'Los Angeles, CA <cschultz@peanuts.example.com>'),
+    }
+    md = Metadata(d)
+    sio = StringIO()
+    md.write_metadata_file(sio)
+    sio.seek(0)
+
+    msg = email.parser.Parser(policy=email.policy.compat32).parse(sio)
+    assert msg['Name'] == d['name']
+    assert msg['Version'] == d['version']
+    assert [l.lstrip() for l in msg['Author'].splitlines()] == d['author'].splitlines()
+    assert not msg.defects
