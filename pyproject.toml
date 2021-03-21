@@ -1,28 +1,29 @@
 [build-system]
-requires = ["flit_core >=3.2.0,<4"]
+requires = ["flit_core >=3.2.0,<3.3"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module="flit"
-author="Thomas Kluyver"
-author-email="thomas@kluyver.me.uk"
-home-page="https://github.com/takluyver/flit"
-requires=[
+[project]
+name = "flit"
+authors = [
+    {name = "Thomas Kluyver", email = "thomas@kluyver.me.uk"},
+]
+dependencies = [
     "flit_core>=3.2.0",
     "requests",
     "docutils",
     "toml",
     "zipfile36; python_version in '3.3 3.4 3.5'",
 ]
-requires-python=">=3.5"
-description-file="README.rst"
-classifiers=["Intended Audience :: Developers",
+requires-python = ">=3.5"
+readme = "README.rst"
+classifiers = ["Intended Audience :: Developers",
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+dynamic = ['version', 'description']
 
-[tool.flit.metadata.requires-extra]
+[project.optional-dependencies]
 test = [
 	"testpath",
 	"responses",
@@ -35,8 +36,9 @@ doc = [
 	"pygments-github-lexers",  # TOML highlighting
 ]
 
-[tool.flit.metadata.urls]
+[project.urls]
 Documentation = "https://flit.readthedocs.io/en/latest/"
+Source = "https://github.com/takluyver/flit"
 
-[tool.flit.scripts]
+[project.scripts]
 flit = "flit:main"
