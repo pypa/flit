@@ -566,11 +566,10 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                     'Expected a string list for optional-dependencies ({})'.format(e)
                 )
 
-        # Move dev-requires into requires-extra
         reqs_noextra = md_dict.pop('requires_dist', [])
-        lc.reqs_by_extra = md_dict.pop('requires_extra', {})
+        lc.reqs_by_extra = optdeps.copy()
 
-        # Add requires-extra requirements into requires_dist
+        # Add optional-dependencies into requires_dist
         md_dict['requires_dist'] = \
             reqs_noextra + list(_expand_requires_extra(lc.reqs_by_extra))
 

@@ -20,7 +20,13 @@ def test_load_pep621():
     assert inf.module == 'module1a'
     assert inf.metadata['name'] == 'module1'
     assert inf.metadata['description_content_type'] == 'text/x-rst'
-    assert inf.metadata['requires_dist'] == ["requests >= 2.18", "docutils"]
+    # Remove all whitespace from requirements so we don't check exact format:
+    assert {r.replace(' ', '') for r in inf.metadata['requires_dist']} == {
+        'docutils',
+        'requests>=2.18',
+        'pytest;extra=="test"',  # from [project.optional-dependencies]
+        'mock;extra=="test"and(python_version<\'3.6\')',
+    }
     assert inf.metadata['author_email'] == "Sir Röbin <robin@camelot.uk>"
     assert inf.entrypoints['flit_test_example']['foo'] == 'module1:main'
     assert set(inf.dynamic_metadata) == {'version', 'description'}
