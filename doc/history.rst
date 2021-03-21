@@ -1,6 +1,19 @@
 Release history
 ===============
 
+Version 3.2
+-----------
+
+- Experimental support for specifying metadata in a ``[project]`` table in
+  ``pyproject.toml`` as specified by :pep:`621` (:ghpull:`393`). If you try
+  using this, please specify ``requires = ["flit_core >=3.2.0,<3.3"]`` in the
+  ``[build-system`` table for now, in case it needs to change for the next
+  release.
+- Fix writing METADATA file with multi-line information in certain fields
+  such as ``Author`` (:ghpull:`402`).
+- Fix building wheel when a directory such as LICENSES appears in the project
+  root directory (:ghpull:`401`).
+
 Version 3.1
 -----------
 
