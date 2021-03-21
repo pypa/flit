@@ -289,6 +289,7 @@ def normalize_file_permissions(st_mode):
 
 class Metadata(object):
 
+    summary = None
     home_page = None
     author = None
     author_email = None
@@ -320,7 +321,6 @@ class Metadata(object):
         data = data.copy()
         self.name = data.pop('name')
         self.version = data.pop('version')
-        self.summary = data.pop('summary')
 
         for k, v in data.items():
             assert hasattr(self, k), "data does not have attribute '{}'".format(k)
@@ -335,11 +335,11 @@ class Metadata(object):
             'Metadata-Version',
             'Name',
             'Version',
+        ]
+        optional_fields = [
             'Summary',
             'Home-page',
             'License',
-        ]
-        optional_fields = [
             'Keywords',
             'Author',
             'Author-email',
@@ -351,11 +351,16 @@ class Metadata(object):
 
         for field in fields:
             value = getattr(self, self._normalise_name(field))
-            fp.write(u"{}: {}\n".format(field, value or 'UNKNOWN'))
+            fp.write(u"{}: {}\n".format(field, value))
 
         for field in optional_fields:
             value = getattr(self, self._normalise_name(field))
             if value is not None:
+                # TODO: verify which fields can be multiline
+                # The spec has multiline examples for Author, Maintainer &
+                # License (& Description, but we put that in the body)
+                # Indent following lines with 8 spaces:
+                value = '\n        '.join(value.splitlines())
                 fp.write(u"{}: {}\n".format(field, value))
 
         for clsfr in self.classifiers:
