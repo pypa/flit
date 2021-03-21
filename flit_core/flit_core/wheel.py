@@ -200,7 +200,7 @@ class WheelBuilder:
             for path in sorted(self.directory.glob(base + '*')):
                 if path.is_file():
                     self._add_file(
-                        path, '%s/%s' % (self.dist_info, osp.basename(path))
+                        path, '%s/%s' % (self.dist_info, path.name)
                     )
 
         with self._write_to_zip(self.dist_info + '/WHEEL') as f:
