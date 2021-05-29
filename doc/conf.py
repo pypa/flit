@@ -31,6 +31,7 @@ import os
 extensions = [
     'sphinx.ext.autodoc',
     'sphinxcontrib_github_alt',
+    'sphinx_rtd_theme',
 ]
 
 github_project_url = "https://github.com/takluyver/flit"
@@ -56,7 +57,7 @@ copyright = u'2015, Thomas Kluyver'
 # built documents.
 #
 # The short X.Y version.
-version = '1.3'
+version = '3.2.0'
 # The full version, including alpha/beta/rc tags.
 release = version #+ '.1'
 
@@ -103,7 +104,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

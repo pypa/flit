@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import re
 import sys
-import pytoml as toml
+import toml
 
 def get_data_dir():
     """Get the directory path for flit user data files.
@@ -65,7 +65,7 @@ class IniterBase:
 
     def validate_email(self, s):
         # Properly validating an email address is much more complex
-        return bool(re.match(r'.+@.+', s))
+        return bool(re.match(r'.+@.+', s)) or s == ""
 
     def validate_homepage(self, s):
         return not s or s.startswith(('http://', 'https://'))
@@ -83,6 +83,20 @@ class IniterBase:
             elif p.is_file() and p.suffix == '.py':
                 if p.stem not in {'setup'} and not p.name.startswith('test_'):
                     modules.append(p.stem)
+
+        src_dir = self.directory / 'src'
+        if src_dir.is_dir():
+            for p in src_dir.iterdir():
+                if not p.stem.isidentifier():
+                    continue
+
+                if p.is_dir() and (p / '__init__.py').is_file():
+                    if p.name not in {'test', 'tests'}:
+                        packages.append(p.name)
+
+                elif p.is_file() and p.suffix == '.py':
+                    if p.stem not in {'setup'} and not p.name.startswith('test_'):
+                        modules.append(p.stem)
 
         if len(packages) == 1:
             return packages[0]
@@ -111,6 +125,13 @@ class IniterBase:
 
         with (self.directory / 'LICENSE').open('w', encoding='utf-8') as f:
             f.write(license_text.format(year=year, author=author))
+
+    def find_readme(self):
+        allowed = ("readme.md","readme.rst","readme.txt")
+        for fl in self.directory.glob("*.*"):
+            if fl.name.lower() in allowed:
+                return fl.name
+        return None
 
 
 class TerminalIniter(IniterBase):
@@ -173,19 +194,24 @@ class TerminalIniter(IniterBase):
         license = self.prompt_options('Choose a license (see http://choosealicense.com/ for more info)',
                     license_choices, self.defaults.get('license'))
 
+        readme = self.find_readme()
+
         self.update_defaults(author=author, author_email=author_email,
                              home_page=home_page, module=module, license=license)
 
         metadata = OrderedDict([
             ('module', module),
             ('author', author),
-            ('author-email', author_email),
         ])
+        if author_email:
+            metadata['author-email'] = author_email
         if home_page:
             metadata['home-page'] = home_page
         if license != 'skip':
             metadata['classifiers'] = [license_names_to_classifiers[license]]
             self.write_license(license, author)
+        if readme:
+            metadata['description-file'] = readme
 
         with (self.directory / 'pyproject.toml').open('w', encoding='utf-8') as f:
             f.write(TEMPLATE.format(metadata=toml.dumps(metadata)))
@@ -195,7 +221,7 @@ class TerminalIniter(IniterBase):
 
 TEMPLATE = """\
 [build-system]
-requires = ["flit_core >=2,<3"]
+requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.flit.metadata]

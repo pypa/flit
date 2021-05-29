@@ -1,3 +1,7 @@
+import errno
+import pytest
+import responses
+
 from flit import validate as fv
 
 def test_validate_entrypoints():
@@ -47,9 +51,17 @@ def test_validate_requires_dist():
     # Altogether now
     assert check('requests[extra-foo] >=2.14; python_version < "3.0"') == []
 
+    # URL specifier
+    assert check('requests @ https://example.com/requests.tar.gz') == []
+    assert check(
+        'requests @ https://example.com/requests.tar.gz ; python_version < "3.8"'
+    ) == []
+
+    # Problems
     assert len(check('Bücher')) == 1
     assert len(check('requests 2.14')) == 1
     assert len(check('pexpect; sys.platform == "win32"')) == 1  # '.' -> '_'
+    assert len(check('requests >=2.14 @ https://example.com/requests.tar.gz')) == 1
     # Several problems in one requirement
     assert len(check('pexpect[_foo] =3; sys.platform == "win32"')) == 3
 
@@ -99,3 +111,132 @@ def test_validate_project_urls():
     assert len(check(', https://flit.readthedocs.io/')) == 1
     # Name longer than 32 chars
     assert len(check('Supercalifragilisticexpialidocious, https://flit.readthedocs.io/')) == 1
+
+
+def test_read_classifiers_cached(monkeypatch, tmp_path):
+
+    def mock_get_cache_dir():
+        tmp_file = tmp_path / "classifiers.lst"
+        with tmp_file.open("w") as fh:
+            fh.write("A\nB\nC")
+        return tmp_path
+
+    monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
+
+    classifiers = fv._read_classifiers_cached()
+
+    assert classifiers == {'A', 'B', 'C'}
+
+
+@responses.activate
+def test_download_and_cache_classifiers(monkeypatch, tmp_path):
+    responses.add(
+        responses.GET,
+        'https://pypi.org/pypi?%3Aaction=list_classifiers',
+        body="A\nB\nC")
+
+    def mock_get_cache_dir():
+        return tmp_path
+
+    monkeypatch.setattr(fv, "get_cache_dir", mock_get_cache_dir)
+
+    classifiers = fv._download_and_cache_classifiers()
+
+    assert classifiers == {"A", "B", "C"}
+
+
+def test_validate_classifiers_private(monkeypatch):
+    """
+    Test that `Private :: Do Not Upload` considered a valid classifier.
+    This is a special case because it is not listed in a trove classifier
+    but it is a way to make sure that a private package is not get uploaded
+    on PyPI by accident.
+
+    Implementation on PyPI side:
+        https://github.com/pypa/warehouse/pull/5440
+    Issue about officially documenting the trick:
+        https://github.com/pypa/packaging.python.org/issues/643
+    """
+    monkeypatch.setattr(fv, "_read_classifiers_cached", lambda: set())
+
+    actual = fv.validate_classifiers({'invalid'})
+    assert actual == ["Unrecognised classifier: 'invalid'"]
+
+    assert fv.validate_classifiers({'Private :: Do Not Upload'}) == []
+
+
+@responses.activate
+@pytest.mark.parametrize("error", [PermissionError, OSError(errno.EROFS, "")])
+def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch, error):
+    responses.add(
+        responses.GET,
+        'https://pypi.org/pypi?%3Aaction=list_classifiers',
+        body="A\nB\nC")
+
+    class MockCacheDir:
+        def mkdir(self, parents):
+            raise error
+        def __truediv__(self, other):
+            raise error
+
+    monkeypatch.setattr(fv, "get_cache_dir", MockCacheDir)
+
+    classifiers = fv._download_and_cache_classifiers()
+
+    assert classifiers == {"A", "B", "C"}
+
+
+def test_verify_classifiers_valid_classifiers():
+    classifiers = {"A"}
+    valid_classifiers = {"A", "B"}
+
+    problems = fv._verify_classifiers(classifiers, valid_classifiers)
+
+    assert problems == []
+
+def test_verify_classifiers_invalid_classifiers():
+    classifiers = {"A", "B"}
+    valid_classifiers = {"A"}
+
+    problems = fv._verify_classifiers(classifiers, valid_classifiers)
+
+    assert problems == ["Unrecognised classifier: 'B'"]
+
+def test_validate_readme_rst():
+    metadata = {
+        'description_content_type': 'text/x-rst',
+        'description': "Invalid ``rst'",
+    }
+    problems = fv.validate_readme_rst(metadata)
+
+    assert len(problems) == 2  # 1 message that rst is invalid + 1 with details
+    assert "valid rst" in problems[0]
+
+    # Markdown should be ignored
+    metadata = {
+        'description_content_type': 'text/markdown',
+        'description': "Invalid `rst'",
+    }
+    problems = fv.validate_readme_rst(metadata)
+
+    assert problems == []
+
+RST_WITH_CODE = """
+Code snippet:
+
+.. code-block:: python
+
+   a = [i ** 2 for i in range(5)]
+"""
+
+def test_validate_readme_rst_code():
+    # Syntax highlighting shouldn't require pygments
+    metadata = {
+        'description_content_type': 'text/x-rst',
+        'description': RST_WITH_CODE,
+    }
+    problems = fv.validate_readme_rst(metadata)
+    for p in problems:
+        print(p)
+
+    assert problems == []

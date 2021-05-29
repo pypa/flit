@@ -6,8 +6,7 @@ This file lives next to the module or package.
 .. note::
 
    Older version of Flit (up to 0.11) used a :doc:`flit.ini file <flit_ini>` for
-   similar information. Flit can still read these files for now, but you should
-   switch to ``pyproject.toml`` soon.
+   similar information. These files no longer work with Flit 3 and above.
 
    Run ``python3 -m flit.tomlify`` to convert a ``flit.ini`` file to
    ``pyproject.toml``.
@@ -21,8 +20,8 @@ defined by PEP 517. For any project using Flit, it will look like this:
 .. code-block:: toml
 
     [build-system]
-    requires = ["flit"]
-    build-backend = "flit.buildapi"
+    requires = ["flit_core >=2,<4"]
+    build-backend = "flit_core.buildapi"
 
 Metadata section
 ----------------
@@ -93,6 +92,8 @@ description-file
   (``.rst``, ``.md`` or ``.txt``).
 classifiers
   A list of `Trove classifiers <https://pypi.python.org/pypi?%3Aaction=list_classifiers>`_.
+  Add ``Private :: Do Not Upload`` into the list to prevent a private package
+  from uploading on PyPI by accident.
 requires-python
   A version specifier for the versions of Python this requires, e.g. ``~=3.3`` or
   ``>=3.3,<4`` which are equivalents.
@@ -100,7 +101,7 @@ dist-name
   If you want your package's name on PyPI to be different from the importable
   module name, set this to the PyPI name.
 keywords
-  Space separated list of words to help with searching for your package.
+  Comma separated list of words to help with searching for your package.
 license
   The name of a license, if you're using one for which there isn't a Trove
   classifier. It's recommended to use Trove classifiers instead of this in
@@ -118,12 +119,13 @@ Here's the full metadata section from flit itself:
     author-email="thomas@kluyver.me.uk"
     home-page="https://github.com/takluyver/flit"
     requires=[
+        "flit_core>=2.2.0",
         "requests",
         "docutils",
-        "requests_download",
-        "pytoml",
+        "toml",
+        "zipfile36; python_version in '3.3 3.4 3.5'",
     ]
-    requires-python="3"
+    requires-python=">=3.5"
     description-file="README.rst"
     classifiers=[
         "Intended Audience :: Developers",
@@ -186,3 +188,36 @@ In each ``package:name`` value, the part before the colon should be an
 importable module name, and the latter part should be the name of an object
 accessible within that module. The details of what object to expose depend on
 the application you're extending.
+
+.. _pyproject_toml_sdist:
+
+Sdist section
+-------------
+
+.. versionadded:: 2.0
+
+When you use :ref:`build_cmd` or :ref:`publish_cmd`, Flit builds an sdist
+(source distribution) tarball containing the files that are checked into version
+control (git or mercurial). If you want more control, or it doesn't recognise
+your version control system, you can give lists of paths or glob patterns as
+``include`` and ``exclude`` in this section. For example:
+
+.. code-block:: toml
+
+    [tool.flit.sdist]
+    include = ["doc/"]
+    exclude = ["doc/*.html"]
+
+These paths:
+
+- Always use ``/`` as a separator (POSIX style)
+- Must be relative paths from the directory containing ``pyproject.toml``
+- Cannot go outside that directory (no ``../`` paths)
+- Cannot contain control characters or ``<>:"\\``
+- Cannot use recursive glob patterns (``**/``)
+- Can refer to directories, in which case they include everything under the
+  directory, including subdirectories
+- Should match the case of the files they refer to, as case-insensitive matching
+  is platform dependent
+
+Exclusions have priority over inclusions.

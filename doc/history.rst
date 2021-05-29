@@ -1,6 +1,140 @@
 Release history
 ===============
 
+Version 3.2
+-----------
+
+- Experimental support for specifying metadata in a ``[project]`` table in
+  ``pyproject.toml`` as specified by :pep:`621` (:ghpull:`393`). If you try
+  using this, please specify ``requires = ["flit_core >=3.2.0,<3.3"]`` in the
+  ``[build-system`` table for now, in case it needs to change for the next
+  release.
+- Fix writing METADATA file with multi-line information in certain fields
+  such as ``Author`` (:ghpull:`402`).
+- Fix building wheel when a directory such as LICENSES appears in the project
+  root directory (:ghpull:`401`).
+
+Version 3.1
+-----------
+
+- Update handling of names & version numbers in wheel filenames and
+  ``.dist-info`` folders in line with changes in the specs (:ghpull:`395`).
+- Switch from the deprecated ``pytoml`` package to ``toml`` (:ghpull:`378`).
+- Fix specifying backend-path in ``pyproject.toml`` for flit-core (as a list
+  instead of a string).
+
+Version 3.0
+-----------
+
+Breaking changes:
+
+- Projects must now provide Flit with information in ``pyproject.toml`` files,
+  not the older ``flit.ini`` format (:ghpull:`338`).
+- ``flit_core`` once again requires Python 3 (>=3.4). Packages that support
+  Python 2 can still be built by ``flit_core`` 2.x, but can't rely on new
+  features (:ghpull:`342`).
+- The deprecated ``flit installfrom`` command was removed (:ghpull:`334`).
+  You can use ``pip install git+https://github.com/...`` instead.
+
+Features and fixes:
+
+- Fix building sdists from a git repository with non-ASCII characters in
+  filenames (:ghpull:`346`).
+- Fix identifying the version number when the code contains a subscript
+  assignment before ``__version__ =`` (:ghpull:`348`).
+- Script entry points can now use a class method (:ghpull:`359`).
+- Set suitable permission bits on metadata files in wheels (:ghpull:`256`).
+- Fixed line endings in the ``RECORD`` file when installing on Windows
+  (:ghpull:`368`).
+- Support for recording the source of local installations, as in :pep:`610`
+  (:ghpull:`335`).
+- ``flit init`` will check for a README in the root of the project and
+  automatically set it as ``description-file`` (:ghpull:`337`).
+- Pygments is not required for checking reStructuredText READMEs (:ghpull:`357`).
+- Packages where the version number can be recognised without executing their
+  code don't need their dependencies installed to build, which should make them
+  build faster (:ghpull:`361`).
+- Ensure the installed ``RECORD`` file is predictably ordered (:ghpull:`366`).
+
+Version 2.3
+-----------
+
+- New projects created with :ref:`init_cmd` now declare that they require
+  ``flit_core >=2,<4`` (:ghpull:`328`). Any projects using ``pyproject.toml``
+  (not ``flit.ini``) should be compatible with flit 3.x.
+- Fix selecting files from a git submodule to include in an sdist
+  (:ghpull:`324`).
+- Fix checking classifiers when no writeable cache directory is available
+  (:ghpull:`319`).
+- Better errors when trying to install to a mis-spelled or missing Python
+  interpreter (:ghpull:`331`).
+- Fix specifying ``--repository`` before ``upload`` (:ghpull:`322`). Passing the
+  option like this is deprecated, and you should now pass it after ``upload``.
+- Documentation improvements (:ghpull:`327`, :ghpull:`318`, :ghpull:`314`)
+
+Version 2.2
+-----------
+
+- Allow underscores in package names with Python 2 (:ghpull:`305`).
+- Add a ``--no-setup-py`` option to build sdists without a backwards-compatible
+  ``setup.py`` file (:ghpull:`311`).
+- Fix the generated ``setup.py`` file for packages using a ``src/`` layout
+  (:ghpull:`303`).
+- Fix detecting when more than one file matches the module name specified
+  (:ghpull:`307`).
+- Fix installing to a venv on Windows with the ``--python`` option
+  (:ghpull:`300`).
+- Don't echo the command in scripts installed with ``--symlink`` or
+  ``--pth-file`` on Windows (:ghpull:`310`).
+- New ``bootstrap_dev.py`` script to set up a development installation of Flit
+  from the repository (:ghpull:`301`, :ghpull:`306`).
+
+Version 2.1
+-----------
+
+- Use compression when adding files to wheels.
+- Added the :envvar:`FLIT_INSTALL_PYTHON` environment variable (:ghpull:`295`),
+  to configure flit to always install into a Python other than the one it's
+  running on.
+- ``flit_core`` uses the ``intreehooks`` shim package to load its bootstrapping
+  backend, until a released version of pip supports the standard
+  ``backend-path`` mechanism.
+
+Version 2.0
+-----------
+
+Flit 2 is a major architecture change. The ``flit_core`` package now provides
+a :pep:`517` backend for building packages, while ``flit`` is a
+:doc:`command line interface <cmdline>` extending that.
+
+The build backend works on Python 2, so tools like pip should be able to install
+packages built with flit from source on Python 2.
+The ``flit`` command requires Python 3.5 or above.
+You will need to change the build-system table in your ``pyproject.toml`` file
+to look like this:
+
+.. code-block:: toml
+
+    [build-system]
+    requires = ["flit_core >=2,<4"]
+    build-backend = "flit_core.buildapi"
+
+Other changes include:
+
+- Support for storing your code under a ``src/`` folder (:ghpull:`260`).
+  You don't need to change any configuration if you do this.
+- Options to control what files are included in an sdist - see
+  :ref:`pyproject_toml_sdist` for the details.
+- Requirements can specify a URL 'direct reference', as an alternative to a
+  version number, with the syntax defined in :pep:`440`:
+  ``requests @ https://example.com/requests-2.22.0.tar.gz``.
+- Fix the shebang of scripts installed with the ``--python`` option and the
+  ``--symlink`` flag (:ghpull:`286`).
+- Installing with ``--deps develop`` now installs normal dependencies
+  as well as development dependencies.
+- Author email is no longer required in the metadata table (:ghpull:`289`).
+- More error messages are now shown without a traceback (:ghpull:`254`)
+
 Version 1.3
 -----------
 
@@ -233,7 +367,7 @@ Version 0.5
 
 - A new ``flit init`` command to quickly define the essential basic metadata
   for a package.
-- Support for :doc:`entrypoints`.
+- Support for entry points.
 - A new ``flit register`` command to register a package without uploading it,
   for when you want to claim a name before you're ready to release.
 - Added a ``--repository`` option for specifying an alternative PyPI instance.

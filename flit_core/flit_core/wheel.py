@@ -7,11 +7,13 @@ import io
 import logging
 import os
 import os.path as osp
-import re
 import stat
 import sys
 import tempfile
-from types import SimpleNamespace
+try:
+    from types import SimpleNamespace  # Python 3
+except ImportError:
+    from argparse import Namespace as SimpleNamespace  # Python 2
 
 HAVE_ZIPFILE36 = True
 if sys.version_info >= (3, 6):
@@ -25,21 +27,25 @@ else:
 
 from flit_core import __version__
 from . import common
-from . import inifile
 
 log = logging.getLogger(__name__)
 
-wheel_file_template = """\
+wheel_file_template = u"""\
 Wheel-Version: 1.0
 Generator: flit {version}
 Root-Is-Purelib: true
 """.format(version=__version__)
 
-def _write_wheel_file(f, *, supports_py2=False):
+def _write_wheel_file(f, supports_py2=False):
     f.write(wheel_file_template)
     if supports_py2:
-        f.write("Tag: py2-none-any\n")
-    f.write("Tag: py3-none-any\n")
+        f.write(u"Tag: py2-none-any\n")
+    f.write(u"Tag: py3-none-any\n")
+
+
+def _set_zinfo_mode(zinfo, mode):
+    # Set the bits for the mode and bit 0xFFFF for “regular file”
+    zinfo.external_attr = mode << 16
 
 
 class WheelBuilder:
@@ -76,8 +82,10 @@ class WheelBuilder:
 
     @classmethod
     def from_ini_path(cls, ini_path, target_fp):
-        directory = osp.dirname(ini_path)
-        ini_info = inifile.read_flit_config(ini_path)
+        # Local import so bootstrapping doesn't try to load toml
+        from .config import read_flit_config
+        directory = ini_path.parent
+        ini_info = read_flit_config(ini_path)
         entrypoints = ini_info.entrypoints
         module = common.Module(ini_info.module, directory)
         metadata = common.make_metadata(module, ini_info)
@@ -89,11 +97,9 @@ class WheelBuilder:
 
     @property
     def wheel_filename(self):
+        dist_name = common.normalize_dist_name(self.metadata.name, self.metadata.version)
         tag = ('py2.' if self.metadata.supports_py2 else '') + 'py3-none-any'
-        return '{}-{}-{}.whl'.format(
-                re.sub(r"[^\w\d.]+", "_", self.metadata.name, flags=re.UNICODE),
-                re.sub(r"[^\w\d.]+", "_", self.metadata.version, flags=re.UNICODE),
-                tag)
+        return '{}-{}.whl'.format(dist_name, tag)
 
     def _add_file_old(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)
@@ -135,10 +141,12 @@ class WheelBuilder:
         # Normalize permission bits to either 755 (executable) or 644
         st_mode = os.stat(full_path).st_mode
         new_mode = common.normalize_file_permissions(st_mode)
-        zinfo.external_attr = (new_mode & 0xFFFF) << 16      # Unix attributes
+        _set_zinfo_mode(zinfo, new_mode & 0xFFFF)  # Unix attributes
 
         if stat.S_ISDIR(st_mode):
             zinfo.external_attr |= 0x10  # MS-DOS directory flag
+
+        zinfo.compress_type = zipfile.ZIP_DEFLATED
 
         hashsum = hashlib.sha256()
         with open(full_path, 'rb') as src, self.wheel_zip.open(zinfo, 'w') as dst:
@@ -156,7 +164,7 @@ class WheelBuilder:
     _add_file = _add_file_zf36 if HAVE_ZIPFILE36 else _add_file_old
 
     @contextlib.contextmanager
-    def _write_to_zip(self, rel_path):
+    def _write_to_zip(self, rel_path, mode=0o644):
         sio = io.StringIO()
         yield sio
 
@@ -166,6 +174,7 @@ class WheelBuilder:
         # give you the exact same result.
         date_time = self.source_time_stamp or (2016, 1, 1, 0, 0, 0)
         zi = zipfile.ZipInfo(rel_path, date_time)
+        _set_zinfo_mode(zi, mode)
         b = sio.getvalue().encode('utf-8')
         hashsum = hashlib.sha256(b)
         hash_digest = urlsafe_b64encode(hashsum.digest()).decode('ascii').rstrip('=')
@@ -174,9 +183,10 @@ class WheelBuilder:
 
     def copy_module(self):
         log.info('Copying package file(s) from %s', self.module.path)
+        source_dir = str(self.module.source_dir)
 
-        for rel_path in self.module.iter_files():
-            full_path = os.path.join(self.directory, rel_path)
+        for full_path in self.module.iter_files():
+            rel_path = osp.relpath(full_path, source_dir)
             self._add_file(full_path, rel_path)
 
     def write_metadata(self):
@@ -187,8 +197,9 @@ class WheelBuilder:
                 common.write_entry_points(self.entrypoints, f)
 
         for base in ('COPYING', 'LICENSE'):
-            for path in sorted(glob(osp.join(self.directory, base + '*'))):
-                self._add_file(path, '%s/%s' % (self.dist_info, path))
+            for path in sorted(self.directory.glob(base + '*')):
+                if path.is_file():
+                    self._add_file(path, '%s/%s' % (self.dist_info, path.name))
 
         with self._write_to_zip(self.dist_info + '/WHEEL') as f:
             _write_wheel_file(f, supports_py2=self.metadata.supports_py2)
@@ -201,7 +212,7 @@ class WheelBuilder:
         # Write a record of the files in the wheel
         with self._write_to_zip(self.dist_info + '/RECORD') as f:
             for path, hash, size in self.records:
-                f.write('{},sha256={},{}\n'.format(path, hash, size))
+                f.write(u'{},sha256={},{}\n'.format(path, hash, size))
             # RECORD itself is recorded with no hash or size
             f.write(self.dist_info + '/RECORD,,\n')
 
@@ -218,11 +229,11 @@ def make_wheel_in(ini_path, wheel_directory):
     # a temporary_file, and rename it afterwards.
     (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
     try:
-        with open(fd, 'w+b') as fp:
+        with io.open(fd, 'w+b') as fp:
             wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build()
 
-        wheel_path = osp.join(wheel_directory, wb.wheel_filename)
+        wheel_path = wheel_directory / wb.wheel_filename
         os.replace(temp_path, str(wheel_path))
     except:
         os.unlink(temp_path)

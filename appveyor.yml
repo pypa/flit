@@ -1,15 +1,16 @@
 environment:
-  PYTHONPATH: flit_core
   matrix:
-    # For Python versions available on Appveyor, see
-    # http://www.appveyor.com/docs/installed-software#python
-    - PYTHON: "C:\\Python35-x64"
-    - PYTHON: "C:\\Python36"
+    - TOXENV: "py37"
+      TOX_APPVEYOR_X64: "1"
+    - TOXENV: "py35"
+      TOX_APPVEYOR_X64: "0"
 
+# The Python version here doesn't matter (except that the commands have the same),
+# as Tox will set up an environment using the Python specified above.
 install:
-  - "%PYTHON%\\python.exe -m pip install -r requirements-test.txt"
-
-build: off
+  - py -3.7 -m pip install tox tox-appveyor
 
 test_script:
-  - "%PYTHON%\\python.exe -m pytest"
+  - py -3.7 -m tox
+
+build: off

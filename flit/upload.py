@@ -235,16 +235,6 @@ def upload_file(file:Path, metadata:Metadata, repo):
                         )
     resp.raise_for_status()
 
-def verify(metadata:Metadata, repo_name):
-    """Verify the metadata with the PyPI server.
-    """
-    repo = get_repository(repo_name)
-    data = build_post_data('verify', metadata)
-    resp = requests.post(repo['url'], data=data,
-                         auth=(repo['username'], repo['password'])
-                        )
-    resp.raise_for_status()
-    log.info('Verification succeeded')
 
 def do_upload(file:Path, metadata:Metadata, repo_name=None):
     """Upload a file to an index server.
@@ -261,10 +251,10 @@ def do_upload(file:Path, metadata:Metadata, repo_name=None):
         log.info("Package is at %s/%s", repo['url'], metadata.name)
 
 
-def main(ini_path, repo_name, formats=None):
+def main(ini_path, repo_name, formats=None, gen_setup_py=True):
     """Build and upload wheel and sdist."""
     from . import build
-    built = build.main(ini_path, formats=formats)
+    built = build.main(ini_path, formats=formats, gen_setup_py=gen_setup_py)
 
     if built.wheel is not None:
         do_upload(built.wheel.file, built.wheel.builder.metadata, repo_name)

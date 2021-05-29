@@ -1,4 +1,8 @@
 **Flit** is a simple way to put Python packages and modules on PyPI.
+It tries to require less thought about packaging and help you avoid common
+mistakes.
+See `Why use Flit? <https://flit.readthedocs.io/en/latest/rationale.html>`_ for
+more about how it compares to other Python packaging tools.
 
 Install
 -------
@@ -32,14 +36,14 @@ or as a directory — and you want to distribute it.
 
        python3 -m pip install flit
 
-3. Run ``flit init`` to create a ``pyproject.toml`` file. It will look something
-   like this:
+3. Run ``flit init`` in the directory containing the module to create a
+   ``pyproject.toml`` file. It will look something like this:
 
    .. code-block:: ini
 
        [build-system]
-       requires = ["flit"]
-       build-backend = "flit.buildapi"
+       requires = ["flit_core >=2,<4"]
+       build-backend = "flit_core.buildapi"
 
        [tool.flit.metadata]
        module = "foobar"
@@ -53,12 +57,17 @@ or as a directory — and you want to distribute it.
    of the documentation.
 
    If you have already got a ``flit.ini`` file to use with older versions of
-   Flit, it will still work for now, but you should convert it to
-   ``pyproject.toml`` when convenient.
+   Flit, convert it to ``pyproject.toml`` by running ``python3 -m flit.tomlify``.
 
 4. Run this command to upload your code to PyPI::
 
        flit publish
+
+Once your package is published, people can install it using *pip* just like
+any other package. In most cases, pip will download a 'wheel' package, a
+standard format it knows how to install. If you specifically ask pip to install
+an 'sdist' package, it will install and use Flit in a temporary environment.
+
 
 To install a package locally for development, run::
 
@@ -67,18 +76,3 @@ To install a package locally for development, run::
 Flit packages a single importable module or package at a time, using the import
 name as the name on PyPI. All subpackages and data files within a package are
 included automatically.
-
-Development
------------
-
-To install the development version of Flit from Github::
-
-    git clone https://github.com/takluyver/flit.git
-    cd flit
-    python3 -m pip install docutils requests pytoml
-    python3 -m flit install
-
-You may want to use the ``--symlink`` or ``--pth-file`` options so you can test
-changes without reinstalling it.
-
-To run the tests, run ``pytest``.

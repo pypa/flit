@@ -1,6 +1,8 @@
 Controlling package uploads
 ===========================
 
+.. program:: flit publish
+
 The command ``flit publish`` will upload your package to a package index server.
 The default settings let you upload to `PyPI <https://pypi.org/>`_,
 the default Python Package Index, with a single user account.
@@ -35,9 +37,9 @@ instead of the normal PyPI, use a config file looking like this:
     username = sirrobin  # Replace with your TestPyPI username
 
 You can select an index server from this config file with the
-``--repository`` option::
+:option:`--repository` option::
 
-    flit --repository testpypi publish
+    flit publish --repository testpypi
 
 If you don't use this option,
 Flit will use the server called ``pypi`` in the config file. If that doesn't

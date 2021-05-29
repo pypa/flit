@@ -1,0 +1,15 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "package1"
+author = "Sir Robin"
+author-email = "robin@camelot.uk"
+home-page = "http://github.com/sirrobin/package1"
+
+[tool.flit.scripts]
+pkg_script = "package1:main"
+
+[tool.flit.entrypoints.myplugins]
+package1 = "package1:main"
