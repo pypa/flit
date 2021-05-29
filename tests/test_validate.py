@@ -145,26 +145,6 @@ def test_download_and_cache_classifiers(monkeypatch, tmp_path):
     assert classifiers == {"A", "B", "C"}
 
 
-def test_validate_classifiers_private(monkeypatch):
-    """
-    Test that `Private :: Do Not Upload` considered a valid classifier.
-    This is a special case because it is not listed in a trove classifier
-    but it is a way to make sure that a private package is not get uploaded
-    on PyPI by accident.
-
-    Implementation on PyPI side:
-        https://github.com/pypa/warehouse/pull/5440
-    Issue about officially documenting the trick:
-        https://github.com/pypa/packaging.python.org/issues/643
-    """
-    monkeypatch.setattr(fv, "_read_classifiers_cached", lambda: set())
-
-    actual = fv.validate_classifiers({'invalid'})
-    assert actual == ["Unrecognised classifier: 'invalid'"]
-
-    assert fv.validate_classifiers({'Private :: Do Not Upload'}) == []
-
-
 @responses.activate
 @pytest.mark.parametrize("error", [PermissionError, OSError(errno.EROFS, "")])
 def test_download_and_cache_classifiers_with_unacessible_dir(monkeypatch, error):

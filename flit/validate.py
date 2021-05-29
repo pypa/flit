@@ -13,12 +13,6 @@ from .vendorized.readme.rst import render
 
 log = logging.getLogger(__name__)
 
-CUSTOM_CLASSIFIERS = frozenset({
-    # https://github.com/pypa/warehouse/pull/5440
-    'Private :: Do Not Upload',
-})
-
-
 def get_cache_dir() -> Path:
     """Locate a platform-appropriate cache directory for flit to use
 
@@ -102,7 +96,6 @@ def validate_classifiers(classifiers):
     classifiers = set(classifiers)
     try:
         valid_classifiers = _read_classifiers_cached()
-        valid_classifiers.update(CUSTOM_CLASSIFIERS)
         problems = _verify_classifiers(classifiers, valid_classifiers)
     except (FileNotFoundError, PermissionError) as e1:
         # We haven't yet got the classifiers cached or couldn't read it
@@ -127,8 +120,8 @@ def validate_classifiers(classifiers):
         log.warning(
             "Couldn't get list of valid classifiers to check against")
         return problems
-    valid_classifiers.update(CUSTOM_CLASSIFIERS)
-    return _verify_classifiers(classifiers, valid_classifiers)
+    else:
+        return _verify_classifiers(classifiers, valid_classifiers)
 
 
 def validate_entrypoints(entrypoints):
