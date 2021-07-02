@@ -226,6 +226,7 @@ def upload_file(file:Path, metadata:Metadata, repo):
         content = f.read()
         files = {'content': (file.name, content)}
         data['md5_digest'] = hashlib.md5(content).hexdigest()
+        data['sha256_digest'] = hashlib.sha256(content).hexdigest()
 
     log.info('Uploading %s...', file)
     resp = requests.post(repo['url'],
