@@ -15,17 +15,6 @@ from . import common
 log = logging.getLogger(__name__)
 
 
-PKG_INFO = """\
-Metadata-Version: 1.1
-Name: {name}
-Version: {version}
-Summary: {summary}
-Home-page: {home_page}
-Author: {author}
-Author-email: {author_email}
-"""
-
-
 def clean_tarinfo(ti, mtime=None):
     """Clean metadata from a TarInfo object to make it more reproducible.
 
@@ -195,14 +184,9 @@ class SdistBuilder:
             if gen_setup_py:
                 self.add_setup_py(files_to_add, tf)
 
-            pkg_info = PKG_INFO.format(
-                name=self.metadata.name,
-                version=self.metadata.version,
-                summary=self.metadata.summary,
-                home_page=self.metadata.home_page,
-                author=self.metadata.author,
-                author_email=self.metadata.author_email,
-            ).encode('utf-8')
+            stream = io.StringIO()
+            self.metadata.write_metadata_file(stream)
+            pkg_info = stream.getvalue().encode()
             ti = tarfile.TarInfo(pjoin(self.dir_name, 'PKG-INFO'))
             ti.size = len(pkg_info)
             tf.addfile(ti, io.BytesIO(pkg_info))
