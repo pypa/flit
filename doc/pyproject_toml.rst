@@ -109,8 +109,7 @@ Dependencies
 
 The ``dependencies`` field is a list of other packages from PyPI that this
 package needs. Each package may be followed by a version specifier like
-``>=4.1``, and/or an `environment marker
-<https://www.python.org/dev/peps/pep-0508/#environment-markers>`_
+``>=4.1``, and/or an `environment marker`_
 after a semicolon. For example:
 
   .. code-block:: toml
@@ -257,8 +256,7 @@ home-page
 requires
   A list of other packages from PyPI that this package needs. Each package may
   be followed by a version specifier like ``(>=4.1)`` or ``>=4.1``, and/or an
-  `environment marker
-  <https://www.python.org/dev/peps/pep-0345/#environment-markers>`_
+  `environment marker`_
   after a semicolon. For example:
 
   .. code-block:: toml
@@ -402,3 +400,5 @@ These paths:
   is platform dependent
 
 Exclusions have priority over inclusions.
+
+.. _environment marker: https://www.python.org/dev/peps/pep-0508/#environment-markers
