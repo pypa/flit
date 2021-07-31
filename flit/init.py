@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from datetime import date
 import json
 import os
@@ -181,7 +180,7 @@ class TerminalIniter(IniterBase):
         module = self.prompt_text('Module name', self.guess_module_name(),
                                   str.isidentifier)
         author = self.prompt_text('Author', self.defaults.get('author'),
-                                  lambda s: s != '')
+                                  lambda s: True)
         author_email = self.prompt_text('Author email',
                         self.defaults.get('author_email'), self.validate_email)
         if 'home_page_template' in self.defaults:
@@ -199,33 +198,50 @@ class TerminalIniter(IniterBase):
         self.update_defaults(author=author, author_email=author_email,
                              home_page=home_page, module=module, license=license)
 
-        metadata = OrderedDict([
-            ('module', module),
-            ('author', author),
-        ])
+        # Format information as TOML
+        # This is ugly code, but I want the generated pyproject.toml, which
+        # will mostly be edited by hand, to look a particular way - e.g. authors
+        # in inline tables. It's easier to 'cheat' with some string formatting
+        # than to do this through a TOML library.
+        author_info = []
+        if author:
+            author_info.append(f'name = {json.dumps(author)}')
         if author_email:
-            metadata['author-email'] = author_email
-        if home_page:
-            metadata['home-page'] = home_page
+            author_info.append(f'email = {json.dumps(author_email)}')
+        if author_info:
+            authors_list = "[{%s}]" % ", ".join(author_info)
+        else:
+            authors_list = "[]"
+
+        classifiers = []
         if license != 'skip':
-            metadata['classifiers'] = [license_names_to_classifiers[license]]
+            classifiers = [license_names_to_classifiers[license]]
             self.write_license(license, author)
-        if readme:
-            metadata['description-file'] = readme
 
         with (self.directory / 'pyproject.toml').open('w', encoding='utf-8') as f:
-            f.write(TEMPLATE.format(metadata=toml.dumps(metadata)))
+            f.write(TEMPLATE.format(
+                name=json.dumps(module), authors=authors_list
+            ))
+            if readme:
+                toml.dump({'readme': readme}, f)
+            if classifiers:
+                f.write(f"classifiers = {json.dumps(classifiers)}\n")
+            f.write('dynamic = ["version", "description"]\n')
+            if home_page:
+                f.write("\n")
+                toml.dump({'project': {'urls': {'Home': home_page}}}, f)
 
         print()
         print("Written pyproject.toml; edit that file to add optional extra info.")
 
 TEMPLATE = """\
 [build-system]
-requires = ["flit_core >=2,<4"]
+requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-{metadata}
+[project]
+name = {name}
+authors = {authors}
 """
 
 if __name__ == '__main__':

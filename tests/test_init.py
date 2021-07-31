@@ -108,8 +108,7 @@ def test_init():
         assert_isfile(generated)
         with generated.open() as f:
             data = toml.load(f)
-        assert data['tool']['flit']['metadata'][
-                   'author-email'] == "test@example.com"
+        assert data['project']['authors'][0]['email'] == "test@example.com"
         license = Path(td) / 'LICENSE'
         assert_isfile(license)
         with license.open() as f:
@@ -133,11 +132,10 @@ def test_init_homepage_and_license_are_optional():
         with Path(td, 'pyproject.toml').open() as f:
             data = toml.load(f)
         assert not Path(td, 'LICENSE').exists()
-    metadata = data['tool']['flit']['metadata']
-    assert metadata == {
-        'author': 'Test Author',
-        'author-email': 'test_email@example.com',
-        'module': 'test_module_name',
+    assert data['project'] == {
+        'authors': [{'name': 'Test Author', 'email': 'test_email@example.com'}],
+        'name': 'test_module_name',
+        'dynamic': ['version', 'description'],
     }
 
 def test_init_homepage_validator():
@@ -155,12 +153,11 @@ def test_init_homepage_validator():
         ti.initialise()
         with Path(td, 'pyproject.toml').open() as f:
             data = toml.load(f)
-    metadata = data['tool']['flit']['metadata']
-    assert metadata == {
-        'author': 'Test Author',
-        'author-email': 'test_email@example.com',
-        'home-page': 'https://www.example.org',
-        'module': 'test_module_name',
+    assert data['project'] == {
+        'authors': [{'name': 'Test Author', 'email': 'test_email@example.com'}],
+        'name': 'test_module_name',
+        'urls': {'Home': 'https://www.example.org'},
+        'dynamic': ['version', 'description'],
     }
 
 def test_author_email_field_is_optional():
@@ -178,11 +175,12 @@ def test_author_email_field_is_optional():
         with Path(td, 'pyproject.toml').open() as f:
             data = toml.load(f)
         assert not Path(td, 'LICENSE').exists()
-    metadata = data['tool']['flit']['metadata']
-    assert metadata == {
-        'author': 'Test Author',
-        'module': 'test_module_name',
-        'home-page': 'https://www.example.org',
+
+    assert data['project'] == {
+        'authors': [{'name': 'Test Author'}],
+        'name': 'test_module_name',
+        'urls': {'Home': 'https://www.example.org'},
+        'dynamic': ['version', 'description'],
     }
 
 
@@ -218,10 +216,9 @@ def test_init_readme_found_yes_choosen():
         with Path(td, 'pyproject.toml').open() as f:
             data = toml.load(f)
 
-    metadata = data['tool']['flit']['metadata']
-    assert metadata == {
-        'author': 'Test Author',
-        'author-email': 'test_email@example.com',
-        'module': 'test_module_name',
-        'description-file': 'readme.md'
+    assert data['project'] == {
+        'authors': [{'name': 'Test Author', 'email': 'test_email@example.com'}],
+        'name': 'test_module_name',
+        'readme': 'readme.md',
+        'dynamic': ['version', 'description'],
     }

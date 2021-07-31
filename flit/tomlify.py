@@ -8,7 +8,16 @@ from pathlib import Path
 import toml
 
 from .config import metadata_list_fields
-from .init import TEMPLATE
+
+
+TEMPLATE = """\
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+{metadata}
+"""
 
 class CaseSensitiveConfigParser(configparser.ConfigParser):
     optionxform = staticmethod(str)
