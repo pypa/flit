@@ -15,13 +15,23 @@ Build system section
 --------------------
 
 This tells tools like pip to build your project with flit. It's a standard
-defined by PEP 517. For any project using Flit, it will look like this:
+defined by PEP 517. For any new project using Flit, it will look like this:
 
 .. code-block:: toml
 
     [build-system]
     requires = ["flit_core >=3.2,<4"]
     build-backend = "flit_core.buildapi"
+
+Version constraints:
+
+- For now, all packages should specify ``<4``, so they won't be impacted by
+  changes in the next major version.
+- :ref:`pyproject_toml_project` requires ``flit_core >=3.2``
+- :ref:`pyproject_old_metadata` requires ``flit_core >=2,<4``
+- The older :doc:`flit.ini file <flit_ini>` requires ``flit_core <3``.
+- Only ``flit_core`` 2.x can build packages on Python 2, so packages still
+  supporting Python 2 cannot use new-style metadata (the ``[project]`` table).
 
 .. _pyproject_toml_project:
 
