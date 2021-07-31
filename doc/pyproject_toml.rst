@@ -55,8 +55,8 @@ The allowed fields are:
 
 name
   The name your package will have on PyPI. This field is required. For Flit,
-  this also points to your package as an import name by default (see ... if
-  that needs to be different).
+  this also points to your package as an import name by default (see
+  :ref:`pyproject_module` if that needs to be different).
 version
   Version number as a string. If you want Flit to get this from a
   ``__version__`` attribute, leave it out of the TOML config and include
@@ -199,6 +199,8 @@ If the group name contains a dot, it must be quoted (``"pygments.lexers"``
 above). Script entry points are defined in :ref:`scripts tables
 <pyproject_project_scripts>`, so you can't use the group names
 ``console_scripts`` or ``gui_scripts`` here.
+
+.. _pyproject_module:
 
 Module section
 ~~~~~~~~~~~~~~
