@@ -1,5 +1,5 @@
 [build-system]
-requires = ["flit_core >=3.2.0,<3.3"]
+requires = ["flit_core >=3.3.0,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
@@ -8,7 +8,7 @@ authors = [
     {name = "Thomas Kluyver", email = "thomas@kluyver.me.uk"},
 ]
 dependencies = [
-    "flit_core>=3.2.0",
+    "flit_core>=3.3.0",
     "requests",
     "docutils",
     "toml",
