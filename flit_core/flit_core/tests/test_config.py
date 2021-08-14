@@ -39,6 +39,10 @@ def test_load_pep621_nodynamic():
     assert inf.metadata['summary'] == 'Statically specified description'
     assert set(inf.dynamic_metadata) == set()
 
+    # Filling reqs_by_extra when dependencies were specified but no optional
+    # dependencies was a bug.
+    assert inf.reqs_by_extra == {'.none':  ['requests >= 2.18', 'docutils']}
+
 def test_misspelled_key():
     with pytest.raises(config.ConfigError) as e_info:
         config.read_flit_config(samples_dir / 'misspelled-key.toml')
