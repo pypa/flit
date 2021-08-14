@@ -26,7 +26,7 @@ SWITCH_TO_HTTPS = (
     "http://upload.pypi.io/",
 )
 
-def get_repositories(file="~/.pypirc"):
+def get_repositories(file):
     """Get the known repositories from a pypirc file.
 
     This returns a dict keyed by name, of dicts with keys 'url', 'username',
@@ -59,13 +59,13 @@ def get_repositories(file="~/.pypirc"):
     return repos
 
 
-def get_repository(name=None, cfg_file="~/.pypirc"):
+def get_repository(pypirc_path, name=None):
     """Get the url, username and password for one repository.
-    
+
     Returns a dict with keys 'url', 'username', 'password'.
 
     There is a hierarchy of possible sources of information:
-     
+
     Index URL:
     1. Command line arg --repository (looked up in .pypirc)
     2. $FLIT_INDEX_URL
@@ -85,7 +85,9 @@ def get_repository(name=None, cfg_file="~/.pypirc"):
     3. keyring
     4. Terminal prompt (store to keyring if available)
     """
-    repos_cfg = get_repositories(cfg_file)
+    print(pypirc_path)
+    repos_cfg = get_repositories(pypirc_path)
+    print(repos_cfg)
 
     if name is not None:
         repo = repos_cfg[name]
@@ -124,7 +126,7 @@ def get_repository(name=None, cfg_file="~/.pypirc"):
 
     return repo
 
-def write_pypirc(repo, file="~/.pypirc"):
+def write_pypirc(repo, file):
     """Write .pypirc if it doesn't already exist
     """
     file = os.path.expanduser(file)
@@ -237,10 +239,10 @@ def upload_file(file:Path, metadata:Metadata, repo):
     resp.raise_for_status()
 
 
-def do_upload(file:Path, metadata:Metadata, repo_name=None):
+def do_upload(file:Path, metadata:Metadata, pypirc_path:Path, repo_name=None):
     """Upload a file to an index server.
     """
-    repo = get_repository(repo_name)
+    repo = get_repository(repo_name, pypirc_path)
     upload_file(file, metadata, repo)
 
     if repo['is_warehouse']:
@@ -252,12 +254,12 @@ def do_upload(file:Path, metadata:Metadata, repo_name=None):
         log.info("Package is at %s/%s", repo['url'], metadata.name)
 
 
-def main(ini_path, repo_name, formats=None, gen_setup_py=True):
+def main(ini_path, repo_name, pypirc_path, formats=None, gen_setup_py=True):
     """Build and upload wheel and sdist."""
     from . import build
     built = build.main(ini_path, formats=formats, gen_setup_py=gen_setup_py)
 
     if built.wheel is not None:
-        do_upload(built.wheel.file, built.wheel.builder.metadata, repo_name)
+        do_upload(built.wheel.file, built.wheel.builder.metadata, pypirc_path, repo_name)
     if built.sdist is not None:
-        do_upload(built.sdist.file, built.sdist.builder.metadata, repo_name)
+        do_upload(built.sdist.file, built.sdist.builder.metadata, pypirc_path, repo_name)

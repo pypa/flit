@@ -17,16 +17,6 @@ repo_settings = {'url': upload.PYPI,
                  'is_warehouse': True,
                 }
 
-@responses.activate
-def test_upload(copy_sample):
-    responses.add(responses.POST, upload.PYPI, status=200)
-    td = copy_sample('module1_toml')
-
-    with patch('flit.upload.get_repository', return_value=repo_settings):
-        upload.main(td / 'pyproject.toml', repo_name='pypi')
-
-    assert len(responses.calls) == 2
-
 pypirc1 = """
 [distutils]
 index-servers =
@@ -38,8 +28,18 @@ password: s3cret
 """
 # That's not a real password. Well, hopefully not.
 
+@responses.activate
+def test_upload(copy_sample):
+    responses.add(responses.POST, upload.PYPI, status=200)
+    td = copy_sample('module1_toml')
+
+    with patch('flit.upload.get_repository', return_value=repo_settings):
+        upload.main(td / 'pyproject.toml', repo_name='pypi', pypirc_path=io.StringIO(pypirc1))
+
+    assert len(responses.calls) == 2
+
 def test_get_repository():
-    repo = upload.get_repository(cfg_file=io.StringIO(pypirc1))
+    repo = upload.get_repository(pypirc_path=io.StringIO(pypirc1))
     assert repo['url'] == upload.PYPI
     assert repo['username'] == 'fred'
     assert repo['password'] == 's3cret'
@@ -50,7 +50,7 @@ def test_get_repository_env():
         'FLIT_USERNAME': 'alice',
         'FLIT_PASSWORD': 'p4ssword',  # Also not a real password
     }):
-        repo = upload.get_repository(cfg_file=io.StringIO(pypirc1))
+        repo = upload.get_repository(pypirc_path=io.StringIO(pypirc1))
         # Because we haven't specified a repo name, environment variables should
         # have higher priority than the config file.
         assert repo['url'] == 'https://pypi.example.com'
@@ -87,7 +87,7 @@ username: fred
 def test_get_repository_keyring():
     with modified_env({'FLIT_PASSWORD': None}), \
             _fake_keyring('tops3cret'):
-        repo = upload.get_repository(cfg_file=io.StringIO(pypirc2))
+        repo = upload.get_repository(pypirc_path=io.StringIO(pypirc2))
 
     assert repo['username'] == 'fred'
     assert repo['password'] == 'tops3cret'
