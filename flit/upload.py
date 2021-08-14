@@ -242,7 +242,7 @@ def upload_file(file:Path, metadata:Metadata, repo):
 def do_upload(file:Path, metadata:Metadata, pypirc_path:Path, repo_name=None):
     """Upload a file to an index server.
     """
-    repo = get_repository(repo_name, pypirc_path)
+    repo = get_repository(pypirc_path, repo_name)
     upload_file(file, metadata, repo)
 
     if repo['is_warehouse']:
