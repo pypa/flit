@@ -117,11 +117,11 @@ def main(argv=None):
     )
 
     parser_publish.add_argument('--pypirc', default="~/.pypirc",
-        help="Path for .pypirc file."
+        help="The .pypirc config file to be used. DEFAULT = \"~/.pypirc\""
     )
 
     parser_publish.add_argument('--repository',
-        help="Name of the repository to upload to (must be in ~/.pypirc)"
+        help="Name of the repository to upload to (must be in the specified .pypirc file)"
     )
 
     # flit install --------------------------------------------

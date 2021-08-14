@@ -316,8 +316,8 @@ Version 0.11
 
   - If you have the `keyring <https://github.com/jaraco/keyring>`_ package
     installed, flit can use it to store your password, rather than keeping it
-    in plain text in ``~/.pypirc``.
-  - If ``~/.pypirc`` does not already exist, and you are prompted for your
+    in plain text in the .pypirc file.
+  - If the .pypirc file does not already exist, and you are prompted for your
     username, flit will write it into that file.
   - You can provide the information as environment variables:
     :envvar:`FLIT_USERNAME`, :envvar:`FLIT_PASSWORD` and :envvar:`FLIT_INDEX_URL`.
