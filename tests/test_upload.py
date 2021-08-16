@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-from flit.build import ALL_FORMATS
 import io
 import pathlib
 import sys
@@ -7,9 +6,9 @@ import sys
 import responses
 from testpath import modified_env
 from unittest.mock import patch
-from typing import Any
 
 from flit import upload
+from flit.build import ALL_FORMATS
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 
