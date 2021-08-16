@@ -16,7 +16,7 @@ classifiers = [
 dependencies = [
     "requests >= 2.18",
     "docutils",
-]
+]  # N.B. Using this to check behaviour with dependencies but no optional deps
 
 [project.urls]
 homepage = "http://github.com/sirrobin/module1"
