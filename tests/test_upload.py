@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from flit.build import ALL_FORMATS
 import io
 import pathlib
 import sys
@@ -6,6 +7,7 @@ import sys
 import responses
 from testpath import modified_env
 from unittest.mock import patch
+from typing import Any
 
 from flit import upload
 
@@ -91,3 +93,35 @@ def test_get_repository_keyring():
 
     assert repo['username'] == 'fred'
     assert repo['password'] == 'tops3cret'
+
+
+pypirc3_repo = "https://invalid-repo.inv"
+pypirc3_user = "test"
+pypirc3_pass = "not_a_real_password"
+pypirc3 = f"""
+[distutils] =
+index-servers =
+    test123
+
+[test123]
+repository: {pypirc3_repo}
+username: {pypirc3_user}
+password: {pypirc3_pass}
+"""
+
+
+def test_upload_pypirc_file(copy_sample):
+    with patch("flit.upload.upload_file") as upload_file:
+        td = copy_sample("module1_toml")
+        formats = list(ALL_FORMATS)[:1]
+        upload.main(
+            td / "pyproject.toml",
+            formats=set(formats),
+            repo_name="test123",
+            pypirc_path=io.StringIO(pypirc3),
+        )
+        _, _, repo = upload_file.call_args[0]
+
+        assert repo["url"] == pypirc3_repo
+        assert repo["username"] == pypirc3_user
+        assert repo["password"] == pypirc3_pass
