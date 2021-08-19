@@ -334,9 +334,8 @@ Here's the full metadata section from flit itself:
         "requests",
         "docutils",
         "toml",
-        "zipfile36; python_version in '3.3 3.4 3.5'",
     ]
-    requires-python=">=3.5"
+    requires-python=">=3.6"
     description-file="README.rst"
     classifiers=[
         "Intended Audience :: Developers",

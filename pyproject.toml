@@ -12,7 +12,6 @@ dependencies = [
     "requests",
     "docutils",
     "toml",
-    "zipfile36; python_version == '3.5'",
 ]
 requires-python = ">=3.6"
 readme = "README.rst"

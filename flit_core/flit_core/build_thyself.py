@@ -27,7 +27,7 @@ metadata_dict = {
     'requires_dist': [
         'toml',
     ],
-    'requires_python': '>=3.4',
+    'requires_python': '>=3.6',
     'classifiers': [
         "License :: OSI Approved :: BSD License",
         "Topic :: Software Development :: Libraries :: Python Modules",
