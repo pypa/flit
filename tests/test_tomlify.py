@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-import toml
+import tomli
 from shutil import copy
 from testpath import assert_isfile
 
@@ -17,8 +17,8 @@ def test_tomlify(copy_sample, monkeypatch):
     pyproject_toml = (td / 'pyproject.toml')
     assert_isfile(pyproject_toml)
 
-    with pyproject_toml.open(encoding='utf-8') as f:
-        content = toml.load(f)
+    with pyproject_toml.open('rb') as f:
+        content = tomli.load(f)
 
     assert 'build-system' in content
     assert 'tool' in content

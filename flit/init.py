@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import re
 import sys
-import toml
+import tomli_w
 
 def get_data_dir():
     """Get the directory path for flit user data files.
@@ -223,13 +223,14 @@ class TerminalIniter(IniterBase):
                 name=json.dumps(module), authors=authors_list
             ))
             if readme:
-                toml.dump({'readme': readme}, f)
+                f.write(tomli_w.dumps({'readme': readme}))
             if classifiers:
                 f.write(f"classifiers = {json.dumps(classifiers)}\n")
             f.write('dynamic = ["version", "description"]\n')
             if home_page:
-                f.write("\n")
-                toml.dump({'project': {'urls': {'Home': home_page}}}, f)
+                f.write("\n" + tomli_w.dumps({
+                    'project': {'urls': {'Home': home_page}}
+                }))
 
         print()
         print("Written pyproject.toml; edit that file to add optional extra info.")
