@@ -333,7 +333,8 @@ Here's the full metadata section from flit itself:
         "flit_core>=2.2.0",
         "requests",
         "docutils",
-        "toml",
+        "tomli",
+        "tomli-w",
     ]
     requires-python=">=3.6"
     description-file="README.rst"
