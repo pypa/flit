@@ -11,8 +11,8 @@ dependencies = [
     "flit_core >=3.3.0",
     "requests",
     "docutils",
-    "toml",
-    "zipfile36; python_version == '3.5'",
+    "tomli",
+    "tomli-w",
 ]
 requires-python = ">=3.6"
 readme = "README.rst"

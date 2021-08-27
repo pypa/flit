@@ -6,7 +6,7 @@ from testpath import assert_isfile
 from unittest.mock import patch
 import pytest
 
-import toml
+import tomli
 
 from flit import init
 
@@ -106,8 +106,8 @@ def test_init():
 
         generated = Path(td) / 'pyproject.toml'
         assert_isfile(generated)
-        with generated.open() as f:
-            data = toml.load(f)
+        with generated.open('rb') as f:
+            data = tomli.load(f)
         assert data['project']['authors'][0]['email'] == "test@example.com"
         license = Path(td) / 'LICENSE'
         assert_isfile(license)
@@ -129,8 +129,8 @@ def test_init_homepage_and_license_are_optional():
           faking_input(responses):
         ti = init.TerminalIniter(td)
         ti.initialise()
-        with Path(td, 'pyproject.toml').open() as f:
-            data = toml.load(f)
+        with Path(td, 'pyproject.toml').open('rb') as f:
+            data = tomli.load(f)
         assert not Path(td, 'LICENSE').exists()
     assert data['project'] == {
         'authors': [{'name': 'Test Author', 'email': 'test_email@example.com'}],
@@ -151,8 +151,8 @@ def test_init_homepage_validator():
           faking_input(responses):
         ti = init.TerminalIniter(td)
         ti.initialise()
-        with Path(td, 'pyproject.toml').open() as f:
-            data = toml.load(f)
+        with Path(td, 'pyproject.toml').open('rb') as f:
+            data = tomli.load(f)
     assert data['project'] == {
         'authors': [{'name': 'Test Author', 'email': 'test_email@example.com'}],
         'name': 'test_module_name',
@@ -172,8 +172,8 @@ def test_author_email_field_is_optional():
           faking_input(responses):
         ti = init.TerminalIniter(td)
         ti.initialise()
-        with Path(td, 'pyproject.toml').open() as f:
-            data = toml.load(f)
+        with Path(td, 'pyproject.toml').open('rb') as f:
+            data = tomli.load(f)
         assert not Path(td, 'LICENSE').exists()
 
     assert data['project'] == {
@@ -213,8 +213,8 @@ def test_init_readme_found_yes_choosen():
           faking_input(responses):
         ti = init.TerminalIniter(td)
         ti.initialise()
-        with Path(td, 'pyproject.toml').open() as f:
-            data = toml.load(f)
+        with Path(td, 'pyproject.toml').open('rb') as f:
+            data = tomli.load(f)
 
     assert data['project'] == {
         'authors': [{'name': 'Test Author', 'email': 'test_email@example.com'}],

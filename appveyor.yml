@@ -2,7 +2,7 @@ environment:
   matrix:
     - TOXENV: "py37"
       TOX_APPVEYOR_X64: "1"
-    - TOXENV: "py35"
+    - TOXENV: "py36"
       TOX_APPVEYOR_X64: "0"
 
 # The Python version here doesn't matter (except that the commands have the same),

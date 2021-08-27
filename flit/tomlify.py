@@ -5,7 +5,7 @@ from collections import OrderedDict
 import configparser
 import os
 from pathlib import Path
-import toml
+import tomli_w
 
 from .config import metadata_list_fields
 
@@ -49,11 +49,11 @@ def convert(path):
 
     written_entrypoints = False
     with Path('pyproject.toml').open('w', encoding='utf-8') as f:
-        f.write(TEMPLATE.format(metadata=toml.dumps(metadata)))
+        f.write(TEMPLATE.format(metadata=tomli_w.dumps(metadata)))
 
         if scripts:
             f.write('\n[tool.flit.scripts]\n')
-            toml.dump(scripts, f)
+            f.write(tomli_w.dumps(scripts))
 
         for groupname, group in entrypoints.items():
             if not dict(group):
@@ -62,7 +62,7 @@ def convert(path):
             if '.' in groupname:
                 groupname = '"{}"'.format(groupname)
             f.write('\n[tool.flit.entrypoints.{}]\n'.format(groupname))
-            toml.dump(OrderedDict(group), f)
+            f.write(tomli_w.dumps(OrderedDict(group)))
             written_entrypoints = True
 
     print("Written 'pyproject.toml'")

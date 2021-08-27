@@ -30,6 +30,10 @@ Version constraints:
 - :ref:`pyproject_toml_project` requires ``flit_core >=3.2``
 - :ref:`pyproject_old_metadata` requires ``flit_core >=2,<4``
 - The older :doc:`flit.ini file <flit_ini>` requires ``flit_core <3``.
+- TOML features new in version 1.0 require ``flit_core >=3.4``.
+- ``flit_core`` 3.3 is the last version supporting Python 3.4 & 3.5. Packages
+  supporting these Python versions can only use `TOML v0.5
+  <https://toml.io/en/v0.5.0>`_.
 - Only ``flit_core`` 2.x can build packages on Python 2, so packages still
   supporting Python 2 cannot use new-style metadata (the ``[project]`` table).
 
@@ -333,10 +337,10 @@ Here's the full metadata section from flit itself:
         "flit_core>=2.2.0",
         "requests",
         "docutils",
-        "toml",
-        "zipfile36; python_version in '3.3 3.4 3.5'",
+        "tomli",
+        "tomli-w",
     ]
-    requires-python=">=3.5"
+    requires-python=">=3.6"
     description-file="README.rst"
     classifiers=[
         "Intended Audience :: Developers",
