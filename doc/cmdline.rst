@@ -73,7 +73,7 @@ or another repository.
 
 .. option:: --pypirc <pypirc>
 
-   The .pypirc config file to be used. DEFAULT = "~/.pypirc"
+   The .pypirc config file to be used. The default is ``~/.pypirc``.
 
 .. seealso:: :doc:`upload`
 
