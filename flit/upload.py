@@ -115,7 +115,7 @@ def get_repository(pypirc_path, name=None):
         while not repo['username']:
             repo['username'] = input("Username: ")
         if repo['url'] == PYPI:
-            write_pypirc(repo)
+            write_pypirc(repo, pypirc_path)
     elif not repo['username']:
         raise Exception("Could not find username for upload.")
 
