@@ -85,9 +85,8 @@ def get_repository(pypirc_path, name=None):
     3. keyring
     4. Terminal prompt (store to keyring if available)
     """
-    log.info(pypirc_path)
+    log.debug("Loading repositories config from %r", pypirc_path)
     repos_cfg = get_repositories(pypirc_path)
-    log.info(repos_cfg)
 
     if name is not None:
         repo = repos_cfg[name]
