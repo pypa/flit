@@ -3,6 +3,7 @@ import io
 import pathlib
 import sys
 
+import pytest
 import responses
 from testpath import modified_env
 from unittest.mock import patch
@@ -34,19 +35,22 @@ def test_upload(copy_sample):
     responses.add(responses.POST, upload.PYPI, status=200)
     td = copy_sample('module1_toml')
 
-    with patch('flit.upload.get_repository', return_value=repo_settings):
-        upload.main(td / 'pyproject.toml', repo_name='pypi', pypirc_path=io.StringIO(pypirc1))
+    with patch('os.path.isfile', return_value=True), \
+        patch('flit.upload.get_repository', return_value=repo_settings):
+            upload.main(td / 'pyproject.toml', repo_name='pypi', pypirc_path=io.StringIO(pypirc1))
 
     assert len(responses.calls) == 2
 
 def test_get_repository():
-    repo = upload.get_repository(pypirc_path=io.StringIO(pypirc1))
-    assert repo['url'] == upload.PYPI
-    assert repo['username'] == 'fred'
-    assert repo['password'] == 's3cret'
+    with patch('os.path.isfile', return_value=True):
+        repo = upload.get_repository(pypirc_path=io.StringIO(pypirc1))
+        assert repo['url'] == upload.PYPI
+        assert repo['username'] == 'fred'
+        assert repo['password'] == 's3cret'
 
 def test_get_repository_env():
-    with modified_env({
+    with patch('os.path.isfile', return_value=True), \
+        modified_env({
         'FLIT_INDEX_URL': 'https://pypi.example.com',
         'FLIT_USERNAME': 'alice',
         'FLIT_PASSWORD': 'p4ssword',  # Also not a real password
@@ -110,7 +114,8 @@ password: {pypirc3_pass}
 
 
 def test_upload_pypirc_file(copy_sample):
-    with patch("flit.upload.upload_file") as upload_file:
+    with patch('os.path.isfile', return_value=True), \
+        patch("flit.upload.upload_file") as upload_file:
         td = copy_sample("module1_toml")
         formats = list(ALL_FORMATS)[:1]
         upload.main(
@@ -124,3 +129,16 @@ def test_upload_pypirc_file(copy_sample):
         assert repo["url"] == pypirc3_repo
         assert repo["username"] == pypirc3_user
         assert repo["password"] == pypirc3_pass
+
+
+def test_upload_invalid_pypirc_file(copy_sample):
+    with patch("flit.upload.upload_file"):
+        td = copy_sample("module1_toml")
+        formats = list(ALL_FORMATS)[:1]
+        with pytest.raises(FileNotFoundError):
+            upload.main(
+                td / "pyproject.toml",
+                formats=set(formats),
+                repo_name="test123",
+                pypirc_path="./file.invalid",
+            )
