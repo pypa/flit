@@ -116,7 +116,7 @@ def main(argv=None):
              )
     )
 
-    parser_publish.add_argument('--pypirc', default="~/.pypirc",
+    parser_publish.add_argument('--pypirc',
         help="The .pypirc config file to be used. DEFAULT = \"~/.pypirc\""
     )
 

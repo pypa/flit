@@ -18,6 +18,7 @@ from flit_core.common import Metadata
 log = logging.getLogger(__name__)
 
 PYPI = "https://upload.pypi.org/legacy/"
+PYPIRC_DEFAULT = "~/.pypirc"
 
 SWITCH_TO_HTTPS = (
     "http://pypi.python.org/",
@@ -255,6 +256,11 @@ def do_upload(file:Path, metadata:Metadata, pypirc_path, repo_name=None):
 
 def main(ini_path, repo_name, pypirc_path, formats=None, gen_setup_py=True):
     """Build and upload wheel and sdist."""
+    if pypirc_path is None:
+        pypirc_path = PYPIRC_DEFAULT
+    elif not os.path.isfile(pypirc_path):
+        raise FileNotFoundError("The specified pypirc config file does not exist.")
+
     from . import build
     built = build.main(ini_path, formats=formats, gen_setup_py=gen_setup_py)
 
