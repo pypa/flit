@@ -238,7 +238,7 @@ def upload_file(file:Path, metadata:Metadata, repo):
     resp.raise_for_status()
 
 
-def do_upload(file:Path, metadata:Metadata, pypirc_path:Path, repo_name=None):
+def do_upload(file:Path, metadata:Metadata, pypirc_path, repo_name=None):
     """Upload a file to an index server.
     """
     repo = get_repository(pypirc_path, repo_name)
