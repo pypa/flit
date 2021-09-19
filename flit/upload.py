@@ -27,7 +27,7 @@ SWITCH_TO_HTTPS = (
     "http://upload.pypi.io/",
 )
 
-def get_repositories(file):
+def get_repositories(file="~/.pypirc"):
     """Get the known repositories from a pypirc file.
 
     This returns a dict keyed by name, of dicts with keys 'url', 'username',
@@ -60,7 +60,7 @@ def get_repositories(file):
     return repos
 
 
-def get_repository(pypirc_path, name=None):
+def get_repository(pypirc_path="~/.pypirc", name=None):
     """Get the url, username and password for one repository.
 
     Returns a dict with keys 'url', 'username', 'password'.
@@ -126,7 +126,7 @@ def get_repository(pypirc_path, name=None):
 
     return repo
 
-def write_pypirc(repo, file):
+def write_pypirc(repo, file="~/.pypirc"):
     """Write .pypirc if it doesn't already exist
     """
     file = os.path.expanduser(file)
@@ -239,7 +239,7 @@ def upload_file(file:Path, metadata:Metadata, repo):
     resp.raise_for_status()
 
 
-def do_upload(file:Path, metadata:Metadata, pypirc_path, repo_name=None):
+def do_upload(file:Path, metadata:Metadata, pypirc_path="~/.pypirc", repo_name=None):
     """Upload a file to an index server.
     """
     repo = get_repository(pypirc_path, repo_name)
