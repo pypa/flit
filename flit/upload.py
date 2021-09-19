@@ -254,7 +254,7 @@ def do_upload(file:Path, metadata:Metadata, pypirc_path="~/.pypirc", repo_name=N
         log.info("Package is at %s/%s", repo['url'], metadata.name)
 
 
-def main(ini_path, repo_name, pypirc_path, formats=None, gen_setup_py=True):
+def main(ini_path, repo_name, pypirc_path=None, formats=None, gen_setup_py=True):
     """Build and upload wheel and sdist."""
     if pypirc_path is None:
         pypirc_path = PYPIRC_DEFAULT

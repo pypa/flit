@@ -155,3 +155,16 @@ def test_upload_invalid_pypirc_file(copy_sample):
                 repo_name="test123",
                 pypirc_path="./file.invalid",
             )
+
+def test_upload_default_pypirc_file(copy_sample):
+    with patch("flit.upload.do_upload") as do_upload:
+        td = copy_sample("module1_toml")
+        formats = list(ALL_FORMATS)[:1]
+        upload.main(
+            td / "pyproject.toml",
+            formats=set(formats),
+            repo_name="test123",
+        )
+
+        file = do_upload.call_args[0][2]
+        assert file == "~/.pypirc"
