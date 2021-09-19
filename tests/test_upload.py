@@ -1,4 +1,6 @@
 from contextlib import contextmanager
+from tempfile import NamedTemporaryFile
+import os
 import io
 import pathlib
 import sys
@@ -30,32 +32,43 @@ password: s3cret
 """
 # That's not a real password. Well, hopefully not.
 
+@contextmanager
+def temp_pypirc(content):
+    try:
+        temp_file = NamedTemporaryFile("w+", delete=False)
+        temp_file.write(content)
+        temp_file.close()
+        yield temp_file.name
+    finally:
+        os.unlink(temp_file.name)
+
+
 @responses.activate
 def test_upload(copy_sample):
     responses.add(responses.POST, upload.PYPI, status=200)
     td = copy_sample('module1_toml')
 
-    with patch('os.path.isfile', return_value=True), \
+    with temp_pypirc(pypirc1) as pypirc, \
         patch('flit.upload.get_repository', return_value=repo_settings):
-            upload.main(td / 'pyproject.toml', repo_name='pypi', pypirc_path=io.StringIO(pypirc1))
+            upload.main(td / 'pyproject.toml', repo_name='pypi', pypirc_path=pypirc)
 
     assert len(responses.calls) == 2
 
 def test_get_repository():
-    with patch('os.path.isfile', return_value=True):
-        repo = upload.get_repository(pypirc_path=io.StringIO(pypirc1))
+    with temp_pypirc(pypirc1) as pypirc:
+        repo = upload.get_repository(pypirc_path=pypirc)
         assert repo['url'] == upload.PYPI
         assert repo['username'] == 'fred'
         assert repo['password'] == 's3cret'
 
 def test_get_repository_env():
-    with patch('os.path.isfile', return_value=True), \
+    with temp_pypirc(pypirc1) as pypirc, \
         modified_env({
         'FLIT_INDEX_URL': 'https://pypi.example.com',
         'FLIT_USERNAME': 'alice',
         'FLIT_PASSWORD': 'p4ssword',  # Also not a real password
     }):
-        repo = upload.get_repository(pypirc_path=io.StringIO(pypirc1))
+        repo = upload.get_repository(pypirc_path=pypirc)
         # Because we haven't specified a repo name, environment variables should
         # have higher priority than the config file.
         assert repo['url'] == 'https://pypi.example.com'
@@ -114,7 +127,7 @@ password: {pypirc3_pass}
 
 
 def test_upload_pypirc_file(copy_sample):
-    with patch('os.path.isfile', return_value=True), \
+    with temp_pypirc(pypirc3) as pypirc, \
         patch("flit.upload.upload_file") as upload_file:
         td = copy_sample("module1_toml")
         formats = list(ALL_FORMATS)[:1]
@@ -122,7 +135,7 @@ def test_upload_pypirc_file(copy_sample):
             td / "pyproject.toml",
             formats=set(formats),
             repo_name="test123",
-            pypirc_path=io.StringIO(pypirc3),
+            pypirc_path=pypirc,
         )
         _, _, repo = upload_file.call_args[0]
 
