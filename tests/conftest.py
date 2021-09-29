@@ -1,3 +1,4 @@
+import shlex
 from pathlib import Path
 from shutil import copy, copytree, which
 from subprocess import check_output
@@ -39,7 +40,7 @@ def copy_sample(tmp_path):
 
 def git(repo: Path, command: "Union[List[str], str]") -> bytes:
     if isinstance(command, str):
-        args = command.split()
+        args = shlex.split(command)
     else:
         args = command
 
