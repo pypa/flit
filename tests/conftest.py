@@ -17,10 +17,8 @@ skip_if_no_git = pytest.mark.skipif(
 
 def pytest_collection_modifyitems(items):
     for item in items:
-        if "needgit" in item.nodeid or "needsgit" in item.nodeid:
+        if item.get_closest_marker("needsgit"):
             item.add_marker(skip_if_no_git)
-            item.add_marker(pytest.mark.needgit)
-            item.add_marker(pytest.mark.needsgit)
 
 
 @pytest.fixture
