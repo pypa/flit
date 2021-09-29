@@ -42,3 +42,9 @@ Source = "https://github.com/takluyver/flit"
 
 [project.scripts]
 flit = "flit:main"
+
+[tool.pytest.ini_options]
+markers = [
+    "needgit: needs git to be installed in order to run",
+    "needsgit: needs git to be installed in order to run",
+]

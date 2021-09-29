@@ -5,6 +5,7 @@ import sys
 from tempfile import TemporaryDirectory
 from testpath import assert_isdir, MockCommand
 
+from .conftest import git
 from flit_core import common
 from flit import build
 
@@ -69,3 +70,11 @@ def test_build_module_no_docstring():
             with pytest.raises(common.NoDocstringError) as exc_info:
                 build.main(pyproject)
             assert 'no_docstring.py' in str(exc_info.value)
+
+def test_build_needgit_unicode_filenames(tmp_project: Path) -> None:
+    "does a package build if it includes a unicode filename?"
+    noel_file = tmp_project / "No\N{LATIN SMALL LETTER E WITH DIAERESIS}l"
+    noel_file.touch()
+    git(tmp_project, "add -A :/")
+    git(tmp_project, "commit --allow-empty --allow-empty-message --no-edit")
+    build.main(tmp_project / "pyproject.toml")
