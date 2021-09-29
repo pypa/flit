@@ -50,7 +50,7 @@ def git(repo: Path, command: "Union[List[str], str]") -> bytes:
 
 
 @pytest.fixture
-def tmp_git(tmp_path: Path) -> "Iterator[Path]":
+def tmp_git_repo(tmp_path: Path) -> "Iterator[Path]":
     """
     Make a git repository in a temporary folder
 
@@ -88,11 +88,11 @@ def tmp_git(tmp_path: Path) -> "Iterator[Path]":
 
 
 @pytest.fixture
-def tmp_project(tmp_git: Path) -> "Iterator[Path]":
+def tmp_project(tmp_git_repo: Path) -> "Iterator[Path]":
     "return a path to the root of a git repository containing a sample package"
     for file in (samples_dir / "module1_toml").glob("*"):
-        copy(str(file), str(tmp_git / file.name))
-    git(tmp_git, "add -A :/")
-    git(tmp_git, "commit --allow-empty --allow-empty-message --no-edit")
+        copy(str(file), str(tmp_git_repo / file.name))
+    git(tmp_git_repo, "add -A :/")
+    git(tmp_git_repo, "commit --allow-empty --allow-empty-message --no-edit")
 
-    yield tmp_git
+    yield tmp_git_repo
