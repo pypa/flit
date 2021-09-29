@@ -3,15 +3,9 @@ from functools import wraps
 from pathlib import Path
 from shutil import copy, copytree, which
 from subprocess import check_output
-from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
-
-if TYPE_CHECKING:
-    from typing import Callable, Iterator, List, Union
-
-    GitCmd = Callable[Union[str, List[str]], bytes]
 
 samples_dir = Path(__file__).parent / "samples"
 
@@ -41,7 +35,7 @@ def copy_sample(tmp_path):
     return copy
 
 
-def git_cmd(repository_path: Path, command: "Union[List[str], str]") -> bytes:
+def git_cmd(repository_path, command):
     if isinstance(command, str):
         args = shlex.split(command)
     else:
@@ -53,7 +47,7 @@ def git_cmd(repository_path: Path, command: "Union[List[str], str]") -> bytes:
 
 
 @pytest.fixture
-def tmp_git_repo(tmp_path: Path) -> "Iterator[Path]":
+def tmp_git_repo(tmp_path):
     """
     Make a git repository in a temporary folder
 
@@ -91,16 +85,16 @@ def tmp_git_repo(tmp_path: Path) -> "Iterator[Path]":
 
 
 @pytest.fixture
-def git(tmp_git_repo: Path) -> "Iterator[GitCmd]":
+def git(tmp_git_repo):
     @wraps(git_cmd)
-    def wrapper(command: "Union[str, List[str]]") -> bytes:
+    def wrapper(command):
         return git_cmd(repository_path=tmp_git_repo, command=command)
 
     return wrapper
 
 
 @pytest.fixture
-def tmp_project(tmp_git_repo: Path, git: "GitCmd") -> "Iterator[Path]":
+def tmp_project(tmp_git_repo, git):
     "return a path to the root of a git repository containing a sample package"
     for file in (samples_dir / "module1_toml").glob("*"):
         copy(str(file), str(tmp_git_repo / file.name))
