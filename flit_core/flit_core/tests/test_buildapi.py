@@ -24,6 +24,7 @@ def test_get_build_requires():
     # importing it, so there are no build dependencies.
     with cwd(osp.join(samples_dir,'pep517')):
         assert buildapi.get_requires_for_build_wheel() == []
+        assert buildapi.get_requires_for_build_editable() == []
         assert buildapi.get_requires_for_build_sdist() == []
 
 def test_get_build_requires_pep621_nodynamic():
@@ -31,6 +32,7 @@ def test_get_build_requires_pep621_nodynamic():
     # as static metadata in pyproject.toml, so there are no build dependencies
     with cwd(osp.join(samples_dir, 'pep621_nodynamic')):
         assert buildapi.get_requires_for_build_wheel() == []
+        assert buildapi.get_requires_for_build_editable() == []
         assert buildapi.get_requires_for_build_sdist() == []
 
 def test_get_build_requires_import():
@@ -39,6 +41,7 @@ def test_get_build_requires_import():
     expected = ["numpy >=1.16.0"]
     with cwd(osp.join(samples_dir, 'constructed_version')):
         assert buildapi.get_requires_for_build_wheel() == expected
+        assert buildapi.get_requires_for_build_editable() == expected
         assert buildapi.get_requires_for_build_sdist() == expected
 
 def test_build_wheel():
@@ -47,6 +50,9 @@ def test_build_wheel():
         assert filename.endswith('.whl'), filename
         assert_isfile(osp.join(td, filename))
         assert zipfile.is_zipfile(osp.join(td, filename))
+        with zipfile.ZipFile(osp.join(td, filename)) as zip:
+            assert "module1.py" in zip.namelist()
+            assert "module1.pth" not in zip.namelist()
 
 def test_build_wheel_pep621():
     with TemporaryDirectory() as td, cwd(osp.join(samples_dir, 'pep621')):
@@ -54,6 +60,16 @@ def test_build_wheel_pep621():
         assert filename.endswith('.whl'), filename
         assert_isfile(osp.join(td, filename))
         assert zipfile.is_zipfile(osp.join(td, filename))
+
+def test_build_editable():
+    with TemporaryDirectory() as td, cwd(osp.join(samples_dir,'pep517')):
+        filename = buildapi.build_editable(td)
+        assert filename.endswith('.whl'), filename
+        assert_isfile(osp.join(td, filename))
+        assert zipfile.is_zipfile(osp.join(td, filename))
+        with zipfile.ZipFile(osp.join(td, filename)) as zip:
+            assert "module1.py" not in zip.namelist()
+            assert "module1.pth" in zip.namelist()
 
 def test_build_sdist():
     with TemporaryDirectory() as td, cwd(osp.join(samples_dir,'pep517')):
@@ -65,6 +81,13 @@ def test_build_sdist():
 def test_prepare_metadata_for_build_wheel():
     with TemporaryDirectory() as td, cwd(osp.join(samples_dir,'pep517')):
         dirname = buildapi.prepare_metadata_for_build_wheel(td)
+        assert dirname.endswith('.dist-info'), dirname
+        assert_isdir(osp.join(td, dirname))
+        assert_isfile(osp.join(td, dirname, 'METADATA'))
+
+def test_prepare_metadata_for_build_editable():
+    with TemporaryDirectory() as td, cwd(osp.join(samples_dir,'pep517')):
+        dirname = buildapi.prepare_metadata_for_build_editable(td)
         assert dirname.endswith('.dist-info'), dirname
         assert_isdir(osp.join(td, dirname))
         assert_isfile(osp.join(td, dirname, 'METADATA'))

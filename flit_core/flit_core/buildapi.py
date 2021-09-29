@@ -39,6 +39,9 @@ def get_requires_for_build_wheel(config_settings=None):
 # Requirements to build an sdist are the same as for a wheel
 get_requires_for_build_sdist = get_requires_for_build_wheel
 
+# Requirements to build an editable are the same as for a wheel
+get_requires_for_build_editable = get_requires_for_build_wheel
+
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     """Creates {metadata_directory}/foo-1.2.dist-info"""
     ini_info = read_flit_config(pyproj_toml)
@@ -61,9 +64,17 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
 
     return osp.basename(dist_info)
 
+# Metadata for editable are the same as for a wheel
+prepare_metadata_for_build_editable = prepare_metadata_for_build_wheel
+
 def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     """Builds a wheel, places it in wheel_directory"""
     info = make_wheel_in(pyproj_toml, Path(wheel_directory))
+    return info.file.name
+
+def build_editable(wheel_directory, config_settings=None, metadata_directory=None):
+    """Builds an "editable" wheel, places it in wheel_directory"""
+    info = make_wheel_in(pyproj_toml, Path(wheel_directory), editable=True)
     return info.file.name
 
 def build_sdist(sdist_directory, config_settings=None):

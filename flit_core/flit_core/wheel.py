@@ -146,6 +146,10 @@ class WheelBuilder:
             rel_path = osp.relpath(full_path, source_dir)
             self._add_file(full_path, rel_path)
 
+    def add_pth(self):
+        with self._write_to_zip(self.module.name + ".pth") as f:
+            f.write(str(self.module.source_dir))
+
     def write_metadata(self):
         log.info('Writing metadata files')
 
@@ -173,22 +177,25 @@ class WheelBuilder:
             # RECORD itself is recorded with no hash or size
             f.write(self.dist_info + '/RECORD,,\n')
 
-    def build(self):
+    def build(self, editable=False):
         try:
-            self.copy_module()
+            if editable:
+                self.add_pth()
+            else:
+                self.copy_module()
             self.write_metadata()
             self.write_record()
         finally:
             self.wheel_zip.close()
 
-def make_wheel_in(ini_path, wheel_directory):
+def make_wheel_in(ini_path, wheel_directory, editable=False):
     # We don't know the final filename until metadata is loaded, so write to
     # a temporary_file, and rename it afterwards.
     (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
     try:
         with io.open(fd, 'w+b') as fp:
             wb = WheelBuilder.from_ini_path(ini_path, fp)
-            wb.build()
+            wb.build(editable)
 
         wheel_path = wheel_directory / wb.wheel_filename
         os.replace(temp_path, str(wheel_path))
