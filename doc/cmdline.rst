@@ -71,6 +71,10 @@ or another repository.
    Name of a repository to upload packages to. Should match a section in
    ``~/.pypirc``. The default is ``pypi``.
 
+.. option:: --pypirc <pypirc>
+
+   The .pypirc config file to be used. The default is ``~/.pypirc``.
+
 .. seealso:: :doc:`upload`
 
 .. _install_cmd:

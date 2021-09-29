@@ -18,6 +18,7 @@ from flit_core.common import Metadata
 log = logging.getLogger(__name__)
 
 PYPI = "https://upload.pypi.org/legacy/"
+PYPIRC_DEFAULT = "~/.pypirc"
 
 SWITCH_TO_HTTPS = (
     "http://pypi.python.org/",
@@ -59,13 +60,13 @@ def get_repositories(file="~/.pypirc"):
     return repos
 
 
-def get_repository(name=None, cfg_file="~/.pypirc"):
+def get_repository(pypirc_path="~/.pypirc", name=None):
     """Get the url, username and password for one repository.
-    
+
     Returns a dict with keys 'url', 'username', 'password'.
 
     There is a hierarchy of possible sources of information:
-     
+
     Index URL:
     1. Command line arg --repository (looked up in .pypirc)
     2. $FLIT_INDEX_URL
@@ -85,7 +86,8 @@ def get_repository(name=None, cfg_file="~/.pypirc"):
     3. keyring
     4. Terminal prompt (store to keyring if available)
     """
-    repos_cfg = get_repositories(cfg_file)
+    log.debug("Loading repositories config from %r", pypirc_path)
+    repos_cfg = get_repositories(pypirc_path)
 
     if name is not None:
         repo = repos_cfg[name]
@@ -114,7 +116,7 @@ def get_repository(name=None, cfg_file="~/.pypirc"):
         while not repo['username']:
             repo['username'] = input("Username: ")
         if repo['url'] == PYPI:
-            write_pypirc(repo)
+            write_pypirc(repo, pypirc_path)
     elif not repo['username']:
         raise Exception("Could not find username for upload.")
 
@@ -237,10 +239,10 @@ def upload_file(file:Path, metadata:Metadata, repo):
     resp.raise_for_status()
 
 
-def do_upload(file:Path, metadata:Metadata, repo_name=None):
+def do_upload(file:Path, metadata:Metadata, pypirc_path="~/.pypirc", repo_name=None):
     """Upload a file to an index server.
     """
-    repo = get_repository(repo_name)
+    repo = get_repository(pypirc_path, repo_name)
     upload_file(file, metadata, repo)
 
     if repo['is_warehouse']:
@@ -252,12 +254,17 @@ def do_upload(file:Path, metadata:Metadata, repo_name=None):
         log.info("Package is at %s/%s", repo['url'], metadata.name)
 
 
-def main(ini_path, repo_name, formats=None, gen_setup_py=True):
+def main(ini_path, repo_name, pypirc_path=None, formats=None, gen_setup_py=True):
     """Build and upload wheel and sdist."""
+    if pypirc_path is None:
+        pypirc_path = PYPIRC_DEFAULT
+    elif not os.path.isfile(pypirc_path):
+        raise FileNotFoundError("The specified pypirc config file does not exist.")
+
     from . import build
     built = build.main(ini_path, formats=formats, gen_setup_py=gen_setup_py)
 
     if built.wheel is not None:
-        do_upload(built.wheel.file, built.wheel.builder.metadata, repo_name)
+        do_upload(built.wheel.file, built.wheel.builder.metadata, pypirc_path, repo_name)
     if built.sdist is not None:
-        do_upload(built.sdist.file, built.sdist.builder.metadata, repo_name)
+        do_upload(built.sdist.file, built.sdist.builder.metadata, pypirc_path, repo_name)

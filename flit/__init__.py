@@ -116,8 +116,12 @@ def main(argv=None):
              )
     )
 
+    parser_publish.add_argument('--pypirc',
+        help="The .pypirc config file to be used. DEFAULT = \"~/.pypirc\""
+    )
+
     parser_publish.add_argument('--repository',
-        help="Name of the repository to upload to (must be in ~/.pypirc)"
+        help="Name of the repository to upload to (must be in the specified .pypirc file)"
     )
 
     # flit install --------------------------------------------
@@ -184,7 +188,7 @@ def main(argv=None):
             log.warning("Passing --repository before the 'upload' subcommand is deprecated: pass it after")
         repository = args.repository or args.deprecated_repository
         from .upload import main
-        main(args.ini_file, repository, formats=set(args.format or []),
+        main(args.ini_file, repository, args.pypirc, formats=set(args.format or []),
                 gen_setup_py=gen_setup_py())
 
     elif args.subcmd == 'install':

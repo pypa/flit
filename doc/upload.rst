@@ -14,7 +14,8 @@ you can configure Flit in two main ways:
 Using .pypirc
 -------------
 
-You can create or edit a config file in your home directory, ``~/.pypirc``.
+You can create or edit a config file in your home directory, ``~/.pypirc`` that
+will be used by default or you can specify a custom location.
 This is also used by other Python tools such as `twine
 <https://pypi.python.org/pypi/twine>`_.
 
