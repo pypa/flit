@@ -1,4 +1,5 @@
 import shlex
+from functools import wraps
 from pathlib import Path
 from shutil import copy, copytree, which
 from subprocess import check_output
@@ -8,7 +9,9 @@ from unittest.mock import patch
 import pytest
 
 if TYPE_CHECKING:
-    from typing import Iterator, List, Union
+    from typing import Callable, Iterator, List, Union
+
+    GitCmd = Callable[Union[str, List[str]], bytes]
 
 samples_dir = Path(__file__).parent / "samples"
 
@@ -38,14 +41,14 @@ def copy_sample(tmp_path):
     return copy
 
 
-def git(repo: Path, command: "Union[List[str], str]") -> bytes:
+def git_cmd(repository_path: Path, command: "Union[List[str], str]") -> bytes:
     if isinstance(command, str):
         args = shlex.split(command)
     else:
         args = command
 
     return check_output(
-        ["git", "-C", str(repo), *args],
+        ["git", "-C", str(repository_path), *args],
     )
 
 
@@ -80,19 +83,28 @@ def tmp_git_repo(tmp_path: Path) -> "Iterator[Path]":
             "GIT_COMMITTER_DATE": "1112354055 +0200",
         },
     ):
-        git(repository, "config --global init.defaultBranch main")
-        git(repository, ["init"])
-        git(repository, "commit --allow-empty --allow-empty-message --no-edit")
+        git_cmd(repository, "config --global init.defaultBranch main")
+        git_cmd(repository, ["init"])
+        git_cmd(repository, "commit --allow-empty --allow-empty-message --no-edit")
 
         yield repository
 
 
 @pytest.fixture
-def tmp_project(tmp_git_repo: Path) -> "Iterator[Path]":
+def git(tmp_git_repo: Path) -> "Iterator[GitCmd]":
+    @wraps(git_cmd)
+    def wrapper(command: "Union[str, List[str]]") -> bytes:
+        return git_cmd(repository_path=tmp_git_repo, command=command)
+
+    return wrapper
+
+
+@pytest.fixture
+def tmp_project(tmp_git_repo: Path, git: "GitCmd") -> "Iterator[Path]":
     "return a path to the root of a git repository containing a sample package"
     for file in (samples_dir / "module1_toml").glob("*"):
         copy(str(file), str(tmp_git_repo / file.name))
-    git(tmp_git_repo, "add -A :/")
-    git(tmp_git_repo, "commit --allow-empty --allow-empty-message --no-edit")
+    git("add -A :/")
+    git("commit --allow-empty --allow-empty-message --no-edit")
 
     yield tmp_git_repo
