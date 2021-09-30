@@ -10,7 +10,7 @@ samples_dir = Path(__file__).parent / "samples"
 
 skip_if_no_git = pytest.mark.skipif(
     (not which("git")),
-    reason="needs git to be installed and findable through the PATH environment variable",
+    reason="needs git to be installed and findable through the PATH environment variable in order to run these tests",
 )
 
 
