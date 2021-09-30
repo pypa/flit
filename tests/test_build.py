@@ -21,7 +21,7 @@ if '--deleted' not in sys.argv:
         if git_dir in path.parents or path in [cwd, git_dir] or not path.is_file():
             continue
         relative_path = path.relative_to(cwd)
-        linux_path = PurePosixPath().joinpath(relative_path.parts)
+        linux_path = PurePosixPath().joinpath(*relative_path.parts)
         print(str(linux_path), end="\\0")
 """
 
