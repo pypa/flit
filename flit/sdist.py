@@ -96,6 +96,7 @@ def auto_packages(module: Module):
 
 
 def include_path(p):
+    p = str(Path(p))
     return not (p.startswith('dist' + os.sep)
                 or (os.sep+'__pycache__' in p)
                 or p.endswith('.pyc'))
