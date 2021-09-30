@@ -14,13 +14,15 @@ LIST_FILES_TEMPLATE = """\
 #!{python}
 import sys
 if '--deleted' not in sys.argv:
-    from pathlib import Path
+    from pathlib import Path, PurePosixPath
     cwd = Path.cwd()
     git_dir = (cwd / ".git")
     for path in cwd.rglob("*"):
         if git_dir in path.parents or path in [cwd, git_dir] or not path.is_file():
             continue
-        print(str(path.relative_to(cwd)), end="\\0")
+        relative_path = path.relative_to(cwd)
+        linux_path = PurePosixPath().joinpath(relative_path.parts)
+        print(str(linux_path), end="\\0")
 """
 
 def test_build_main(copy_sample):
