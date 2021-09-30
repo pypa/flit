@@ -3,7 +3,6 @@ from functools import wraps
 from pathlib import Path
 from shutil import copy, copytree, which
 from subprocess import check_output
-from unittest.mock import patch
 
 import pytest
 
@@ -45,7 +44,7 @@ def git_cmd(repository_path, command):
 
 
 @pytest.fixture
-def tmp_git_repo(tmp_path):
+def tmp_git_repo(tmp_path, monkeypatch):
     """
     Make a git repository in a temporary folder
 
@@ -56,30 +55,33 @@ def tmp_git_repo(tmp_path):
     git_global_config.touch(exist_ok=False)
     repository = tmp_path / "repository"
     repository.mkdir(exist_ok=False)
-    with patch.dict(
-        "os.environ",
-        {
-            # https://git-scm.com/docs/git#Documentation/git.txt-codeGITCONFIGGLOBALcode
-            "GIT_CONFIG_GLOBAL": str(git_global_config),
-            # https://git-scm.com/docs/git#Documentation/git.txt-codeGITCONFIGNOSYSTEMcode
-            "GIT_CONFIG_NOSYSTEM": "true",
-            "HOME": str(tmp_path),
-            # tox by default only passes the PATH environment variable, so
-            # XDG_CONFIG_HOME is already unset
-            # https://github.com/git/git/blob/cefe983a320c03d7843ac78e73bd513a27806845/t/test-lib.sh#L454-L461
-            "GIT_AUTHOR_EMAIL": "author@example.com",
-            "GIT_AUTHOR_NAME": "A U Thor",
-            "GIT_AUTHOR_DATE": "1112354055 +0200",
-            "GIT_COMMITTER_EMAIL": "committer@example.com",
-            "GIT_COMMITTER_NAME": "committer",
-            "GIT_COMMITTER_DATE": "1112354055 +0200",
-        },
-    ):
-        git_cmd(repository, "config --global init.defaultBranch main")
-        git_cmd(repository, ["init"])
-        git_cmd(repository, "commit --allow-empty --allow-empty-message --no-edit")
 
-        yield repository
+    git_environment_variables = {
+        # https://git-scm.com/docs/git#Documentation/git.txt-codeGITCONFIGGLOBALcode
+        "GIT_CONFIG_GLOBAL": str(git_global_config),
+        # https://git-scm.com/docs/git#Documentation/git.txt-codeGITCONFIGNOSYSTEMcode
+        "GIT_CONFIG_NOSYSTEM": "true",
+        "HOME": str(tmp_path),
+        # https://github.com/git/git/blob/cefe983a320c03d7843ac78e73bd513a27806845/t/test-lib.sh#L454-L461
+        "GIT_AUTHOR_EMAIL": "author@example.com",
+        "GIT_AUTHOR_NAME": "A U Thor",
+        "GIT_AUTHOR_DATE": "1112354055 +0200",
+        "GIT_COMMITTER_EMAIL": "committer@example.com",
+        "GIT_COMMITTER_NAME": "committer",
+        "GIT_COMMITTER_DATE": "1112354055 +0200",
+    }
+    for name, value in git_environment_variables.items():
+        monkeypatch.setenv(name, value)
+
+    # https://github.com/git/git/blob/cefe983a320c03d7843ac78e73bd513a27806845/t/test-lib.sh#L454-L461
+    for name in ["XDG_CONFIG_HOME", "XDG_CACHE_HOME"]:
+        monkeypatch.delenv(name, raising=False)
+
+    git_cmd(repository, "config --global init.defaultBranch main")
+    git_cmd(repository, ["init"])
+    git_cmd(repository, "commit --allow-empty --allow-empty-message --no-edit")
+
+    yield repository
 
 
 @pytest.fixture
