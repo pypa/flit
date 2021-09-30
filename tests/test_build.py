@@ -13,10 +13,14 @@ samples_dir = Path(__file__).parent / 'samples'
 LIST_FILES_TEMPLATE = """\
 #!{python}
 import sys
-from os.path import join
 if '--deleted' not in sys.argv:
-    files = ['pyproject.toml', '{module}', 'EG_README.rst']
-    print('\\0'.join(files), end='\\0')
+    from pathlib import Path
+    cwd = Path.cwd()
+    git_dir = (cwd / ".git")
+    for path in cwd.rglob("*"):
+        if git_dir in path.parents or path in [cwd, git_dir] or not path.is_file():
+            continue
+        print(str(path.relative_to(cwd)), end="\\0")
 """
 
 def test_build_main(copy_sample):
@@ -24,7 +28,7 @@ def test_build_main(copy_sample):
     (td / '.git').mkdir()   # Fake a git repo
 
     with MockCommand('git', LIST_FILES_TEMPLATE.format(
-            python=sys.executable, module='module1.py')):
+            python=sys.executable)):
         res = build.main(td / 'pyproject.toml')
     assert res.wheel.file.suffix == '.whl'
     assert res.sdist.file.name.endswith('.tar.gz')
@@ -36,7 +40,7 @@ def test_build_sdist_only(copy_sample):
     (td / '.git').mkdir()  # Fake a git repo
 
     with MockCommand('git', LIST_FILES_TEMPLATE.format(
-            python=sys.executable, module='module1.py')):
+            python=sys.executable)):
         res = build.main(td / 'pyproject.toml', formats={'sdist'})
     assert res.wheel is None
 
@@ -48,7 +52,7 @@ def test_build_wheel_only(copy_sample):
     (td / '.git').mkdir()  # Fake a git repo
 
     with MockCommand('git', LIST_FILES_TEMPLATE.format(
-            python=sys.executable, module='module1.py')):
+            python=sys.executable)):
         res = build.main(td / 'pyproject.toml', formats={'wheel'})
     assert res.sdist is None
 
@@ -78,7 +82,7 @@ def test_build_module_no_docstring():
 
 
         with MockCommand('git', LIST_FILES_TEMPLATE.format(
-                python=sys.executable, module='no_docstring.py')):
+                python=sys.executable)):
             with pytest.raises(common.NoDocstringError) as exc_info:
                 build.main(pyproject)
             assert 'no_docstring.py' in str(exc_info.value)
