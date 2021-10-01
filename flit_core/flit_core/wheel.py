@@ -2,13 +2,11 @@ from base64 import urlsafe_b64encode
 import contextlib
 from datetime import datetime
 import hashlib
-from glob import glob
 import io
 import logging
 import os
 import os.path as osp
 import stat
-import sys
 import tempfile
 from types import SimpleNamespace
 from typing import Optional
