@@ -11,6 +11,7 @@ import stat
 import sys
 import tempfile
 from types import SimpleNamespace
+from typing import Optional
 import zipfile
 
 from flit_core import __version__
@@ -36,6 +37,27 @@ def _set_zinfo_mode(zinfo, mode):
     zinfo.external_attr = mode << 16
 
 
+def zip_timestamp_from_env() -> Optional[tuple]:
+    """Prepare a timestamp from $SOURCE_DATE_EPOCH, if set"""
+    try:
+        # If SOURCE_DATE_EPOCH is set (e.g. by Debian), it's used for
+        # timestamps inside the zip file.
+        d = datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
+    except (KeyError, ValueError):
+        # Otherwise, we'll use the mtime of files, and generated files will
+        # default to 2016-1-1 00:00:00
+        return None
+
+    if d.year >= 1980:
+        log.info("Zip timestamps will be from SOURCE_DATE_EPOCH: %s", d)
+        # zipfile expects a 6-tuple, not a datetime object
+        return d.year, d.month, d.day, d.hour, d.minute, d.second
+    else:
+        log.info("SOURCE_DATE_EPOCH is below the minimum for zip file timestamps")
+        log.info("Zip timestamps will be 1980-01-01 00:00:00")
+        return 1980, 1, 1, 0, 0, 0
+
+
 class WheelBuilder:
     def __init__(self, directory, module, metadata, entrypoints, target_fp):
         """Build a wheel from a module/package
@@ -46,23 +68,7 @@ class WheelBuilder:
         self.entrypoints = entrypoints
 
         self.records = []
-        try:
-            # If SOURCE_DATE_EPOCH is set (e.g. by Debian), it's used for
-            # timestamps inside the zip file.
-            d = datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
-        except (KeyError, ValueError):
-            # Otherwise, we'll use the mtime of files, and generated files will
-            # default to 2016-1-1 00:00:00
-            self.source_time_stamp = None
-        else:
-            if d.year >= 1980:
-                log.info("Zip timestamps will be from SOURCE_DATE_EPOCH: %s", d)
-                # zipfile expects a 6-tuple, not a datetime object
-                self.source_time_stamp = (d.year, d.month, d.day, d.hour, d.minute, d.second)
-            else:
-                log.info("SOURCE_DATE_EPOCH is below the minimum for zip file timestamps")
-                log.info("Zip timestamps will be 1980-01-01 00:00:00")
-                self.source_time_stamp = (1980, 1, 1, 0, 0, 0)
+        self.source_time_stamp = zip_timestamp_from_env()
 
         # Open the zip file ready to write
         self.wheel_zip = zipfile.ZipFile(target_fp, 'w',
