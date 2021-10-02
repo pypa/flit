@@ -36,6 +36,23 @@ def test_editable_wheel_module(copy_sample):
         assert pth_path.read_text() == str(td)
         assert_isdir(Path(unpacked, 'module1-0.1.dist-info'))
 
+def test_editable_wheel_has_absolute_pth(copy_sample):
+        td = copy_sample('module1_toml')
+        oldcwd = os.getcwd()
+        os.chdir(str(td))
+        try:
+            make_wheel_in(Path('pyproject.toml'), Path('.'), editable=True)
+            whl_file = 'module1-0.1-py2.py3-none-any.whl'
+            assert_isfile(whl_file)
+            with unpack(whl_file) as unpacked:
+                pth_path = Path(unpacked, 'module1.pth')
+                assert_isfile(pth_path)
+                assert Path(pth_path.read_text()).is_absolute()
+                assert pth_path.read_text() == str(td.resolve())
+                assert_isdir(Path(unpacked, 'module1-0.1.dist-info'))
+        finally:
+            os.chdir(oldcwd)
+
 def test_wheel_package(copy_sample):
     td = copy_sample('package1')
     make_wheel_in(td / 'pyproject.toml', td)
