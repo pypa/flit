@@ -148,7 +148,7 @@ class WheelBuilder:
 
     def add_pth(self):
         with self._write_to_zip(self.module.name + ".pth") as f:
-            f.write(str(self.module.source_dir))
+            f.write(str(self.module.source_dir.resolve()))
 
     def write_metadata(self):
         log.info('Writing metadata files')
