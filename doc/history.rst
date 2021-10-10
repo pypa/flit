@@ -1,6 +1,25 @@
 Release history
 ===============
 
+Version 3.4
+-----------
+
+- Python 3.6 or above is now required, both for ``flit`` and ``flit_core``.
+- Add a ``--setup-py`` option to ``flit build`` and ``flit publish``, and a
+  warning when neither this nor ``--no-setup-py`` are specified (:ghpull:`431`).
+  A future version will stop generating ``setup.py`` files in sdists by default.
+- Add support for standardised editable installs - ``pip install -e`` -
+  according to :pep:`660` (:ghpull:`400`).
+- Add a ``--pypirc`` option for ``flit publish`` to specify an alternative path
+  to a ``.pypirc`` config file describing package indexes (:ghpull:`434`).
+- Fix installing dependencies specified in a ``[project]`` table (:ghpull:`433`).
+- Fix building wheels when ``SOURCE_DATE_EPOCH`` (see :doc:`reproducible`) is
+  set to a date before 1980 (:ghpull:`448`).
+- Switch to using the `tomli <https://pypi.org/project/tomli/>`_ TOML parser,
+  in common with other packaging projects (:ghpull:`438`).
+  This supports TOML version 1.0.
+- Add a document on :doc:`bootstrap` (:ghpull:`441`).
+
 Version 3.3
 -----------
 
