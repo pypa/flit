@@ -39,6 +39,12 @@ Build a wheel and an sdist (tarball) from the package.
 
    Limit to building either ``wheel`` or ``sdist``.
 
+.. option:: --setup-py
+
+   Generate a ``setup.py`` file in the sdist, so it can be installed by older
+   versions of pip. This is the default for now, but a future version will
+   disable this by default.
+
 .. option:: --no-setup-py
 
    Don't generate a setup.py file in the sdist.
@@ -59,6 +65,12 @@ or another repository.
 
    Limit to publishing either ``wheel`` or ``sdist``.
    You should normally publish the two formats together.
+
+.. option:: --setup-py
+
+   Generate a ``setup.py`` file in the sdist, so it can be installed by older
+   versions of pip. This is the default for now, but a future version will
+   disable this by default.
 
 .. option:: --no-setup-py
 
