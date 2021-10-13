@@ -28,8 +28,9 @@ def get_requires_for_build_wheel(config_settings=None):
     want_summary = 'description' in info.dynamic_metadata
     want_version = 'version' in info.dynamic_metadata
 
-    module = Module(info.module, Path.cwd())
-    docstring, version = get_docstring_and_version_via_ast(module)
+    if want_summary or want_version:
+        module = Module(info.module, Path.cwd())
+        docstring, version = get_docstring_and_version_via_ast(module)
 
     if (want_summary and not docstring) or (want_version and not version):
         return info.metadata.get('requires_dist', [])
