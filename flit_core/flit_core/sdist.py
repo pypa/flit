@@ -138,9 +138,11 @@ class SdistBuilder:
                     osp.relpath(osp.join(dirpath, d), cfgdir_s)
                 )]
 
-        crucial_files = set(
-            self.extra_files + [str(self.module.file.relative_to(self.cfgdir))]
-        )
+        crucial_files = set(self.extra_files)
+        if self.module.file.is_file():
+            # If the module file does not exist, we are building a namespace package where
+            # the module file is by definition not crucial
+            crucial_files.add(str(self.module.file.relative_to(self.cfgdir)))
         missing_crucial = crucial_files - files
         if missing_crucial:
             raise Exception("Crucial files were excluded from the sdist: {}"
