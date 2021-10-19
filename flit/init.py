@@ -205,7 +205,7 @@ class TerminalIniter(IniterBase):
         # than to do this through a TOML library.
         author_info = []
         if author:
-            author_info.append(f'name = {json.dumps(author)}')
+            author_info.append(f'name = {json.dumps(author, ensure_ascii=False)}')
         if author_email:
             author_info.append(f'email = {json.dumps(author_email)}')
         if author_info:
