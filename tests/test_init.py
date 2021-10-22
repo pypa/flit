@@ -222,3 +222,30 @@ def test_init_readme_found_yes_choosen():
         'readme': 'readme.md',
         'dynamic': ['version', 'description'],
     }
+
+
+def test_init_non_ascii_author_name():
+    responses = ['foo', # Module name
+                 'Test Authôr',      # Author
+                 '',  # Author email omitted
+                 '', # Home page omitted
+                 '1'    # License (1 -> MIT)
+                ]
+    with TemporaryDirectory() as td, \
+          patch_data_dir(), \
+          faking_input(responses):
+        ti = init.TerminalIniter(td)
+        ti.initialise()
+
+        generated = Path(td) / 'pyproject.toml'
+        assert_isfile(generated)
+        with generated.open('r') as f:
+            raw_text = f.read()
+            print(raw_text)
+            assert "Test Authôr" in raw_text
+            assert "\\u00f4" not in raw_text
+        license = Path(td) / 'LICENSE'
+        assert_isfile(license)
+        with license.open() as f:
+            license_text = f.read()
+        assert "Test Authôr" in license_text
