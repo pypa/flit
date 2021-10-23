@@ -239,13 +239,13 @@ def test_init_non_ascii_author_name():
 
         generated = Path(td) / 'pyproject.toml'
         assert_isfile(generated)
-        with generated.open('r') as f:
+        with generated.open('r', encoding='utf-8') as f:
             raw_text = f.read()
             print(raw_text)
             assert "Test Authôr" in raw_text
             assert "\\u00f4" not in raw_text
         license = Path(td) / 'LICENSE'
         assert_isfile(license)
-        with license.open() as f:
+        with license.open(encoding='utf-8') as f:
             license_text = f.read()
         assert "Test Authôr" in license_text
