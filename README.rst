@@ -30,7 +30,7 @@ or as a directory — and you want to distribute it.
 
        """An amazing sample package!"""
 
-       __version__ = '0.1'
+       __version__ = "0.1"
 
 2. Install flit if you don't already have it::
 
@@ -42,14 +42,16 @@ or as a directory — and you want to distribute it.
    .. code-block:: ini
 
        [build-system]
-       requires = ["flit_core >=2,<4"]
+       requires = ["flit_core >=3.2,<4"]
        build-backend = "flit_core.buildapi"
 
-       [tool.flit.metadata]
-       module = "foobar"
-       author = "Sir Robin"
-       author-email = "robin@camelot.uk"
-       home-page = "https://github.com/sirrobin/foobar"
+       [project]
+       name = "foobar"
+       authors = [{name = "Sir Robin", email = "robin@camelot.uk"}]
+       dynamic = ["version", "description"]
+
+       [project.urls]
+       Home = "https://github.com/sirrobin/foobar"
 
    You can edit this file to add other metadata, for example to set up
    command line scripts. See the

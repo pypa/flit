@@ -63,7 +63,7 @@ A simple ``[project]`` table might look like this:
         "License :: OSI Approved :: MIT License",
     ]
     requires-python = ">=3.5"
-    dynamic = ['version', 'description']
+    dynamic = ["version", "description"]
 
 The allowed fields are:
 
@@ -324,7 +324,7 @@ license
 maintainer, maintainer-email
   Like author, for if you've taken over a project from someone else.
 
-Here's the full metadata section from flit itself:
+Here was the metadata section from flit using the older style:
 
 .. code-block:: toml
 
@@ -334,7 +334,7 @@ Here's the full metadata section from flit itself:
     author-email="thomas@kluyver.me.uk"
     home-page="https://github.com/takluyver/flit"
     requires=[
-        "flit_core>=2.2.0",
+        "flit_core >=2.2.0",
         "requests",
         "docutils",
         "tomli",
