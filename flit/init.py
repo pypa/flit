@@ -224,6 +224,8 @@ class TerminalIniter(IniterBase):
             ))
             if readme:
                 f.write(tomli_w.dumps({'readme': readme}))
+            if license != 'skip':
+                f.write('license = {file = "LICENSE"}\n')
             if classifiers:
                 f.write(f"classifiers = {json.dumps(classifiers)}\n")
             f.write('dynamic = ["version", "description"]\n')
