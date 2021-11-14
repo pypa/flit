@@ -29,17 +29,7 @@ class Module(object):
         src_py_file = directory / 'src' / (name_as_path+'.py')
 
         existing = set()
-
-        self.is_namespace_package = False
-        self.is_package = False
-
-        # It must exist either as a .py file or a directory, but not both
-        if pkg_dir.is_dir() and "." in self.name:
-            self.path = pkg_dir
-            self.ns_path = Path(directory, self.name.replace('.', os.sep))
-            self.is_namespace_package = True
-            self.is_package = True
-        elif pkg_dir.is_dir():
+        if pkg_dir.is_dir():
             self.path = pkg_dir
             self.is_package = True
             self.prefix = ''
