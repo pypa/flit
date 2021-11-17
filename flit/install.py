@@ -325,6 +325,7 @@ class Installer(object):
             self._record_installed_directory(dst)
         else:
             log.info("Copying file %s -> %s", src, dst)
+            os.makedirs(osp.dirname(dst), exist_ok=True)
             shutil.copy2(src, dst)
             self.installed_files.append(dst)
 
