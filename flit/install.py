@@ -302,15 +302,14 @@ class Installer(object):
         if self.python != sys.executable:
             self.install_reqs_my_python_if_needed()
 
-        src = str(self.module.path)
+        src = self.module.path
         if self.symlink:
-            target = self.module.path
             if self.module.in_namespace_package:
                 ns_dir = os.path.dirname(dst)
                 os.makedirs(ns_dir, exist_ok=True)
 
             log.info("Symlinking %s -> %s", src, dst)
-            os.symlink(str(target.resolve()), dst)
+            os.symlink(src.resolve(), dst)
             self.installed_files.append(dst)
         elif self.pth:
             # .pth points to the the folder containing the module (which is
