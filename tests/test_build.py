@@ -58,7 +58,7 @@ def test_build_wheel_only(copy_sample):
 def test_build_ns_main():
     with TemporaryDirectory() as td:
         pyproject = Path(td, 'pyproject.toml')
-        shutil.copy(str(samples_dir / 'ns1-pkg' / 'ns1-pkg.toml'), str(pyproject))
+        shutil.copy(str(samples_dir / 'ns1-pkg' / 'pyproject.toml'), str(pyproject))
         ns = Path(td, 'ns1')
         ns.mkdir()
         pkg = ns / 'pkg'

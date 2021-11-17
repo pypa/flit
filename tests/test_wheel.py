@@ -115,7 +115,7 @@ def test_editable_wheel_src_package(copy_sample):
 
 def test_wheel_ns_package(copy_sample):
     td = copy_sample('ns1-pkg')
-    res = make_wheel_in(td / 'ns1-pkg.toml', td)
+    res = make_wheel_in(td / 'pyproject.toml', td)
     assert res.file == td / 'ns1_pkg-0.1-py2.py3-none-any.whl'
     assert_isfile(res.file)
     with unpack(res.file) as td_unpack:

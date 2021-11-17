@@ -80,7 +80,7 @@ class InstallTests(TestCase):
         )
 
     def test_install_ns_package_native(self):
-        Installer.from_ini_path(samples_dir / 'ns1-pkg' / 'ns1-pkg.toml').install_directly()
+        Installer.from_ini_path(samples_dir / 'ns1-pkg' / 'pyproject.toml').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1_pkg-0.1.dist-info')
 
@@ -88,7 +88,7 @@ class InstallTests(TestCase):
         if os.name == 'nt':
             raise SkipTest('symlink')
         Installer.from_ini_path(
-            samples_dir / 'ns1-pkg' / 'ns1-pkg.toml', symlink=True
+            samples_dir / 'ns1-pkg' / 'pyproject.toml', symlink=True
         ).install_directly()
         Installer.from_ini_path(
             samples_dir / 'ns1-pkg2' / 'ns1-pkg2.toml', symlink=True
