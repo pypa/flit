@@ -88,6 +88,11 @@ class InstallTests(TestCase):
         assert_not_path_exists(self.tmpdir / 'site-packages' / 'ns1' / '__init__.py')
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1_pkg-0.1.dist-info')
 
+    def test_install_ns_package_module_native(self):
+        Installer.from_ini_path(samples_dir / 'ns1-pkg-mod' / 'pyproject.toml').install_directly()
+        assert_isfile(self.tmpdir / 'site-packages' / 'ns1' / 'module.py')
+        assert_not_path_exists(self.tmpdir / 'site-packages' / 'ns1' / '__init__.py')
+
     def test_install_ns_package_native_symlink(self):
         if os.name == 'nt':
             raise SkipTest('symlink')
@@ -97,16 +102,23 @@ class InstallTests(TestCase):
         Installer.from_ini_path(
             samples_dir / 'ns1-pkg2' / 'pyproject.toml', symlink=True
         ).install_directly()
+        Installer.from_ini_path(
+            samples_dir / 'ns1-pkg-mod' / 'pyproject.toml', symlink=True
+        ).install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1' / 'pkg')
         assert_islink(self.tmpdir / 'site-packages' / 'ns1' / 'pkg',
                       to=str(samples_dir / 'ns1-pkg' / 'ns1' / 'pkg'))
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1_pkg-0.1.dist-info')
-        assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
+
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1' / 'pkg2')
         assert_islink(self.tmpdir / 'site-packages' / 'ns1' / 'pkg2',
                       to=str(samples_dir / 'ns1-pkg2' / 'ns1' / 'pkg2'))
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1_pkg2-0.1.dist-info')
+
+        assert_islink(self.tmpdir / 'site-packages' / 'ns1' / 'module.py',
+                      to=samples_dir / 'ns1-pkg-mod' / 'ns1' / 'module.py')
+        assert_isdir(self.tmpdir / 'site-packages' / 'ns1_module-0.1.dist-info')
 
     def test_install_ns_package_pth_file(self):
         Installer.from_ini_path(
