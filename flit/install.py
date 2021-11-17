@@ -315,11 +315,9 @@ class Installer(object):
         elif self.pth:
             # .pth points to the the folder containing the module (which is
             # added to sys.path)
-            pth_target = osp.dirname(osp.abspath(src))
-            pth_file = pathlib.Path(dst).with_suffix('.pth')
-            log.info("Adding .pth file %s for %s", pth_file, pth_target)
-            with pth_file.open("w") as f:
-                f.write(pth_target)
+            pth_file = pathlib.Path(dirs['purelib'], self.module.name + '.pth')
+            log.info("Adding .pth file %s for %s", pth_file, self.module.source_dir)
+            pth_file.write_text(str(self.module.source_dir), 'utf-8')
             self.installed_files.append(pth_file)
         elif self.module.is_package:
             log.info("Copying directory %s -> %s", src, dst)
