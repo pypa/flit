@@ -95,7 +95,7 @@ class InstallTests(TestCase):
             samples_dir / 'ns1-pkg' / 'pyproject.toml', symlink=True
         ).install_directly()
         Installer.from_ini_path(
-            samples_dir / 'ns1-pkg2' / 'ns1-pkg2.toml', symlink=True
+            samples_dir / 'ns1-pkg2' / 'pyproject.toml', symlink=True
         ).install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1' / 'pkg')
