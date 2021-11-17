@@ -19,7 +19,6 @@ class Module(object):
 
     def __init__(self, name, directory=Path()):
         self.name = name
-        self.directory = directory
 
         # It must exist either as a .py file or a directory, but not both
         name_as_path = name.replace('.', os.sep)
@@ -59,15 +58,11 @@ class Module(object):
             raise ValueError("No file/folder found for module {}".format(name))
 
         self.relpath = self.path.relative_to(directory)
+        self.source_dir = directory / self.prefix
 
         if '.' in name:
             self.namespace_package_name = name.rpartition('.')[0]
             self.in_namespace_package = True
-
-    @property
-    def source_dir(self):
-        """Path of folder containing the module (src/ or project root)"""
-        return self.path.parent
 
     @property
     def file(self):
