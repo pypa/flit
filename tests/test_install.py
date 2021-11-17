@@ -7,7 +7,9 @@ from unittest import TestCase, SkipTest
 from unittest.mock import patch
 
 import pytest
-from testpath import assert_isfile, assert_isdir, assert_islink, MockCommand
+from testpath import (
+    assert_isfile, assert_isdir, assert_islink, assert_not_path_exists, MockCommand
+)
 
 from flit import install
 from flit.install import Installer, _requires_dist_to_pip_requirement, DependencyError
@@ -82,6 +84,8 @@ class InstallTests(TestCase):
     def test_install_ns_package_native(self):
         Installer.from_ini_path(samples_dir / 'ns1-pkg' / 'pyproject.toml').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
+        assert_isfile(self.tmpdir / 'site-packages' / 'ns1' / 'pkg' / '__init__.py')
+        assert_not_path_exists(self.tmpdir / 'site-packages' / 'ns1' / '__init__.py')
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1_pkg-0.1.dist-info')
 
     def test_install_ns_package_native_symlink(self):
