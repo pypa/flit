@@ -1,5 +1,6 @@
 [build-system]
-requires = ["flit"]
+requires = ["flit_core >=3.5,<4"]
+build-backend = "flit_core.buildapi"
 
 [tool.flit.metadata]
 module = "ns1.pkg2"
