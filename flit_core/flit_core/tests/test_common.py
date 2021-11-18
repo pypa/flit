@@ -14,6 +14,15 @@ from flit_core.common import (
 samples_dir = Path(__file__).parent / 'samples'
 
 class ModuleTests(TestCase):
+    def test_ns_package_importable(self):
+        i = Module('ns1.pkg', samples_dir / 'ns1-pkg')
+        assert i.path == Path(samples_dir, 'ns1-pkg', 'ns1', 'pkg')
+        assert i.file == Path(samples_dir, 'ns1-pkg', 'ns1', 'pkg', '__init__.py')
+        assert i.is_package
+
+        assert i.in_namespace_package
+        assert i.namespace_package_name == 'ns1'
+
     def test_package_importable(self):
         i = Module('package1', samples_dir)
         assert i.path == samples_dir / 'package1'

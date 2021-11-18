@@ -287,7 +287,7 @@ class Installer(object):
         os.makedirs(dirs['purelib'], exist_ok=True)
         os.makedirs(dirs['scripts'], exist_ok=True)
 
-        dst = osp.join(dirs['purelib'], self.module.path.name)
+        dst = osp.join(dirs['purelib'], str(self.module.relpath))
         if osp.lexists(dst):
             if osp.isdir(dst) and not osp.islink(dst):
                 shutil.rmtree(dst)
@@ -302,19 +302,21 @@ class Installer(object):
         if self.python != sys.executable:
             self.install_reqs_my_python_if_needed()
 
-        src = str(self.module.path)
+        src = self.module.path
         if self.symlink:
+            if self.module.in_namespace_package:
+                ns_dir = os.path.dirname(dst)
+                os.makedirs(ns_dir, exist_ok=True)
+
             log.info("Symlinking %s -> %s", src, dst)
-            os.symlink(osp.abspath(src), dst)
+            os.symlink(src.resolve(), dst)
             self.installed_files.append(dst)
         elif self.pth:
             # .pth points to the the folder containing the module (which is
             # added to sys.path)
-            pth_target = osp.dirname(osp.abspath(src))
-            pth_file = pathlib.Path(dst).with_suffix('.pth')
-            log.info("Adding .pth file %s for %s", pth_file, pth_target)
-            with pth_file.open("w") as f:
-                f.write(pth_target)
+            pth_file = pathlib.Path(dirs['purelib'], self.module.name + '.pth')
+            log.info("Adding .pth file %s for %s", pth_file, self.module.source_dir)
+            pth_file.write_text(str(self.module.source_dir), 'utf-8')
             self.installed_files.append(pth_file)
         elif self.module.is_package:
             log.info("Copying directory %s -> %s", src, dst)
@@ -322,6 +324,7 @@ class Installer(object):
             self._record_installed_directory(dst)
         else:
             log.info("Copying file %s -> %s", src, dst)
+            os.makedirs(osp.dirname(dst), exist_ok=True)
             shutil.copy2(src, dst)
             self.installed_files.append(dst)
 

@@ -6,7 +6,7 @@ from unittest import skipIf
 import zipfile
 
 import pytest
-from testpath import assert_isfile, assert_isdir
+from testpath import assert_isfile, assert_isdir, assert_not_path_exists
 
 from flit.wheel import WheelBuilder, make_wheel_in
 from flit.config import EntryPointsConflict
@@ -69,6 +69,17 @@ def test_editable_wheel_package(copy_sample):
         assert pth_path.read_text() == str(td)
         assert_isdir(Path(unpacked, 'package1-0.1.dist-info'))
 
+def test_editable_wheel_namespace_package(copy_sample):
+    td = copy_sample('ns1-pkg')
+    make_wheel_in(td / 'pyproject.toml', td, editable=True)
+    whl_file = td / 'ns1_pkg-0.1-py2.py3-none-any.whl'
+    assert_isfile(whl_file)
+    with unpack(whl_file) as unpacked:
+        pth_path = Path(unpacked, 'ns1.pkg.pth')
+        assert_isfile(pth_path)
+        assert pth_path.read_text() == str(td)
+        assert_isdir(Path(unpacked, 'ns1_pkg-0.1.dist-info'))
+
 def test_wheel_src_module(copy_sample):
     td = copy_sample('module3')
     make_wheel_in(td / 'pyproject.toml', td)
@@ -112,6 +123,16 @@ def test_editable_wheel_src_package(copy_sample):
         assert pth_path.read_text() == str(td / "src")
         assert_isdir(Path(unpacked, 'package2-0.1.dist-info'))
 
+
+def test_wheel_ns_package(copy_sample):
+    td = copy_sample('ns1-pkg')
+    res = make_wheel_in(td / 'pyproject.toml', td)
+    assert res.file == td / 'ns1_pkg-0.1-py2.py3-none-any.whl'
+    assert_isfile(res.file)
+    with unpack(res.file) as td_unpack:
+        assert_isdir(Path(td_unpack, 'ns1_pkg-0.1.dist-info'))
+        assert_isfile(Path(td_unpack, 'ns1', 'pkg', '__init__.py'))
+        assert_not_path_exists(Path(td_unpack, 'ns1', '__init__.py'))
 
 def test_dist_name(copy_sample):
     td = copy_sample('altdistname')

@@ -15,6 +15,11 @@ def test_load_toml():
     assert inf.module == 'module1'
     assert inf.metadata['home_page'] == 'http://github.com/sirrobin/module1'
 
+def test_load_toml_ns():
+    inf = config.read_flit_config(samples_dir / 'ns1-pkg' / 'pyproject.toml')
+    assert inf.module == 'ns1.pkg'
+    assert inf.metadata['home_page'] == 'http://github.com/sirrobin/module1'
+
 def test_load_pep621():
     inf = config.read_flit_config(samples_dir / 'pep621' / 'pyproject.toml')
     assert inf.module == 'module1a'

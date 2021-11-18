@@ -5,6 +5,7 @@ __pycache__/
 /doc/_build/
 /tests/samples/build/
 /tests/samples/dist/
+/tests/samples/ns1-pkg/dist/
 /htmlcov/
 /.coverage
 /.pytest_cache

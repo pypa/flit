@@ -55,6 +55,19 @@ def test_build_wheel_only(copy_sample):
     # Compare str path to work around pathlib/pathlib2 mismatch on Py 3.5
     assert [str(p) for p in (td / 'dist').iterdir()] == [str(res.wheel.file)]
 
+def test_build_ns_main(copy_sample):
+    td = copy_sample('ns1-pkg')
+    (td / '.git').mkdir()   # Fake a git repo
+
+    with MockCommand('git', LIST_FILES_TEMPLATE.format(
+            python=sys.executable, module='ns1/pkg/__init__.py')):
+        res = build.main(td / 'pyproject.toml')
+    assert res.wheel.file.suffix == '.whl'
+    assert res.sdist.file.name.endswith('.tar.gz')
+
+    assert_isdir(td / 'dist')
+
+
 def test_build_module_no_docstring():
     with TemporaryDirectory() as td:
         pyproject = Path(td, 'pyproject.toml')
