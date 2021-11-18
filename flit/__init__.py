@@ -168,12 +168,14 @@ def main(argv=None):
 
     def gen_setup_py():
         if not (args.setup_py or args.no_setup_py):
-            log.info("Adding generated setup.py to sdist by default.")
+            log.info("Not generating setup.py in sdist (default changed)")
             log.info(
-                "This will change in a future version. Pass --[no-]setup-py to "
-                "control it."
+                "Recent versions of pip no longer need this generated file"
             )
-            return True
+            log.info(
+                "Use --[no-]setup-py to suppress this message or add setup.py"
+            )
+            return False
         return args.setup_py
 
     if args.subcmd == 'build':
