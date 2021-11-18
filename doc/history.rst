@@ -1,6 +1,23 @@
 Release history
 ===============
 
+Version 3.5
+-----------
+
+- You can now use Flit to distribute a module or package inside a namespace
+  package (as defined by :pep:`420`). To do this, specify the import name of the
+  concrete, inner module you are packaging - e.g. ``name = "sphinxcontrib.foo"``
+  - either in the ``[project]`` table, or under ``[tool.flit.module]`` if you
+  want to use a different name on PyPI (:ghpull:`468`).
+- Flit no longer generates a ``setup.py`` file in sdists (``.tar.gz`` packages)
+  by default (:ghpull:`462`). Modern packaging tools don't need this. You can
+  use the ``--setup-py`` flag to keep adding it for now, but this will probably
+  be removed at some point in the future.
+- Fixed how ``flit init`` handles authors' names with non-ASCII characters
+  (:ghpull:`460`).
+- When ``flit init`` generates a LICENSE file, the new ``pyproject.toml`` now
+  references it (:ghpull:`467`).
+
 Version 3.4
 -----------
 
