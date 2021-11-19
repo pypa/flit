@@ -42,14 +42,17 @@ Build a wheel and an sdist (tarball) from the package.
 .. option:: --setup-py
 
    Generate a ``setup.py`` file in the sdist, so it can be installed by older
-   versions of pip. This is the default for now, but a future version will
-   disable this by default.
+   versions of pip.
 
 .. option:: --no-setup-py
 
-   Don't generate a setup.py file in the sdist.
+   Don't generate a setup.py file in the sdist. This is the default.
    An sdist built without this will only work with tools that support PEP 517,
    but the wheel will still be usable by any compatible tool.
+
+   .. versionchanged:: 3.5
+
+      Generating ``setup.py`` disabled by default.
 
 .. _publish_cmd:
 
@@ -69,14 +72,17 @@ or another repository.
 .. option:: --setup-py
 
    Generate a ``setup.py`` file in the sdist, so it can be installed by older
-   versions of pip. This is the default for now, but a future version will
-   disable this by default.
+   versions of pip.
 
 .. option:: --no-setup-py
 
-   Don't generate a setup.py file in the sdist.
+   Don't generate a setup.py file in the sdist. This is the default.
    An sdist built without this will only work with tools that support PEP 517,
    but the wheel will still be usable by any compatible tool.
+
+   .. versionchanged:: 3.5
+
+      Generating ``setup.py`` disabled by default.
 
 .. option:: --repository <repository>
 
