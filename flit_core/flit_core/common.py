@@ -57,7 +57,6 @@ class Module(object):
         elif not existing:
             raise ValueError("No file/folder found for module {}".format(name))
 
-        self.relpath = self.path.relative_to(directory)
         self.source_dir = directory / self.prefix
 
         if '.' in name:

@@ -81,6 +81,16 @@ class InstallTests(TestCase):
             samples_dir / 'package1', 'package1', '0.1', expected_editable=False
         )
 
+    def test_install_module_in_src(self):
+        oldcwd = os.getcwd()
+        os.chdir(samples_dir / 'packageinsrc')
+        try:
+            Installer.from_ini_path(pathlib.Path('pyproject.toml')).install_directly()
+        finally:
+            os.chdir(oldcwd)
+        assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
+        assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
+
     def test_install_ns_package_native(self):
         Installer.from_ini_path(samples_dir / 'ns1-pkg' / 'pyproject.toml').install_directly()
         assert_isdir(self.tmpdir / 'site-packages' / 'ns1')
@@ -156,6 +166,19 @@ class InstallTests(TestCase):
             expected_editable=True
         )
 
+    def test_symlink_module_in_src(self):
+        oldcwd = os.getcwd()
+        os.chdir(samples_dir / 'packageinsrc')
+        try:
+            Installer.from_ini_path(
+                pathlib.Path('pyproject.toml'), symlink=True
+            ).install_directly()
+        finally:
+            os.chdir(oldcwd)
+        assert_islink(self.tmpdir / 'site-packages' / 'module1.py',
+                      to=(samples_dir / 'packageinsrc' / 'src' / 'module1.py'))
+        assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
+
     def test_pth_package(self):
         Installer.from_ini_path(samples_dir / 'package1' / 'pyproject.toml', pth=True).install()
         assert_isfile(self.tmpdir / 'site-packages' / 'package1.pth')
@@ -165,6 +188,22 @@ class InstallTests(TestCase):
         self._assert_direct_url(
             samples_dir / 'package1', 'package1', '0.1', expected_editable=True
         )
+
+    def test_pth_module_in_src(self):
+        oldcwd = os.getcwd()
+        os.chdir(samples_dir / 'packageinsrc')
+        try:
+            Installer.from_ini_path(
+                pathlib.Path('pyproject.toml'), pth=True
+            ).install_directly()
+        finally:
+            os.chdir(oldcwd)
+        pth_path = self.tmpdir / 'site-packages' / 'module1.pth'
+        assert_isfile(pth_path)
+        assert pth_path.read_text('utf-8').strip() == str(
+            samples_dir / 'packageinsrc' / 'src'
+        )
+        assert_isdir(self.tmpdir / 'site-packages' / 'module1-0.1.dist-info')
 
     def test_dist_name(self):
         Installer.from_ini_path(samples_dir / 'altdistname' / 'pyproject.toml').install_directly()

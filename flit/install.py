@@ -287,7 +287,8 @@ class Installer(object):
         os.makedirs(dirs['purelib'], exist_ok=True)
         os.makedirs(dirs['scripts'], exist_ok=True)
 
-        dst = osp.join(dirs['purelib'], str(self.module.relpath))
+        module_rel_path = self.module.path.relative_to(self.module.source_dir)
+        dst = osp.join(dirs['purelib'], module_rel_path)
         if osp.lexists(dst):
             if osp.isdir(dst) and not osp.islink(dst):
                 shutil.rmtree(dst)
@@ -316,7 +317,7 @@ class Installer(object):
             # added to sys.path)
             pth_file = pathlib.Path(dirs['purelib'], self.module.name + '.pth')
             log.info("Adding .pth file %s for %s", pth_file, self.module.source_dir)
-            pth_file.write_text(str(self.module.source_dir), 'utf-8')
+            pth_file.write_text(str(self.module.source_dir.resolve()), 'utf-8')
             self.installed_files.append(pth_file)
         elif self.module.is_package:
             log.info("Copying directory %s -> %s", src, dst)
