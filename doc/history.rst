@@ -1,6 +1,13 @@
 Release history
 ===============
 
+Version 3.5.1
+-------------
+
+- Fix development installs with ``flit install --symlink`` and ``--pth-file``,
+  which were broken in 3.5.0, especially for packages using a ``src`` folder
+  (:ghpull:`472`).
+
 Version 3.5
 -----------
 
