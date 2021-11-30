@@ -17,35 +17,16 @@ tracked = {tracked}
 if '--deleted' not in sys.argv:
     for filename in tracked:
         print(filename, end="\\0")
-else:
-    from pathlib import Path, PurePosixPath
-    cwd = Path.cwd()
-    git_dir = cwd / ".git"
-    tracked = [(cwd / filename) for filename in tracked]
-    for path in cwd.rglob("*"):
-        if (
-            not path.is_file()
-            or path in tracked
-            or git_dir in path.parents
-            or path in [cwd, git_dir]
-        ):
-            continue
-        relative_path = path.relative_to(cwd)
-        linux_path = PurePosixPath().joinpath(*relative_path.parts)
-        print(str(linux_path), end="\\0")
 """
+
+MODULE1_TOML_FILES = ["EG_README.rst", "module1.py", "pyproject.toml"]
 
 def test_build_main(copy_sample):
     td = copy_sample('module1_toml')
     (td / '.git').mkdir()   # Fake a git repo
-    tracked = [
-        str(path.relative_to(samples_dir / "module1_toml"))
-        for path in (samples_dir / "module1_toml").rglob("*")
-        if path.is_file()
-    ]
 
     with MockCommand('git', LIST_FILES_TEMPLATE.format(
-            python=sys.executable, tracked=tracked)):
+            python=sys.executable, tracked=MODULE1_TOML_FILES)):
         res = build.main(td / 'pyproject.toml')
     assert res.wheel.file.suffix == '.whl'
     assert res.sdist.file.name.endswith('.tar.gz')
@@ -55,14 +36,9 @@ def test_build_main(copy_sample):
 def test_build_sdist_only(copy_sample):
     td = copy_sample('module1_toml')
     (td / '.git').mkdir()  # Fake a git repo
-    tracked = [
-        str(path.relative_to(samples_dir / "module1_toml"))
-        for path in (samples_dir / "module1_toml").rglob("*")
-        if path.is_file()
-    ]
 
     with MockCommand('git', LIST_FILES_TEMPLATE.format(
-            python=sys.executable, tracked=tracked)):
+            python=sys.executable, tracked=MODULE1_TOML_FILES)):
         res = build.main(td / 'pyproject.toml', formats={'sdist'})
     assert res.wheel is None
 
@@ -72,14 +48,9 @@ def test_build_sdist_only(copy_sample):
 def test_build_wheel_only(copy_sample):
     td = copy_sample('module1_toml')
     (td / '.git').mkdir()  # Fake a git repo
-    tracked = [
-        str(path.relative_to(samples_dir / "module1_toml"))
-        for path in (samples_dir / "module1_toml").rglob("*")
-        if path.is_file()
-    ]
 
     with MockCommand('git', LIST_FILES_TEMPLATE.format(
-            python=sys.executable, tracked=tracked)):
+            python=sys.executable, tracked=MODULE1_TOML_FILES)):
         res = build.main(td / 'pyproject.toml', formats={'wheel'})
     assert res.sdist is None
 
