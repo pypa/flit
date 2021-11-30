@@ -108,7 +108,6 @@ def test_build_module_no_docstring():
         Path(td, '.git').mkdir()   # Fake a git repo
         tracked = [
             "pyproject.toml",
-            "no_docstring-pkg.toml",
             "no_docstring.py",
             "EG_README.rst",
         ]
