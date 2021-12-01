@@ -33,7 +33,7 @@ e.g. for flit itself
     module=flit
     author=Thomas Kluyver
     author-email=thomas@kluyver.me.uk
-    home-page=https://github.com/takluyver/flit
+    home-page=https://github.com/pypa/flit
 
 The remaining fields are optional:
 
@@ -86,7 +86,7 @@ Here's the full example from flit itself:
     [metadata]
     author=Thomas Kluyver
     author-email=thomas@kluyver.me.uk
-    home-page=https://github.com/takluyver/flit
+    home-page=https://github.com/pypa/flit
     requires=requests
     requires-python= >=3
     description-file=README.rst

@@ -165,7 +165,7 @@ any names inside it. Here it is for flit:
 
   [project.urls]
   Documentation = "https://flit.readthedocs.io/en/latest/"
-  Source = "https://github.com/takluyver/flit"
+  Source = "https://github.com/pypa/flit"
 
 .. _pyproject_project_scripts:
 
@@ -332,7 +332,7 @@ Here was the metadata section from flit using the older style:
     module="flit"
     author="Thomas Kluyver"
     author-email="thomas@kluyver.me.uk"
-    home-page="https://github.com/takluyver/flit"
+    home-page="https://github.com/pypa/flit"
     requires=[
         "flit_core >=2.2.0",
         "requests",

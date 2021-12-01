@@ -17,15 +17,16 @@ from .sdist import SdistBuilder
 from . import __version__
 
 metadata_dict = {
-    'name': 'flit_core',
-    'version': __version__,
-    'author': 'Thomas Kluyver & contributors',
-    'author_email': 'thomas@kluyver.me.uk',
-    'home_page': 'https://github.com/takluyver/flit',
-    'summary': ('Distribution-building parts of Flit. '
-                    'See flit package for more information'),
-    'requires_dist': [
-        'tomli',
+    "name": "flit_core",
+    "version": __version__,
+    "author": "Thomas Kluyver & contributors",
+    "author_email": "thomas@kluyver.me.uk",
+    "home_page": "https://github.com/pypa/flit",
+    "summary": (
+        "Distribution-building parts of Flit. " "See flit package for more information"
+    ),
+    "requires_dist": [
+        "tomli",
     ],
     'requires_python': '>=3.6',
     'classifiers': [

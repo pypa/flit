@@ -219,7 +219,7 @@ Environment variables
    If the metadata is invalid, uploading the package to PyPI may fail. This
    environment variable provides an escape hatch in case Flit incorrectly
    rejects your valid metadata. If you need to use it and you believe your
-   metadata is valid, please `open an issue <https://github.com/takluyver/flit/issues>`__.
+   metadata is valid, please `open an issue <https://github.com/pypa/flit/issues>`__.
 
 .. envvar:: FLIT_INSTALL_PYTHON
 

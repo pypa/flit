@@ -90,10 +90,11 @@ def test_validate_environment_marker():
 
 def test_validate_url():
     vurl = fv.validate_url
-    assert vurl('https://github.com/takluyver/flit') == []
+    assert vurl("https://github.com/pypa/flit") == []
 
-    assert len(vurl('github.com/takluyver/flit')) == 1
-    assert len(vurl('https://')) == 1
+    assert len(vurl("github.com/pypa/flit")) == 1
+    assert len(vurl("https://")) == 1
+
 
 def test_validate_project_urls():
     vpu = fv.validate_project_urls
