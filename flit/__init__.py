@@ -30,7 +30,7 @@ def find_python_executable(python: Optional[str] = None) -> str:
         return python
     # get absolute filepath of {python}
     # shutil.which may give a different result to the raw subprocess call
-    # see https://github.com/takluyver/flit/pull/300 and https://bugs.python.org/issue38905
+    # see https://github.com/pypa/flit/pull/300 and https://bugs.python.org/issue38905
     resolved_python = shutil.which(python)
     if resolved_python is None:
         raise PythonNotFoundError("Unable to resolve Python executable {!r}".format(python))

@@ -3,7 +3,7 @@ Developing Flit
 
 To get a development installation of Flit itself::
 
-    git clone https://github.com/takluyver/flit.git
+    git clone https://github.com/pypa/flit.git
     cd flit
     python3 -m pip install docutils requests toml
     python3 bootstrap_dev.py
