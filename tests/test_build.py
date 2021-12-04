@@ -73,9 +73,15 @@ def test_build_wheel_only(copy_sample):
 def test_build_ns_main(copy_sample):
     td = copy_sample('ns1-pkg')
     (td / '.git').mkdir()   # Fake a git repo
+    tracked = [
+        'EG_README.rst',
+        'ns1/pkg/__init__.py',
+        'pyproject.toml',
+    ]
+    untracked_deleted = ['dist/ns1.pkg-0.1.tar.gz']
 
-    with MockCommand('git', LIST_FILES_TEMPLATE.format(
-            python=sys.executable, module='ns1/pkg/__init__.py')):
+    with MockCommand('git', make_git_script(tracked=tracked,
+            untracked_deleted=untracked_deleted)):
         res = build.main(td / 'pyproject.toml')
     assert res.wheel.file.suffix == '.whl'
     assert res.sdist.file.name.endswith('.tar.gz')
