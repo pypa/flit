@@ -22,14 +22,14 @@ else:
     files = tracked
 
 for filename in map(posixpath.normpath, files):
-    print(filename, end="\\0")
+    print(filename, end='\\0')
 """
 
-MODULE1_TOML_FILES = ["EG_README.rst", "module1.py", "pyproject.toml"]
+MODULE1_TOML_FILES = ['EG_README.rst', 'module1.py', 'pyproject.toml']
 
 def make_git_script(
     tracked = MODULE1_TOML_FILES,
-    untracked_deleted = ["dist/module1-0.1.tar.gz"]
+    untracked_deleted = ['dist/module1-0.1.tar.gz']
 ):
     return LIST_FILES_TEMPLATE.format(
         python=sys.executable,
@@ -97,9 +97,9 @@ def test_build_module_no_docstring():
         shutil.copy(str(samples_dir / 'EG_README.rst'), td)
         Path(td, '.git').mkdir()   # Fake a git repo
         tracked = [
-            "pyproject.toml",
-            "no_docstring.py",
-            "EG_README.rst",
+            'pyproject.toml',
+            'no_docstring.py',
+            'EG_README.rst',
         ]
 
         with MockCommand('git', make_git_script(tracked=tracked)):
