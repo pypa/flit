@@ -89,7 +89,7 @@ def build_sdist(sdist_directory, config_settings=None):
 
     sb = SdistBuilder(
         module, metadata, cwd, reqs_by_extra, entrypoints={},
-        extra_files=['pyproject.toml', 'build_dists.py']
+        extra_files=['pyproject.toml', 'build_dists.py', 'install_bootstrap.py']
     )
     path = sb.build(Path(sdist_directory))
     return path.name
