@@ -5,7 +5,7 @@ import logging
 import os
 import os.path as osp
 from pathlib import Path
-import tomli
+from flit_core._vendor import tomli
 import re
 
 from .versionno import normalise_version

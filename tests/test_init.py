@@ -6,7 +6,7 @@ from testpath import assert_isfile
 from unittest.mock import patch
 import pytest
 
-import tomli
+from flit_core._vendor import tomli
 
 from flit import init
 

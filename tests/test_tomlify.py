@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-import tomli
+from flit_core._vendor import tomli
 from shutil import copy
 from testpath import assert_isfile
 

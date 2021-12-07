@@ -11,7 +11,6 @@ dependencies = [
     "flit_core >=3.5.1",
     "requests",
     "docutils",
-    "tomli",
     "tomli-w",
 ]
 requires-python = ">=3.6"
@@ -42,3 +41,10 @@ Source = "https://github.com/pypa/flit"
 
 [project.scripts]
 flit = "flit:main"
+
+[tool.vendoring]
+destination = "flit_core/flit_core/_vendor/"
+requirements = "flit_core/flit_core/_vendor/vendor.txt"
+namespace = "flit_core._vendor"
+
+protected-files = ["vendor.txt"]

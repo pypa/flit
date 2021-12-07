@@ -26,3 +26,35 @@ jobs:
 
       - name: Codecov upload
         run: codecov
+
+  determine-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      vendoring: ${{ steps.filter.outputs.vendoring }}
+    steps:
+      # For pull requests it's not necessary to checkout the code
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            vendoring:
+              # Anything that's touching "vendored code"
+              - "flit_core/flit_core/_vendor/**"
+              - "pyproject.toml"
+        if: github.event_name == 'pull_request'
+
+  vendoring:
+    name: vendoring
+    runs-on: ubuntu-latest
+
+    needs: [determine-changes]
+    if: >-
+      needs.determine-changes.outputs.vendoring == 'true' ||
+      github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+
+      - run: pip install nox
+      - run: nox -s vendoring
+      - run: git diff --exit-code
