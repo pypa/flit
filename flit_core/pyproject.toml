@@ -1,6 +1,7 @@
 [build-system]
-# Dependencies listed in flit_core/build_thyself.py
-# https://github.com/pypa/flit/issues/482#issuecomment-987769343
 requires = []
 build-backend = "flit_core.build_thyself"
 backend-path = ["."]
+
+# Runtime dependencies & other metadata are listed in flit_core/build_thyself.py
+# https://github.com/pypa/flit/issues/482#issuecomment-987769343
