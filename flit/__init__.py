@@ -168,13 +168,6 @@ def main(argv=None):
 
     def gen_setup_py():
         if not (args.setup_py or args.no_setup_py):
-            log.info("Not generating setup.py in sdist (default changed)")
-            log.info(
-                "Recent versions of pip no longer need this generated file"
-            )
-            log.info(
-                "Use --[no-]setup-py to suppress this message or add setup.py"
-            )
             return False
         return args.setup_py
 
