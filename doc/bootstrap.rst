@@ -25,11 +25,9 @@ building other packages. (You could also just copy ``flit_core`` from the
 source directory, but without the ``.dist-info`` folder, tools like pip won't
 know that it's installed.)
 
-Note that although ``flit_core`` has no *build* dependencies, it has one runtime
-dependency, `Tomli <https://pypi.org/project/tomli/>`_. Tomli is itself packaged
-with Flit, so after building ``flit_core``, you will need to use that to build
-Tomli, arranging for ``tomli`` to be importable directly from the source location
-(e.g. using the ``PYTHONPATH`` environment variable).
+As of version 3.6, flit_core bundles the ``tomli`` TOML parser, to avoid a
+dependency cycle. If you need to unbundle it, you will need to special-case
+installing flit_core and/or tomli to get around that cycle.
 
 I recommend that you get the `build <https://pypi.org/project/build/>`_ and
 `installer <https://pypi.org/project/installer/>`_ packages (and their
