@@ -5,9 +5,9 @@ import logging
 import os
 import os.path as osp
 from pathlib import Path
-import tomli
 import re
 
+from .vendor import tomli
 from .versionno import normalise_version
 
 log = logging.getLogger(__name__)

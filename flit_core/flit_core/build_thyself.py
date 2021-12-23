@@ -25,9 +25,7 @@ metadata_dict = {
     "summary": (
         "Distribution-building parts of Flit. " "See flit package for more information"
     ),
-    "requires_dist": [
-        "tomli",
-    ],
+    "requires_dist": [],
     'requires_python': '>=3.6',
     'classifiers': [
         "License :: OSI Approved :: BSD License",
