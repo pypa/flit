@@ -15,8 +15,8 @@ The key piece is ``flit_core``. This is a package which can build itself using
 nothing except Python and the standard library. From an unpacked source archive,
 you can run ``python build_dists.py``, of which the crucial part is::
 
-    from flit_core import build_thyself
-    whl_fname = build_thyself.build_wheel('dist/')
+    from flit_core import buildapi
+    whl_fname = buildapi.build_wheel('dist/')
     print(os.path.join('dist', whl_fname))
 
 This produces a ``.whl`` wheel file, which you can unzip into your

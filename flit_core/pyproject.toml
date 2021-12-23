@@ -1,7 +1,21 @@
 [build-system]
 requires = []
-build-backend = "flit_core.build_thyself"
+build-backend = "flit_core.buildapi"
 backend-path = ["."]
 
-# Runtime dependencies & other metadata are listed in flit_core/build_thyself.py
-# https://github.com/pypa/flit/issues/482#issuecomment-987769343
+[project]
+name="flit_core"
+authors=[
+    {name = "Thomas Kluyver & contributors", email = "thomas@kluyver.me.uk"},
+]
+description = "Distribution-building parts of Flit. See flit package for more information"
+dependencies = []
+requires-python = '>=3.6'
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ["version"]
+
+[project.urls]
+Source = "https://github.com/pypa/flit"
