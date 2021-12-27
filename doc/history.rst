@@ -1,6 +1,15 @@
 Release history
 ===============
 
+Version 3.6
+-----------
+
+- ``flit_core`` now bundles the `tomli <https://pypi.org/project/tomli/>`_ TOML
+  parser library (version 1.2.3) to avoid a circular dependency between
+  ``flit_core`` and ``tomli`` (:ghpull:`492`). This means ``flit_core`` now has
+  no dependencies except Python itself, both at build time and at runtime,
+  simplifying :doc:`bootstrapping <bootstrap>`.
+
 Version 3.5.1
 -------------
 
