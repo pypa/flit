@@ -14,8 +14,6 @@ my_dir = Path(__file__).parent
 os.chdir(str(my_dir))
 sys.path.insert(0, 'flit_core')
 
-from flit_core import build_thyself
-from flit_core.config import LoadedConfig
 from flit.install import Installer
 
 ap = argparse.ArgumentParser()
@@ -24,20 +22,14 @@ args = ap.parse_args()
 
 logging.basicConfig(level=logging.INFO)
 
-# Construct config for flit_core
-core_config = LoadedConfig()
-core_config.module = 'flit_core'
-core_config.metadata = build_thyself.metadata_dict
-core_config.reqs_by_extra['.none'] = build_thyself.metadata.requires_dist
-
 install_kwargs = {'symlink': True}
 if os.name == 'nt':
     # Use .pth files instead of symlinking on Windows
     install_kwargs = {'symlink': False, 'pth': True}
 
 # Install flit_core
-Installer(
-    my_dir / 'flit_core', core_config, user=args.user, **install_kwargs
+Installer.from_ini_path(
+    my_dir / 'flit_core' / 'pyproject.toml', user=args.user, **install_kwargs
 ).install()
 print("Linked flit_core into site-packages.")
 
