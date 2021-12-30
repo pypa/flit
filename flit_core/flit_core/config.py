@@ -7,7 +7,10 @@ import os.path as osp
 from pathlib import Path
 import re
 
-from .vendor import tomli
+try:
+    from .vendor import tomli
+except ModuleNotFoundError:
+    import tomli
 from .versionno import normalise_version
 
 log = logging.getLogger(__name__)
