@@ -167,6 +167,8 @@ class InstallTests(TestCase):
         )
 
     def test_symlink_module_in_src(self):
+        if os.name == 'nt':
+            raise SkipTest("symlink")
         oldcwd = os.getcwd()
         os.chdir(samples_dir / 'packageinsrc')
         try:
