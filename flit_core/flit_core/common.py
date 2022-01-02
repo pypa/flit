@@ -407,7 +407,7 @@ def normalize_dist_name(name: str, version: str) -> str:
 
     See https://packaging.python.org/specifications/binary-distribution-format/#escaping-and-unicode
     """
-    normalized_name = re.sub(r'[-_.]+', '_', name, flags=re.UNICODE)
+    normalized_name = re.sub(r'[-_.]+', '_', name, flags=re.UNICODE).lower()
     assert check_version(version) == version
     assert '-' not in version, 'Normalized versions can’t have dashes'
     return '{}-{}'.format(normalized_name, version)
