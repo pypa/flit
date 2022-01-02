@@ -163,10 +163,13 @@ def get_docstring_and_version_via_import(target):
     _import_i += 1
 
     log.debug("Loading module %s", target.file)
-    from importlib.machinery import SourceFileLoader
-    sl = SourceFileLoader('flit_core.dummy.import%d' % _import_i, str(target.file))
+    from importlib.util import spec_from_file_location, module_from_spec
+    mod_name = 'flit_core.dummy.import%d' % _import_i
+    spec = spec_from_file_location(mod_name, target.file)
     with _module_load_ctx():
-        m = sl.load_module()
+        m = module_from_spec(spec)
+        spec.loader.exec_module(m)
+
     docstring = m.__dict__.get('__doc__', None)
     version = m.__dict__.get('__version__', None)
     return docstring, version
