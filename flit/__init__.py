@@ -82,12 +82,11 @@ def main(argv=None):
     parser_build.add_argument('--setup-py', action='store_true',
         help=("Generate a setup.py file in the sdist. "
               "The sdist will work with older tools that predate PEP 517. "
-              "This is the default for now, but will change in a future version."
               )
     )
 
     parser_build.add_argument('--no-setup-py', action='store_true',
-        help=("Don't generate a setup.py file in the sdist. "
+        help=("Don't generate a setup.py file in the sdist. This is the default. "
               "The sdist will only work with tools that support PEP 517, "
               "but the wheel will still be usable by any compatible tool."
              )
