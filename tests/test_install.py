@@ -21,11 +21,13 @@ core_samples_dir = pathlib.Path(flit_core.tests.__file__).parent / 'samples'
 class InstallTests(TestCase):
     def setUp(self):
         td = tempfile.TemporaryDirectory()
-        scripts_dir = os.path.join(td.name, 'scripts')
-        purelib_dir = os.path.join(td.name, 'site-packages')
         self.addCleanup(td.cleanup)
         self.get_dirs_patch = patch('flit.install.get_dirs',
-                return_value={'scripts': scripts_dir, 'purelib': purelib_dir})
+                return_value={
+                    'scripts': os.path.join(td.name, 'scripts'),
+                    'purelib': os.path.join(td.name, 'site-packages'),
+                    'data': os.path.join(td.name, 'data'),
+                })
         self.get_dirs_patch.start()
         self.tmpdir = pathlib.Path(td.name)
 
@@ -246,11 +248,13 @@ class InstallTests(TestCase):
         # Called by Installer._get_dirs() :
         script2 = ("#!{python}\n"
                    "import json, sys\n"
-                   "json.dump({{'purelib': {purelib!r}, 'scripts': {scripts!r} }}, "
+                   "json.dump({{'purelib': {purelib!r}, 'scripts': {scripts!r}, 'data': {data!r} }}, "
                    "sys.stdout)"
                   ).format(python=sys.executable,
                            purelib=str(self.tmpdir / 'site-packages2'),
-                           scripts=str(self.tmpdir / 'scripts2'))
+                           scripts=str(self.tmpdir / 'scripts2'),
+                           data=str(self.tmpdir / 'data'),
+                  )
 
         with MockCommand('mock_python', content=script1):
             ins = Installer.from_ini_path(samples_dir / 'package1' / 'pyproject.toml', python='mock_python',
@@ -287,6 +291,23 @@ class InstallTests(TestCase):
         with pytest.raises(DependencyError):
             Installer.from_ini_path(samples_dir / 'requires-requests.toml',
                             user=False, deps='none', extras='dev')
+
+    def test_install_data_dir(self):
+        Installer.from_ini_path(
+            core_samples_dir / 'with_data_dir' / 'pyproject.toml',
+        ).install_directly()
+        assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
+        assert_isfile(self.tmpdir / 'data' / 'share' / 'man' / 'man1' / 'foo.1')
+
+    def test_symlink_data_dir(self):
+        Installer.from_ini_path(
+            core_samples_dir / 'with_data_dir' / 'pyproject.toml', symlink=True
+        ).install_directly()
+        assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
+        assert_islink(
+            self.tmpdir / 'data' / 'share' / 'man' / 'man1' / 'foo.1',
+            to=core_samples_dir / 'with_data_dir' / 'data' / 'share' / 'man' / 'man1' / 'foo.1'
+        )
 
 @pytest.mark.parametrize(('deps', 'extras', 'installed'), [
     ('none', [], set()),

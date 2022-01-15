@@ -49,3 +49,12 @@ def test_include_exclude():
     assert osp.join('doc', 'test.rst') in files
     assert osp.join('doc', 'test.txt') not in files
     assert osp.join('doc', 'subdir', 'test.txt') in files
+
+
+def test_data_dir():
+    builder = sdist.SdistBuilder.from_ini_path(
+        samples_dir / 'with_data_dir' / 'pyproject.toml'
+    )
+    files = builder.apply_includes_excludes(builder.select_files())
+
+    assert osp.join('data', 'share', 'man', 'man1', 'foo.1') in files
