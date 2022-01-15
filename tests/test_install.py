@@ -300,6 +300,8 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'data' / 'share' / 'man' / 'man1' / 'foo.1')
 
     def test_symlink_data_dir(self):
+        if os.name == 'nt':
+            raise SkipTest("symlink")
         Installer.from_ini_path(
             core_samples_dir / 'with_data_dir' / 'pyproject.toml', symlink=True
         ).install_directly()
