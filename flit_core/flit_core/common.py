@@ -416,3 +416,20 @@ def normalize_dist_name(name: str, version: str) -> str:
 def dist_info_name(distribution, version):
     """Get the correct name of the .dist-info folder"""
     return normalize_dist_name(distribution, version) + '.dist-info'
+
+
+def walk_data_dir(data_directory):
+    """Iterate over the files in the given data directory.
+
+    Yields absolute paths - caller may want to make them relative.
+    Excludes any __pycache__ subdirectories.
+    """
+    if data_directory is None:
+        return
+
+    for dirpath, dirs, files in os.walk(data_directory):
+        for file in sorted(files):
+            full_path = os.path.join(dirpath, file)
+            yield full_path
+
+        dirs[:] = [d for d in sorted(dirs) if d != '__pycache__']
