@@ -1,3 +1,4 @@
+import argparse
 from base64 import urlsafe_b64encode
 import contextlib
 from datetime import datetime
@@ -8,6 +9,7 @@ import os
 import os.path as osp
 import stat
 import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Optional
 import zipfile
@@ -215,3 +217,40 @@ def make_wheel_in(ini_path, wheel_directory, editable=False):
 
     log.info("Built wheel: %s", wheel_path)
     return SimpleNamespace(builder=wb, file=wheel_path)
+
+def add_wheel_arguments(parser, srcdir=None):
+    if srcdir is None:
+        srcdir = Path.cwd()
+        parser.add_argument(
+            '--srcdir',
+            '-s',
+            type=Path,
+            default=Path.cwd(),
+            help='source directory (defaults to current directory)',
+        )
+
+    parser.add_argument(
+        '--outdir',
+        '-o',
+        type=Path,
+        default=srcdir.joinpath('dist'),
+        help=f'output directory (defaults to {srcdir.joinpath("dist").resolve()})',
+    )
+    return parser
+
+def build_flit_wheel(srcdir, outdir):
+    """Builds a wheel, places it in outdir"""
+    pyproj_toml = Path(srcdir).joinpath('pyproject.toml')
+    outdir.mkdir(parents=True, exist_ok=True)
+    info = make_wheel_in(pyproj_toml, Path(outdir))
+    return info.file.name
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser = add_wheel_arguments(parser)
+    args = parser.parse_args()
+    srcdir = Path.cwd() if args.srcdir is None else Path(args.srcdir)
+    outdir = args.outdir
+    print("Building wheel")
+    whl_fname = build_flit_wheel(srcdir, outdir)
+    print("Wheel built", outdir.joinpath(whl_fname).resolve())
