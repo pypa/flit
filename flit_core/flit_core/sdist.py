@@ -1,11 +1,9 @@
 from collections import defaultdict
 from copy import copy
-from glob import glob
 from gzip import GzipFile
 import io
 import logging
 import os
-import os.path as osp
 from pathlib import Path
 from posixpath import join as pjoin
 import tarfile
@@ -43,9 +41,9 @@ class FilePatterns:
         self.files = set()
 
         for pattern in patterns:
-            for path in sorted(glob(osp.join(basedir, pattern))):
-                rel = osp.relpath(path, basedir)
-                if osp.isdir(path):
+            for path in self.basedir.glob(pattern):
+                rel = path.relative_to(basedir)
+                if rel.is_dir():
                     self.dirs.add(rel)
                 else:
                     self.files.add(rel)
@@ -54,14 +52,14 @@ class FilePatterns:
         if rel_path in self.files:
             return True
 
-        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
+        return any(d in rel_path.parents for d in self.dirs)
 
     def match_dir(self, rel_path):
         if rel_path in self.dirs:
             return True
 
         # Check if it's a subdirectory of any directory in the list
-        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
+        return any(d in rel_path.parents for d in self.dirs)
 
 
 class SdistBuilder:
@@ -75,12 +73,12 @@ class SdistBuilder:
                  extra_files, include_patterns=(), exclude_patterns=()):
         self.module = module
         self.metadata = metadata
-        self.cfgdir = cfgdir
+        self.cfgdir = Path(cfgdir)
         self.reqs_by_extra = reqs_by_extra
         self.entrypoints = entrypoints
-        self.extra_files = extra_files
-        self.includes = FilePatterns(include_patterns, str(cfgdir))
-        self.excludes = FilePatterns(exclude_patterns, str(cfgdir))
+        self.extra_files = [Path(p) for p in extra_files]
+        self.includes = FilePatterns(include_patterns, cfgdir)
+        self.excludes = FilePatterns(exclude_patterns, cfgdir)
 
     @classmethod
     def from_ini_path(cls, ini_path: Path):
@@ -112,39 +110,30 @@ class SdistBuilder:
         This is overridden in flit itself to use information from a VCS to
         include tests, docs, etc. for a 'gold standard' sdist.
         """
-        cfgdir_s = str(self.cfgdir)
         return [
-            osp.relpath(p, cfgdir_s) for p in self.module.iter_files()
+            p.relative_to(self.cfgdir) for p in self.module.iter_files()
         ] + self.extra_files
 
     def apply_includes_excludes(self, files):
-        cfgdir_s = str(self.cfgdir)
-        files = {f for f in files if not self.excludes.match_file(f)}
+        files = {Path(f) for f in files if not self.excludes.match_file(Path(f))}
 
         for f_rel in self.includes.files:
             if not self.excludes.match_file(f_rel):
                 files.add(f_rel)
 
         for rel_d in self.includes.dirs:
-            for dirpath, dirs, dfiles in os.walk(osp.join(cfgdir_s, rel_d)):
-                for file in dfiles:
-                    f_abs = osp.join(dirpath, file)
-                    f_rel = osp.relpath(f_abs, cfgdir_s)
-                    if not self.excludes.match_file(f_rel):
-                        files.add(f_rel)
-
-                # Filter subdirectories before os.walk scans them
-                dirs[:] = [d for d in dirs if not self.excludes.match_dir(
-                    osp.relpath(osp.join(dirpath, d), cfgdir_s)
-                )]
+            for abs_path in self.cfgdir.joinpath(rel_d).glob('**/*'):
+                path = abs_path.relative_to(self.cfgdir)
+                if not self.excludes.match_file(path):
+                    files.add(path)
 
         crucial_files = set(
-            self.extra_files + [str(self.module.file.relative_to(self.cfgdir))]
+            self.extra_files + [self.module.file.relative_to(self.cfgdir)]
         )
         missing_crucial = crucial_files - files
         if missing_crucial:
             raise Exception("Crucial files were excluded from the sdist: {}"
-                            .format(", ".join(missing_crucial)))
+                            .format(", ".join(str(m) for m in missing_crucial)))
 
         return sorted(files)
 
@@ -157,26 +146,26 @@ class SdistBuilder:
         return '{}-{}'.format(self.metadata.name, self.metadata.version)
 
     def build(self, target_dir, gen_setup_py=True):
-        os.makedirs(str(target_dir), exist_ok=True)
+        target_dir.mkdir(exist_ok=True)
         target = target_dir / '{}-{}.tar.gz'.format(
                 self.metadata.name, self.metadata.version
         )
         source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
         mtime = int(source_date_epoch) if source_date_epoch else None
-        gz = GzipFile(str(target), mode='wb', mtime=mtime)
-        tf = tarfile.TarFile(str(target), mode='w', fileobj=gz,
+        gz = GzipFile(target, mode='wb', mtime=mtime)
+        tf = tarfile.TarFile(target, mode='w', fileobj=gz,
                              format=tarfile.PAX_FORMAT)
 
         try:
             files_to_add = self.apply_includes_excludes(self.select_files())
 
             for relpath in files_to_add:
-                path = str(self.cfgdir / relpath)
-                ti = tf.gettarinfo(path, arcname=pjoin(self.dir_name, relpath))
+                path = self.cfgdir / relpath
+                ti = tf.gettarinfo(str(path), arcname=pjoin(self.dir_name, relpath))
                 ti = clean_tarinfo(ti, mtime)
 
                 if ti.isreg():
-                    with open(path, 'rb') as f:
+                    with path.open('rb') as f:
                         tf.addfile(ti, f)
                 else:
                     tf.addfile(ti)  # Symlinks & ?
