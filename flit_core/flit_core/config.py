@@ -82,6 +82,8 @@ def prep_toml_config(d, path):
     """
     dtool = d.get('tool', {}).get('flit', {})
 
+    strict = dtool.get("config", {}).get("fail_on_unknown_pep621_keys", False)
+
     if 'project' in d:
         # Metadata in [project] table (PEP 621)
         if 'metadata' in dtool:
@@ -94,7 +96,7 @@ def prep_toml_config(d, path):
                 "[tool.flit.entrypoints]. Use [project.scripts],"
                 "[project.gui-scripts] or [project.entry-points] as replacements."
             )
-        loaded_cfg = read_pep621_metadata(d['project'], path)
+        loaded_cfg = read_pep621_metadata(d["project"], path, strict)
 
         module_tbl = dtool.get('module', {})
         if 'name' in module_tbl:
@@ -120,7 +122,12 @@ def prep_toml_config(d, path):
         )
 
     unknown_sections = set(dtool) - {
-        'metadata', 'module', 'scripts', 'entrypoints', 'sdist'
+        "metadata",
+        "module",
+        "scripts",
+        "entrypoints",
+        "sdist",
+        "config",
     }
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
@@ -397,7 +404,8 @@ def _check_list_of_str(d, field_name):
             "{} field should be a list of strings".format(field_name)
         )
 
-def read_pep621_metadata(proj, path) -> LoadedConfig:
+
+def read_pep621_metadata(proj, path, strict: bool = False) -> LoadedConfig:
     lc = LoadedConfig()
     md_dict = lc.metadata
 
@@ -408,7 +416,15 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
 
     unexpected_keys = proj.keys() - pep621_allowed_fields
     if unexpected_keys:
-        log.warning("Unexpected names under [project]: %s", ', '.join(unexpected_keys))
+        if strict:
+            raise ValueError(
+                "Unexpected names under [project]: %s", ", ".join(unexpected_keys)
+            )
+        else:
+            log.warning(
+                "Unexpected names under [project]: %s", ", ".join(unexpected_keys)
+            )
+
 
     if 'version' in proj:
         _check_type(proj, 'version', str)
