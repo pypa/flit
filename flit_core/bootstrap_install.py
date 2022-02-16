@@ -3,6 +3,13 @@
 Normally, you would install flit_core with pip like any other Python package.
 This script is meant to help with 'bootstrapping' other packaging
 systems, where you may need flit_core to build other packaging tools.
+
+Use 'python -m flit_core.wheel' to make a wheel, then:
+
+    python bootstrap_install.py flit_core-3.6.0-py3-none-any.whl
+
+To install for something other than the Python running the script, pass a
+site-packages or equivalent directory with the --installdir option.
 """
 import argparse
 import sys
