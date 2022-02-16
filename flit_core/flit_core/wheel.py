@@ -219,7 +219,7 @@ def make_wheel_in(ini_path, wheel_directory, editable=False):
     return SimpleNamespace(builder=wb, file=wheel_path)
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'srcdir',
@@ -234,7 +234,7 @@ def main():
         '-o',
         help='output directory (defaults to {srcdir}/dist)',
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     outdir = args.srcdir / 'dist' if args.outdir is None else Path(args.outdir)
     print("Building wheel from", args.srcdir)
     pyproj_toml = args.srcdir / 'pyproject.toml'

@@ -3,7 +3,7 @@ from zipfile import ZipFile
 
 from testpath import assert_isfile
 
-from flit_core.wheel import make_wheel_in
+from flit_core.wheel import make_wheel_in, main
 
 samples_dir = Path(__file__).parent / 'samples'
 
@@ -29,3 +29,12 @@ def test_zero_timestamp(tmp_path, monkeypatch):
     # Minimum value for zip timestamps is 1980-1-1
     with ZipFile(info.file, 'r') as zf:
         assert zf.getinfo('module1a.py').date_time == (1980, 1, 1, 0, 0, 0)
+
+
+def test_main(tmp_path):
+    main(['--outdir', str(tmp_path), str(samples_dir / 'pep621')])
+    wheels = list(tmp_path.glob('*.whl'))
+    assert len(wheels) == 1
+    # Minimum value for zip timestamps is 1980-1-1
+    with ZipFile(wheels[0], 'r') as zf:
+        assert 'module1a.py' in zf.namelist()
