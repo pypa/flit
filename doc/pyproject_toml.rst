@@ -417,6 +417,14 @@ These paths:
 
 Exclusions have priority over inclusions.
 
+.. note::
+
+   If you are not using :ref:`build_cmd` but  ``flit_core`` via another build
+   frontend, Flit doesn't doesn't check the VCS for files to include but instead
+   builds a 'minimal' sdist (which includes the files necessary to build a wheel).
+   You'll have to adapt your inclusion/exclusion rules to achieve the same result
+   as you'd get with :ref:`build_cmd`.
+
 External data section
 ---------------------
 

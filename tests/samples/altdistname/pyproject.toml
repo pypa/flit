@@ -7,5 +7,5 @@ module = "package1"
 author = "Sir Robin"
 author-email = "robin@camelot.uk"
 home-page = "http://github.com/sirrobin/package1"
-dist-name = "package-dist1"
+dist-name = "package-Dist1"
 
