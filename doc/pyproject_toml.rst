@@ -428,6 +428,8 @@ Exclusions have priority over inclusions.
 External data section
 ---------------------
 
+.. versionadded:: 3.7
+
 Data files which your code will use should go inside the Python package folder.
 Flit will package these with no special configuration.
 
@@ -450,6 +452,11 @@ depends on how your package is installed and how those systems are configured.
 For instance, installing in a virtualenv usually doesn't affect anything outside
 that environment. Don't rely on these files being picked up unless you have
 close control of how the package will be installed.
+
+If you install a package with ``flit install --symlink``, a symlink is made
+for each file in the external data directory. Otherwise (including development
+installs with ``pip install -e``), these files are copied to their destination,
+so changes here won't take effect until you reinstall the package.
 
 .. note::
 
