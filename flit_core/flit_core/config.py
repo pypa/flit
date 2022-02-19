@@ -3,8 +3,7 @@ from email.headerregistry import Address
 import errno
 import logging
 import os
-import os.path as osp
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 
 from .vendor import tomli
@@ -177,6 +176,37 @@ def flatten_entrypoints(ep):
         res.update(_flatten(v, k))
     return res
 
+def posix_normpath(path):
+    """Normalize path, eliminating double slashes, etc."""
+    path = str(path)
+    sep = '/'
+    empty = ''
+    dot = '.'
+    dotdot = '..'
+    if path == empty:
+        return dot
+    initial_slashes = path.startswith(sep)
+    # POSIX allows one or two initial slashes, but treats three or more
+    # as single slash.
+    # (see http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_13)
+    if (initial_slashes and
+        path.startswith(sep*2) and not path.startswith(sep*3)):
+        initial_slashes = 2
+    comps = path.split(sep)
+    new_comps = []
+    for comp in comps:
+        if comp in (empty, dot):
+            continue
+        if (comp != dotdot or (not initial_slashes and not new_comps) or
+             (new_comps and new_comps[-1] == dotdot)):
+            new_comps.append(comp)
+        elif new_comps:
+            new_comps.pop()
+    comps = new_comps
+    path = sep.join(comps)
+    if initial_slashes:
+        path = sep*initial_slashes + path
+    return PurePosixPath(path or dot)
 
 def _check_glob_patterns(pats, clude):
     """Check and normalise glob patterns for sdist include/exclude"""
@@ -201,18 +231,18 @@ def _check_glob_patterns(pats, clude):
                 .format(clude, p)
             )
 
-        normp = osp.normpath(p)
+        normp = posix_normpath(PurePosixPath(p))
 
-        if osp.isabs(normp):
+        if normp.is_absolute():
             raise ConfigError(
                 '{} pattern {!r} is an absolute path'.format(clude, p)
             )
-        if osp.normpath(p).startswith('..' + os.sep):
+        if PurePosixPath(normp.parts[0]) == PurePosixPath('..'):
             raise ConfigError(
                 '{} pattern {!r} points out of the directory containing pyproject.toml'
                 .format(clude, p)
             )
-        normed.append(normp)
+        normed.append(str(normp))
 
     return normed
 
@@ -243,7 +273,7 @@ readme_ext_to_content_type = {
 
 
 def description_from_file(rel_path: str, proj_dir: Path, guess_mimetype=True):
-    if osp.isabs(rel_path):
+    if PurePosixPath(rel_path).is_absolute():
         raise ConfigError("Readme path must be relative")
 
     desc_path = proj_dir / rel_path

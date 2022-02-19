@@ -23,9 +23,9 @@ class Module(object):
         # It must exist either as a .py file or a directory, but not both
         name_as_path = name.replace('.', os.sep)
         pkg_dir = directory / name_as_path
-        py_file = directory / (name_as_path+'.py')
+        py_file = Path(directory, name_as_path).with_suffix('.py')
         src_pkg_dir = directory / 'src' / name_as_path
-        src_py_file = directory / 'src' / (name_as_path+'.py')
+        src_py_file = Path(directory, 'src', name_as_path).with_suffix('.py')
 
         existing = set()
         if pkg_dir.is_dir():
@@ -76,24 +76,20 @@ class Module(object):
         Yields absolute paths - caller may want to make them relative.
         Excludes any __pycache__ and *.pyc files.
         """
-        def _include(path):
-            name = os.path.basename(path)
-            if (name == '__pycache__') or name.endswith('.pyc'):
-                return False
-            return True
+        def _walk(path):
+            files = []
+            for path in path.iterdir():
+                if path.is_file() and path.suffix != '.pyc':
+                    files.append(path)
+                if path.is_dir() and path.name != '__pycache__':
+                    files.extend(_walk(path))
+            return files
 
         if self.is_package:
             # Ensure we sort all files and directories so the order is stable
-            for dirpath, dirs, files in os.walk(str(self.path)):
-                for file in sorted(files):
-                    full_path = os.path.join(dirpath, file)
-                    if _include(full_path):
-                        yield full_path
-
-                dirs[:] = [d for d in sorted(dirs) if _include(d)]
-
+            return sorted(_walk(self.path))
         else:
-            yield str(self.path)
+            return [self.path]
 
 class ProblemInModule(ValueError): pass
 class NoDocstringError(ProblemInModule): pass

@@ -1,5 +1,4 @@
 from io import BytesIO
-import os.path as osp
 from pathlib import Path
 import tarfile
 from testpath import assert_isfile
@@ -46,6 +45,6 @@ def test_include_exclude():
     )
     files = builder.apply_includes_excludes(builder.select_files())
 
-    assert osp.join('doc', 'test.rst') in files
-    assert osp.join('doc', 'test.txt') not in files
-    assert osp.join('doc', 'subdir', 'test.txt') in files
+    assert Path('doc').joinpath('test.rst') in files
+    assert Path('doc').joinpath('test.txt') not in files
+    assert Path('doc').joinpath('subdir').joinpath('test.txt') in files

@@ -5,9 +5,8 @@ import hashlib
 import io
 import logging
 import os
-import os.path as osp
 import stat
-import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Optional
 import zipfile
@@ -57,7 +56,7 @@ def zip_timestamp_from_env() -> Optional[tuple]:
 
 
 class WheelBuilder:
-    def __init__(self, directory, module, metadata, entrypoints, target_fp):
+    def __init__(self, directory, module, metadata, entrypoints, target_buffer):
         """Build a wheel from a module/package
         """
         self.directory = directory
@@ -69,11 +68,11 @@ class WheelBuilder:
         self.source_time_stamp = zip_timestamp_from_env()
 
         # Open the zip file ready to write
-        self.wheel_zip = zipfile.ZipFile(target_fp, 'w',
+        self.wheel_zip = zipfile.ZipFile(target_buffer, 'w',
                              compression=zipfile.ZIP_DEFLATED)
 
     @classmethod
-    def from_ini_path(cls, ini_path, target_fp):
+    def from_ini_path(cls, ini_path, target_buffer):
         # Local import so bootstrapping doesn't try to load toml
         from .config import read_flit_config
         directory = ini_path.parent
@@ -81,7 +80,7 @@ class WheelBuilder:
         entrypoints = ini_info.entrypoints
         module = common.Module(ini_info.module, directory)
         metadata = common.make_metadata(module, ini_info)
-        return cls(directory, module, metadata, entrypoints, target_fp)
+        return cls(directory, module, metadata, entrypoints, target_buffer)
 
     @property
     def dist_info(self):
@@ -150,10 +149,9 @@ class WheelBuilder:
 
     def copy_module(self):
         log.info('Copying package file(s) from %s', self.module.path)
-        source_dir = str(self.module.source_dir)
 
         for full_path in self.module.iter_files():
-            rel_path = osp.relpath(full_path, source_dir)
+            rel_path = full_path.relative_to(self.module.source_dir)
             self._add_file(full_path, rel_path)
 
     def add_pth(self):
@@ -201,17 +199,14 @@ class WheelBuilder:
 def make_wheel_in(ini_path, wheel_directory, editable=False):
     # We don't know the final filename until metadata is loaded, so write to
     # a temporary_file, and rename it afterwards.
-    (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
-    try:
-        with io.open(fd, 'w+b') as fp:
-            wb = WheelBuilder.from_ini_path(ini_path, fp)
-            wb.build(editable)
+    wheel_directory = Path(wheel_directory)
+    with io.BytesIO() as buffer:
+        wb = WheelBuilder.from_ini_path(ini_path, buffer)
+        wb.build(editable)
 
         wheel_path = wheel_directory / wb.wheel_filename
-        os.replace(temp_path, str(wheel_path))
-    except:
-        os.unlink(temp_path)
-        raise
+        with wheel_path.open(mode='w+b') as wp:
+            wp.write(buffer.getvalue())
 
     log.info("Built wheel: %s", wheel_path)
     return SimpleNamespace(builder=wb, file=wheel_path)
