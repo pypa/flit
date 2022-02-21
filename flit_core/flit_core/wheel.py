@@ -1,3 +1,4 @@
+import argparse
 from base64 import urlsafe_b64encode
 import contextlib
 from datetime import datetime
@@ -8,6 +9,7 @@ import os
 import os.path as osp
 import stat
 import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Optional
 import zipfile
@@ -228,3 +230,30 @@ def make_wheel_in(ini_path, wheel_directory, editable=False):
 
     log.info("Built wheel: %s", wheel_path)
     return SimpleNamespace(builder=wb, file=wheel_path)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'srcdir',
+        type=Path,
+        nargs='?',
+        default=Path.cwd(),
+        help='source directory (defaults to current directory)',
+    )
+
+    parser.add_argument(
+        '--outdir',
+        '-o',
+        help='output directory (defaults to {srcdir}/dist)',
+    )
+    args = parser.parse_args(argv)
+    outdir = args.srcdir / 'dist' if args.outdir is None else Path(args.outdir)
+    print("Building wheel from", args.srcdir)
+    pyproj_toml = args.srcdir / 'pyproject.toml'
+    outdir.mkdir(parents=True, exist_ok=True)
+    info = make_wheel_in(pyproj_toml, outdir)
+    print("Wheel built", outdir / info.file.name)
+
+if __name__ == "__main__":
+    main()

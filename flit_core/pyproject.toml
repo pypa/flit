@@ -19,3 +19,6 @@ dynamic = ["version"]
 
 [project.urls]
 Source = "https://github.com/pypa/flit"
+
+[tool.flit.sdist]
+include = ["bootstrap_install.py", "build_dists.py"]
