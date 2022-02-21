@@ -425,6 +425,8 @@ Exclusions have priority over inclusions.
    You'll have to adapt your inclusion/exclusion rules to achieve the same result
    as you'd get with :ref:`build_cmd`.
 
+.. _pyproject_toml_external_data:
+
 External data section
 ---------------------
 
