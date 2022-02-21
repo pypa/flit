@@ -72,13 +72,14 @@ class SdistBuilder:
     which is what should normally be published to PyPI.
     """
     def __init__(self, module, metadata, cfgdir, reqs_by_extra, entrypoints,
-                 extra_files, include_patterns=(), exclude_patterns=()):
+                 extra_files, data_directory, include_patterns=(), exclude_patterns=()):
         self.module = module
         self.metadata = metadata
         self.cfgdir = cfgdir
         self.reqs_by_extra = reqs_by_extra
         self.entrypoints = entrypoints
         self.extra_files = extra_files
+        self.data_directory = data_directory
         self.includes = FilePatterns(include_patterns, str(cfgdir))
         self.excludes = FilePatterns(exclude_patterns, str(cfgdir))
 
@@ -93,8 +94,8 @@ class SdistBuilder:
         extra_files = [ini_path.name] + ini_info.referenced_files
         return cls(
             module, metadata, srcdir, ini_info.reqs_by_extra,
-            ini_info.entrypoints, extra_files, ini_info.sdist_include_patterns,
-            ini_info.sdist_exclude_patterns,
+            ini_info.entrypoints, extra_files, ini_info.data_directory,
+            ini_info.sdist_include_patterns, ini_info.sdist_exclude_patterns,
         )
 
     def prep_entry_points(self):
@@ -115,6 +116,8 @@ class SdistBuilder:
         cfgdir_s = str(self.cfgdir)
         return [
             osp.relpath(p, cfgdir_s) for p in self.module.iter_files()
+        ] + [
+            osp.relpath(p, cfgdir_s) for p in common.walk_data_dir(self.data_directory)
         ] + self.extra_files
 
     def apply_includes_excludes(self, files):

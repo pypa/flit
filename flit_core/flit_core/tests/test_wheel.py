@@ -29,3 +29,10 @@ def test_zero_timestamp(tmp_path, monkeypatch):
     # Minimum value for zip timestamps is 1980-1-1
     with ZipFile(info.file, 'r') as zf:
         assert zf.getinfo('module1a.py').date_time == (1980, 1, 1, 0, 0, 0)
+
+
+def test_data_dir(tmp_path):
+    info = make_wheel_in(samples_dir / 'with_data_dir' / 'pyproject.toml', tmp_path)
+    assert_isfile(info.file)
+    with ZipFile(info.file, 'r') as zf:
+        assert 'module1-0.1.data/data/share/man/man1/foo.1' in zf.namelist()

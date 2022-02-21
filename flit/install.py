@@ -196,6 +196,17 @@ class Installer(object):
 
                 self.installed_files.append(cmd_file)
 
+    def install_data_dir(self, target_data_dir):
+        for src_path in common.walk_data_dir(self.ini_info.data_directory):
+            rel_path = os.path.relpath(src_path, self.ini_info.data_directory)
+            dst_path = os.path.join(target_data_dir, rel_path)
+            os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+            if self.symlink:
+                os.symlink(os.path.realpath(src_path), dst_path)
+            else:
+                shutil.copy2(src_path, dst_path)
+            self.installed_files.append(dst_path)
+
     def _record_installed_directory(self, path):
         for dirpath, dirnames, files in os.walk(path):
             for f in files:
@@ -331,6 +342,8 @@ class Installer(object):
 
         scripts = self.ini_info.entrypoints.get('console_scripts', {})
         self.install_scripts(scripts, dirs['scripts'])
+
+        self.install_data_dir(dirs['data'])
 
         self.write_dist_info(dirs['purelib'])
 

@@ -120,7 +120,7 @@ def prep_toml_config(d, path):
         )
 
     unknown_sections = set(dtool) - {
-        'metadata', 'module', 'scripts', 'entrypoints', 'sdist'
+        'metadata', 'module', 'scripts', 'entrypoints', 'sdist', 'external-data'
     }
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
@@ -141,6 +141,27 @@ def prep_toml_config(d, path):
         loaded_cfg.sdist_exclude_patterns = _check_glob_patterns(
             dtool['sdist'].get('exclude', []), 'exclude'
         )
+
+    data_dir = dtool.get('external-data', {}).get('directory', None)
+    if data_dir is not None:
+        toml_key = "tool.flit.external-data.directory"
+        if not isinstance(data_dir, str):
+            raise ConfigError(f"{toml_key} must be a string")
+
+        normp = osp.normpath(data_dir)
+        if osp.isabs(normp):
+            raise ConfigError(f"{toml_key} cannot be an absolute path")
+        if normp.startswith('..' + os.sep):
+            raise ConfigError(
+                f"{toml_key} cannot point outside the directory containing pyproject.toml"
+            )
+        if normp == '.':
+            raise ConfigError(
+                f"{toml_key} cannot refer to the directory containing pyproject.toml"
+            )
+        loaded_cfg.data_directory = path.parent / data_dir
+        if not loaded_cfg.data_directory.is_dir():
+            raise ConfigError(f"{toml_key} must refer to a directory")
 
     return loaded_cfg
 
@@ -207,7 +228,7 @@ def _check_glob_patterns(pats, clude):
             raise ConfigError(
                 '{} pattern {!r} is an absolute path'.format(clude, p)
             )
-        if osp.normpath(p).startswith('..' + os.sep):
+        if normp.startswith('..' + os.sep):
             raise ConfigError(
                 '{} pattern {!r} points out of the directory containing pyproject.toml'
                 .format(clude, p)
@@ -227,6 +248,7 @@ class LoadedConfig(object):
         self.sdist_include_patterns = []
         self.sdist_exclude_patterns = []
         self.dynamic_metadata = []
+        self.data_directory = None
 
     def add_scripts(self, scripts_dict):
         if scripts_dict:
