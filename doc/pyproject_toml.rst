@@ -425,5 +425,42 @@ Exclusions have priority over inclusions.
    You'll have to adapt your inclusion/exclusion rules to achieve the same result
    as you'd get with :ref:`build_cmd`.
 
+External data section
+---------------------
+
+.. versionadded:: 3.7
+
+Data files which your code will use should go inside the Python package folder.
+Flit will package these with no special configuration.
+
+However, sometimes it's useful to package external files for system integration,
+such as man pages or files defining a Jupyter extension. To do this, arrange
+the files within a directory such as ``data``, next to your ``pyproject.toml``
+file, and add a section like this:
+
+.. code-block:: toml
+
+    [tool.flit.external-data]
+    directory = "data"
+
+Paths within this directory are typically installed to corresponding paths under
+a prefix (such as a virtualenv directory). E.g. you might save a man page for a
+script as ``(data)/share/man/man1/foo.1``.
+
+Whether these files are detected by the systems they're meant to integrate with
+depends on how your package is installed and how those systems are configured.
+For instance, installing in a virtualenv usually doesn't affect anything outside
+that environment. Don't rely on these files being picked up unless you have
+close control of how the package will be installed.
+
+If you install a package with ``flit install --symlink``, a symlink is made
+for each file in the external data directory. Otherwise (including development
+installs with ``pip install -e``), these files are copied to their destination,
+so changes here won't take effect until you reinstall the package.
+
+.. note::
+
+   For users coming from setuptools: external data corresponds to setuptools'
+   ``data_files`` parameter, although setuptools offers more flexibility.
 
 .. _environment marker: https://www.python.org/dev/peps/pep-0508/#environment-markers
