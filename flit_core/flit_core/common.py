@@ -421,8 +421,8 @@ def dist_info_name(distribution, version):
 def walk_data_dir(data_directory):
     """Iterate over the files in the given data directory.
 
-    Yields absolute paths - caller may want to make them relative.
-    Excludes any __pycache__ subdirectories.
+    Yields paths prefixed with data_directory - caller may want to make them
+    relative to that. Excludes any __pycache__ subdirectories.
     """
     if data_directory is None:
         return
