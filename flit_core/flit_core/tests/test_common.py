@@ -75,6 +75,11 @@ class ModuleTests(TestCase):
                                 'version': '1.2.3'}
                          )
 
+        info = get_info_from_module(Module('package1', samples_dir / 'imported_version'))
+        self.assertEqual(info, {'summary': 'This module has a __version__ that requires a relative import',
+                                'version': '0.5.8'}
+                         )
+
         with self.assertRaises(InvalidVersion):
             get_info_from_module(Module('invalid_version1', samples_dir))
 
