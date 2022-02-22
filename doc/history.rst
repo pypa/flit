@@ -1,6 +1,21 @@
 Release history
 ===============
 
+Version 3.7
+-----------
+
+- Support for :ref:`external data files <pyproject_toml_external_data>` such
+  as man pages or Jupyter extension support files (:ghpull:`510`).
+- Project names are now lowercase in wheel filenames and ``.dist-info`` folder
+  names, in line with the specifications (:ghpull:`498`).
+- Improved support for :doc:`bootstrapping <bootstrap>` a Python environment,
+  e.g. for downstream packagers (:ghpull:`511`). ``flit_core.wheel`` is usable
+  with ``python -m`` to create wheels before the `build <https://pypi.org/project/build/>`_
+  tool is available, and ``flit_core`` sdists also include a script to install
+  itself from a wheel before `installer <https://pypi.org/project/installer/>`_
+  is available.
+- Use newer importlib APIs, fixing some deprecation warnings (:ghpull:`499`).
+
 Version 3.6
 -----------
 
