@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import hashlib
 import logging
 import os
+import sys
 
 from pathlib import Path
 import re
@@ -168,7 +169,15 @@ def get_docstring_and_version_via_import(target):
     spec = spec_from_file_location(mod_name, target.file)
     with _module_load_ctx():
         m = module_from_spec(spec)
-        spec.loader.exec_module(m)
+        # Add the module to sys.modules to allow relative imports to work.
+        # importlib has more code around this to handle the case where two
+        # threads are trying to load the same module at the same time, but Flit
+        # should always be running a single thread, so we won't duplicate that.
+        sys.modules[mod_name] = m
+        try:
+            spec.loader.exec_module(m)
+        finally:
+            sys.modules.pop(mod_name, None)
 
     docstring = m.__dict__.get('__doc__', None)
     version = m.__dict__.get('__version__', None)
