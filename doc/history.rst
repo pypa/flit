@@ -1,6 +1,12 @@
 Release history
 ===============
 
+Version 3.7.1
+-------------
+
+- Fix building packages which need execution to get the version number,
+  and have a relative import in ``__init__.py`` (:ghpull:`531`).
+
 Version 3.7
 -----------
 
