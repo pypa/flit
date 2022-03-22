@@ -508,7 +508,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                 )
             lc.referenced_files.append(license_tbl['file'])
         elif 'text' in license_tbl:
-            pass
+            md_dict['license'] = license_tbl['text']
         else:
             raise ConfigError(
                 "file or text field required in [project.license] table"
