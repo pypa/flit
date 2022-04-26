@@ -206,8 +206,7 @@ def main(argv=None):
         try:
             python = find_python_executable(args.python)
             Installer.from_ini_path(args.ini_file, user=args.user, python=python,
-                      symlink=args.symlink, deps=args.deps, extras=args.extras,
-                      pth=args.pth_file).install_requirements()
+                      deps=args.deps, extras=args.extras).install_requirements()
         except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
 
