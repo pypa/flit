@@ -12,7 +12,7 @@ def test_flit_usage():
     assert 'Build wheel' in out.decode('utf-8', 'replace')
     assert p.poll() == 1
 
-    def test_flit_install_reqs():
+def test_flit_install_reqs():
     p = Popen([sys.executable, '-m', 'flit', 'install-reqs'], stdout=PIPE, stderr=STDOUT)
     out, _ = p.communicate()
     assert 'pip' in out.decode('utf-8', 'replace')
