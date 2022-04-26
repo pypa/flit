@@ -57,7 +57,14 @@ def add_shared_install_options(parser: argparse.ArgumentParser):
     parser.add_argument('--python',
         help="Target Python executable, if different from the one running flit"
     )
-
+    parser.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
+        help="Which set of dependencies to install. If --deps=develop, the extras dev, doc, and test are installed"
+    )
+    parser.add_argument('--extras', default=(), type=lambda l: l.split(',') if l else (),
+        help="Install the dependencies of these (comma separated) extras additionally to the ones implied by --deps. "
+             "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
+    )
+    
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
@@ -134,26 +141,12 @@ def main(argv=None):
         help="Add .pth file for the module/package to site packages instead of copying it"
     )
     add_shared_install_options(parser_install)
-    parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
-        help="Which set of dependencies to install. If --deps=develop, the extras dev, doc, and test are installed"
-    )
-    parser_install.add_argument('--extras', default=(), type=lambda l: l.split(',') if l else (),
-        help="Install the dependencies of these (comma separated) extras additionally to the ones implied by --deps. "
-             "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
-    )
 
     # flit install-reqs ----------------------------------------
     parser_install_reqs = subparsers.add_parser('install-reqs',
         help="Install the package requirements",
     )
     add_shared_install_options(parser_install_reqs)
-    parser_install_reqs.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
-        help="Which set of dependencies to install. If --deps=develop, the extras dev, doc, and test are installed"
-    )
-    parser_install_reqs.add_argument('--extras', default=(), type=lambda l: l.split(',') if l else (),
-        help="Install the dependencies of these (comma separated) extras additionally to the ones implied by --deps. "
-             "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
-    )
 
     # flit init --------------------------------------------
     parser_init = subparsers.add_parser('init',
