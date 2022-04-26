@@ -77,13 +77,11 @@ To install a package locally for development, run::
 
 Flit packages a single importable module or package at a time, using the import
 name as the name on PyPI. All subpackages and data files within a package are
-included automatically.
-
-To install only the package's requirements if preparing a container or image, run::
+included automatically. To only install only the package's requirements if preparing a container or image, run::
 
     flit install-reqs [--deps 'all']
 
-This is the equivlant of running 'pip install -r requirements.txt'.
+This is the similiar to the previously common technique of running 'pip install -r requirements.txt'.
 The 'deps' flag can also be used to filter to particular extras collections. For example, to install test requirements, run:: 
     
     flit install-reqs --deps 'test'
