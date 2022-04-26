@@ -142,6 +142,19 @@ def main(argv=None):
              "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
     )
 
+    # flit install-reqs ----------------------------------------
+    parser_install = subparsers.add_parser('install-reqs',
+        help="Install the package",
+    )
+    add_shared_install_options(parser_install)
+    parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
+        help="Which set of dependencies to install. If --deps=develop, the extras dev, doc, and test are installed"
+    )
+    parser_install.add_argument('--extras', default=(), type=lambda l: l.split(',') if l else (),
+        help="Install the dependencies of these (comma separated) extras additionally to the ones implied by --deps. "
+             "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
+    )
+
     # flit init --------------------------------------------
     parser_init = subparsers.add_parser('init',
         help="Prepare pyproject.toml for a new package"
@@ -195,9 +208,20 @@ def main(argv=None):
         except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
 
+    elif args.subcmd == 'install-reqs':
+        from .install import Installer
+        try:
+            python = find_python_executable(args.python)
+            Installer.from_ini_path(args.ini_file, user=args.user, python=python,
+                      symlink=args.symlink, deps=args.deps, extras=args.extras,
+                      pth=args.pth_file).install_requirements()
+        except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:
+            sys.exit(e.args[0])
+
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()
+        
     else:
         ap.print_help()
         sys.exit(1)
