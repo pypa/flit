@@ -16,4 +16,4 @@ def test_flit_install_reqs():
     p = Popen([sys.executable, '-m', 'flit', 'install-reqs'], stdout=PIPE, stderr=STDOUT)
     out, _ = p.communicate()
     assert 'pip' in out.decode('utf-8', 'replace')
-    assert p.poll() == 1
+    assert p.poll() == 0
