@@ -143,14 +143,14 @@ def main(argv=None):
     )
 
     # flit install-reqs ----------------------------------------
-    parser_install = subparsers.add_parser('install-reqs',
+    parser_install_reqs = subparsers.add_parser('install-reqs',
         help="Install the package requirements",
     )
-    add_shared_install_options(parser_install)
-    parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
+    add_shared_install_options(parser_install_reqs)
+    parser_install_reqs.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
         help="Which set of dependencies to install. If --deps=develop, the extras dev, doc, and test are installed"
     )
-    parser_install.add_argument('--extras', default=(), type=lambda l: l.split(',') if l else (),
+    parser_install_reqs.add_argument('--extras', default=(), type=lambda l: l.split(',') if l else (),
         help="Install the dependencies of these (comma separated) extras additionally to the ones implied by --deps. "
              "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
     )
