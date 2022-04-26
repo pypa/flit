@@ -221,7 +221,6 @@ def main(argv=None):
     elif args.subcmd == 'init':
         from .init import TerminalIniter
         TerminalIniter().initialise()
-        
     else:
         ap.print_help()
         sys.exit(1)
