@@ -144,7 +144,7 @@ def main(argv=None):
 
     # flit install-reqs ----------------------------------------
     parser_install = subparsers.add_parser('install-reqs',
-        help="Install the package",
+        help="Install the package requirements",
     )
     add_shared_install_options(parser_install)
     parser_install.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
