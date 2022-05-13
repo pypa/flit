@@ -216,11 +216,6 @@ def _check_glob_patterns(pats, clude):
                 '{} pattern {!r} contains bad characters (<>:\"\\ or control characters)'
                 .format(clude, p)
             )
-        if '**' in p:
-            raise ConfigError(
-                "Recursive globbing (**) is not supported yet (in {} pattern {!r})"
-                .format(clude, p)
-            )
 
         normp = osp.normpath(p)
 

@@ -1,6 +1,11 @@
 Release history
 ===============
 
+Unreleased
+----------
+
+- Add support for recursive globbing (``**``) in sdist includes and excludes (:ghpull:`550`).
+
 Version 3.7.1
 -------------
 
