@@ -77,21 +77,19 @@ def test_get_repository_env():
 
 @contextmanager
 def _fake_keyring(pw):
-    real_keyring = sys.modules.get('keyring', None)
     class FakeKeyring:
         @staticmethod
         def get_password(service_name, username):
             return pw
 
-    sys.modules['keyring'] = FakeKeyring()
+    class FakeKeyringErrMod:
+        class KeyringError(Exception):
+            pass
 
-    try:
+    with patch.dict('sys.modules', {
+        'keyring': FakeKeyring(), 'keyring.errors': FakeKeyringErrMod(),
+    }):
         yield
-    finally:
-        if real_keyring is None:
-            del sys.modules['keyring']
-        else:
-            sys.modules['keyring'] = real_keyring
 
 pypirc2 = """
 [distutils]
