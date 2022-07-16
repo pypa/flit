@@ -21,7 +21,7 @@ def _repo_paths_to_directory_paths(paths, directory):
 
 
 def list_tracked_files(directory):
-    outb = check_output(['hg', 'status', '--clean', '--added', '--no-status'],
+    outb = check_output(['hg', 'status', '--clean', '--added', '--modified', '--no-status'],
                         cwd=str(directory))
     paths = [os.fsdecode(l) for l in outb.strip().splitlines()]
     return _repo_paths_to_directory_paths(paths, directory)
