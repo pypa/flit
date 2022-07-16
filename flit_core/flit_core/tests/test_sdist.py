@@ -49,6 +49,7 @@ def test_include_exclude():
     assert osp.join('doc', 'test.rst') in files
     assert osp.join('doc', 'test.txt') not in files
     assert osp.join('doc', 'subdir', 'test.txt') in files
+    assert osp.join('doc', 'subdir', 'subsubdir', 'test.md') not in files
 
 
 def test_data_dir():

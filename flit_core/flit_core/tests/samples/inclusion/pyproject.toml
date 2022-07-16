@@ -9,4 +9,4 @@ author-email = "robin@camelot.uk"
 
 [tool.flit.sdist]
 include = ["doc"]
-exclude = ["doc/*.txt"]
+exclude = ["doc/*.txt", "doc/**/*.md"]

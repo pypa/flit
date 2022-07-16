@@ -43,7 +43,7 @@ class FilePatterns:
         self.files = set()
 
         for pattern in patterns:
-            for path in sorted(glob(osp.join(basedir, pattern))):
+            for path in sorted(glob(osp.join(basedir, pattern), recursive=True)):
                 rel = osp.relpath(path, basedir)
                 if osp.isdir(path):
                     self.dirs.add(rel)

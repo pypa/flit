@@ -108,7 +108,6 @@ def test_faulty_requires_extra(erroneous, match):
     ('foo/../../bar', 'out of the directory'),
     ('/home', 'absolute path'),
     ('foo:bar', 'bad character'),
-    ('foo/**/bar', '[Rr]ecursive glob')
 ])
 def test_bad_include_paths(path, err_match):
     toml_cfg = {'tool': {'flit': {
