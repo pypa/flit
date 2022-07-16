@@ -8,7 +8,7 @@ from pprint import pformat
 import tarfile
 
 from flit_core.sdist import SdistBuilder as SdistBuilderCore
-from flit_core.common import Module, VCSError
+from flit_core.common import Module, VCSError, include_path
 from flit.vcs import identify_vcs
 
 log = logging.getLogger(__name__)
@@ -93,12 +93,6 @@ def auto_packages(module: Module):
     pkg_data = {k: sorted(v) for (k, v) in pkg_data.items()}
 
     return sorted(packages), pkg_data
-
-
-def include_path(p):
-    return not (p.startswith('dist' + os.sep)
-                or (os.sep+'__pycache__' in p)
-                or p.endswith('.pyc'))
 
 
 def _parse_req(requires_dist):

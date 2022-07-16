@@ -77,24 +77,22 @@ class Module(object):
         Yields absolute paths - caller may want to make them relative.
         Excludes any __pycache__ and *.pyc files.
         """
-        def _include(path):
-            name = os.path.basename(path)
-            if (name == '__pycache__') or name.endswith('.pyc'):
-                return False
-            return True
-
         if self.is_package:
             # Ensure we sort all files and directories so the order is stable
             for dirpath, dirs, files in os.walk(str(self.path)):
                 for file in sorted(files):
                     full_path = os.path.join(dirpath, file)
-                    if _include(full_path):
+                    if include_path(full_path):
                         yield full_path
-
-                dirs[:] = [d for d in sorted(dirs) if _include(d)]
 
         else:
             yield str(self.path)
+
+
+def include_path(p):
+    return not (p.startswith('dist' + os.sep)
+                or (os.sep+'__pycache__' in p)
+                or p.endswith('.pyc'))
 
 class ProblemInModule(ValueError): pass
 class NoDocstringError(ProblemInModule): pass
