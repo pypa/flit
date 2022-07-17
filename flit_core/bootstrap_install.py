@@ -14,6 +14,8 @@ site-packages or equivalent directory with the --installdir option.
 import argparse
 import sys
 import sysconfig
+import os
+import compileall
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -44,6 +46,13 @@ if __name__ == "__main__":
         default=None,
         help='optional prefix for installdir'
     )
+    parser.add_argument(
+        '-o',
+        dest='bytecode',
+        type=int,
+        action='append',
+        help='Build bytecode with optimization levels'
+    )
 
     args = parser.parse_args()
 
@@ -58,3 +67,5 @@ if __name__ == "__main__":
             sys.exit(f"{installdir} is not a directory")
 
     extract_wheel(args.wheel, installdir)
+    if args.bytecode:
+        compileall.compile_dir(os.fspath(installdir), optimize=args.bytecode)
