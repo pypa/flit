@@ -37,12 +37,21 @@ if __name__ == "__main__":
         default=purelib,
         help=f'installdir directory (defaults to {purelib})',
     )
+    parser.add_argument(
+        '--install-root',
+        type=Path,
+        default=None,
+        help='if given, installdir is considered to be under this'
+    )
 
     args = parser.parse_args()
 
     if not args.wheel.name.startswith('flit_core-'):
         sys.exit("Use this script only for flit_core wheels")
-    if not args.installdir.is_dir():
-        sys.exit(f"{args.installdir} is not a directory")
+    if args.install_root:
+        installdir = args.install_root / args.installdir.relative_to("/")
+    else:
+        installdir = args.installdir
 
-    extract_wheel(args.wheel, args.installdir)
+    installdir.mkdir(parents=True, exist_ok=True)
+    extract_wheel(args.wheel, installdir)
