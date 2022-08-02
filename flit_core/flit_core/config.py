@@ -7,7 +7,11 @@ import os.path as osp
 from pathlib import Path
 import re
 
-from .vendor import tomli
+try:
+    import tomllib
+except ImportError:
+    from .vendor import tomli as tomllib
+
 from .versionno import normalise_version
 
 log = logging.getLogger(__name__)
@@ -66,7 +70,7 @@ pep621_allowed_fields = {
 def read_flit_config(path):
     """Read and check the `pyproject.toml` file with data about the package.
     """
-    d = tomli.loads(path.read_text('utf-8'))
+    d = tomllib.loads(path.read_text('utf-8'))
     return prep_toml_config(d, path)
 
 
