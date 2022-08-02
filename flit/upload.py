@@ -145,14 +145,17 @@ def get_password(repo, prefer_env):
         return repo['password']
 
     try:
-        import keyring
+        import keyring, keyring.errors
     except ImportError:  # pragma: no cover
         log.warning("Install keyring to store passwords securely")
         keyring = None
     else:
-        stored_pw = keyring.get_password(repo['url'], repo['username'])
-        if stored_pw is not None:
-            return stored_pw
+        try:
+            stored_pw = keyring.get_password(repo['url'], repo['username'])
+            if stored_pw is not None:
+                return stored_pw
+        except keyring.errors.KeyringError as e:
+            log.warning("Could not get password from keyring (%s)", e)
 
     if sys.stdin.isatty():
         pw = None
@@ -164,8 +167,11 @@ def get_password(repo, prefer_env):
         raise Exception("Could not find password for upload.")
 
     if keyring is not None:
-        keyring.set_password(repo['url'], repo['username'], pw)
-        log.info("Stored password with keyring")
+        try:
+            keyring.set_password(repo['url'], repo['username'], pw)
+            log.info("Stored password with keyring")
+        except keyring.errors.KeyringError as e:
+            log.warning("Could not store password in keyring (%s)", e)
 
     return pw
 
