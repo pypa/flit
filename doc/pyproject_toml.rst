@@ -69,8 +69,9 @@ The allowed fields are:
 
 name
   The name your package will have on PyPI. This field is required. For Flit,
-  this also points to your package as an import name by default (see
-  :ref:`pyproject_module` if that needs to be different).
+  this name, with any hyphens replaced by underscores, is also the default value
+  of the import name (see :ref:`pyproject_module` if that needs to be
+  different).
 version
   Version number as a string. If you want Flit to get this from a
   ``__version__`` attribute, leave it out of the TOML config and include
@@ -232,6 +233,10 @@ you should specify the install (PyPI) name in the ``[project]`` table
 
     [tool.flit.module]
     name = "nsist"
+
+Flit looks for the source of the package by its import name. The source may be
+located either in the directory that holds the ``pyproject.toml`` file, or in a
+``src/`` subdirectory.
 
 .. _pyproject_old_metadata:
 
