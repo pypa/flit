@@ -398,7 +398,7 @@ class Metadata(object):
     def supports_py2(self):
         """Return True if Requires-Python indicates Python 2 support."""
         for part in (self.requires_python or "").split(","):
-            if re.search(r"^\s*(>\s*(=\s*)?)?[3-9]", part):
+            if re.search(r"^\s*(>=?|~=|===?)?\s*?[3-9]", part):
                 return False
         return True
 
