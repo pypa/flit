@@ -113,6 +113,8 @@ def test_normalize_file_permissions():
         ("<4, > 3.2", False),
         (">3.4", False),
         (">=2.7, !=3.0.*, !=3.1.*, !=3.2.*", True),
+        ("~3.3", False),
+        ("~2.7", True),
     ],
 )
 def test_supports_py2(requires_python, expected_result):
