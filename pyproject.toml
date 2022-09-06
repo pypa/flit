@@ -37,9 +37,9 @@ doc = [
 ]
 
 [project.urls]
-Documentation = "https://flit.readthedocs.io/en/latest/"
+Documentation = "https://flit.pypa.io"
 Source = "https://github.com/pypa/flit"
-Changelog = "https://flit.readthedocs.io/en/latest/history.html"
+Changelog = "https://flit.pypa.io/en/stable/history.html"
 
 [project.scripts]
 flit = "flit:main"

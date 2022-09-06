@@ -165,7 +165,7 @@ any names inside it. Here it is for flit:
 .. code-block:: toml
 
   [project.urls]
-  Documentation = "https://flit.readthedocs.io/en/latest/"
+  Documentation = "https://flit.pypa.io"
   Source = "https://github.com/pypa/flit"
 
 .. _pyproject_project_scripts:
@@ -369,7 +369,7 @@ any names inside it. Here it is for flit:
 .. code-block:: toml
 
   [tool.flit.metadata.urls]
-  Documentation = "https://flit.readthedocs.io/en/latest/"
+  Documentation = "https://flit.pypa.io"
 
 .. versionadded:: 1.0
 
