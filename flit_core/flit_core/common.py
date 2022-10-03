@@ -132,18 +132,18 @@ def get_docstring_and_version_via_ast(target):
     for child in node.body:
         # Only use the version from the given module if it's a simple
         # string assignment to __version__
-        if isinstance(child, ast.Assign):
-            for target in child.targets:
-                is_version_str = (
+        is_version_str = (
+                isinstance(child, ast.Assign)
+                and any(
                     isinstance(target, ast.Name)
                     and target.id == "__version__"
-                    and isinstance(child.value, ast.Str)
+                    for target in child.targets
                 )
-                if is_version_str:
-                    version = child.value.s
-                    break
-            else:
-                continue
+                and isinstance(child.value, ast.Str)
+        )
+        if is_version_str:
+            version = child.value.s
+            break
             break
     else:
         version = None
