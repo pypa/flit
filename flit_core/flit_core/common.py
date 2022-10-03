@@ -144,7 +144,6 @@ def get_docstring_and_version_via_ast(target):
         if is_version_str:
             version = child.value.s
             break
-            break
     else:
         version = None
     return ast.get_docstring(node), version
