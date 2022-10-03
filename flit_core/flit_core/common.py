@@ -135,9 +135,11 @@ def get_docstring_and_version_via_ast(target):
         # string assignment to __version__
         is_version_str = (
                 isinstance(child, ast.Assign)
-                and len(child.targets) == 1
-                and isinstance(child.targets[0], ast.Name)
-                and child.targets[0].id == "__version__"
+                and any(
+                    isinstance(target, ast.Name)
+                    and target.id == "__version__"
+                    for target in child.targets
+                )
                 and isinstance(child.value, ast.Str)
         )
         if is_version_str:
