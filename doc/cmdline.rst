@@ -207,6 +207,10 @@ Environment variables
    Set a username, password, and index URL for uploading packages.
    See :ref:`uploading packages with environment variables <upload_envvars>`
    for more information.
+   
+   Token-based upload to PyPI is supported. To upload using PyPI token,
+   set the ``FLIT_USERNAME`` value to ``__token__``, and the ``FLIT_PASSWORD``
+   to the token value.
 
 .. envvar:: FLIT_ALLOW_INVALID
 
