@@ -208,9 +208,9 @@ Environment variables
    See :ref:`uploading packages with environment variables <upload_envvars>`
    for more information.
    
-   Token-based upload to PyPI is supported. To upload using PyPI token,
-   set the ``FLIT_USERNAME`` value to ``__token__``, and the ``FLIT_PASSWORD``
-   to the token value.
+   Token-based upload to PyPI is supported. To upload using a PyPI token,
+   set ``FLIT_USERNAME`` to ``__token__``, and ``FLIT_PASSWORD`` to the
+   token value.
 
 .. envvar:: FLIT_ALLOW_INVALID
 
