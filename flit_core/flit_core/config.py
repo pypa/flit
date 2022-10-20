@@ -10,7 +10,12 @@ import re
 try:
     import tomllib
 except ImportError:
-    from .vendor import tomli as tomllib
+    try:
+        from .vendor import tomli as tomllib
+    # Some downstream distributors remove the vendored tomli.
+    # When that is removed, import tomli from the regular location.
+    except ImportError:
+        import tomli as tomllib
 
 from .versionno import normalise_version
 
