@@ -420,7 +420,8 @@ These paths:
 - Should match the case of the files they refer to, as case-insensitive matching
   is platform dependent
 
-Exclusions have priority over inclusions.
+Exclusions have priority over inclusions. Bytecode is excluded by default and cannot
+be included.
 
 .. note::
 
