@@ -6,7 +6,10 @@ from testpath import assert_isfile
 from unittest.mock import patch
 import pytest
 
-import tomli
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 from flit import init
 
@@ -107,7 +110,7 @@ def test_init():
         generated = Path(td) / 'pyproject.toml'
         assert_isfile(generated)
         with generated.open('rb') as f:
-            data = tomli.load(f)
+            data = tomllib.load(f)
         assert data['project']['authors'][0]['email'] == "test@example.com"
         license = Path(td) / 'LICENSE'
         assert data['project']['license']['file'] == 'LICENSE'
@@ -131,7 +134,7 @@ def test_init_homepage_and_license_are_optional():
         ti = init.TerminalIniter(td)
         ti.initialise()
         with Path(td, 'pyproject.toml').open('rb') as f:
-            data = tomli.load(f)
+            data = tomllib.load(f)
         assert not Path(td, 'LICENSE').exists()
     assert data['project'] == {
         'authors': [{'name': 'Test Author', 'email': 'test_email@example.com'}],
@@ -153,7 +156,7 @@ def test_init_homepage_validator():
         ti = init.TerminalIniter(td)
         ti.initialise()
         with Path(td, 'pyproject.toml').open('rb') as f:
-            data = tomli.load(f)
+            data = tomllib.load(f)
     assert data['project'] == {
         'authors': [{'name': 'Test Author', 'email': 'test_email@example.com'}],
         'name': 'test_module_name',
@@ -174,7 +177,7 @@ def test_author_email_field_is_optional():
         ti = init.TerminalIniter(td)
         ti.initialise()
         with Path(td, 'pyproject.toml').open('rb') as f:
-            data = tomli.load(f)
+            data = tomllib.load(f)
         assert not Path(td, 'LICENSE').exists()
 
     assert data['project'] == {
@@ -215,7 +218,7 @@ def test_init_readme_found_yes_choosen():
         ti = init.TerminalIniter(td)
         ti.initialise()
         with Path(td, 'pyproject.toml').open('rb') as f:
-            data = tomli.load(f)
+            data = tomllib.load(f)
 
     assert data['project'] == {
         'authors': [{'name': 'Test Author', 'email': 'test_email@example.com'}],
