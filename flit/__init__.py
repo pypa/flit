@@ -60,6 +60,9 @@ def add_shared_install_options(parser: argparse.ArgumentParser):
     parser.add_argument('--deps', choices=['all', 'production', 'develop', 'none'], default='all',
         help="Which set of dependencies to install. If --deps=develop, the extras dev, doc, and test are installed"
     )
+    parser.add_argument('--only-deps', action='store_true',
+        help="Install only dependencies of this package, and not the package itself"
+    )
     parser.add_argument('--extras', default=(), type=lambda l: l.split(',') if l else (),
         help="Install the dependencies of these (comma separated) extras additionally to the ones implied by --deps. "
              "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
@@ -142,12 +145,6 @@ def main(argv=None):
     )
     add_shared_install_options(parser_install)
 
-    # flit install-reqs ----------------------------------------
-    parser_install_reqs = subparsers.add_parser('install-reqs',
-        help="Install the package requirements",
-    )
-    add_shared_install_options(parser_install_reqs)
-
     # flit init --------------------------------------------
     parser_init = subparsers.add_parser('init',
         help="Prepare pyproject.toml for a new package"
@@ -195,18 +192,19 @@ def main(argv=None):
         from .install import Installer
         try:
             python = find_python_executable(args.python)
-            Installer.from_ini_path(args.ini_file, user=args.user, python=python,
-                      symlink=args.symlink, deps=args.deps, extras=args.extras,
-                      pth=args.pth_file).install()
-        except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:
-            sys.exit(e.args[0])
-
-    elif args.subcmd == 'install-reqs':
-        from .install import Installer
-        try:
-            python = find_python_executable(args.python)
-            Installer.from_ini_path(args.ini_file, user=args.user, python=python,
-                      deps=args.deps, extras=args.extras).install_requirements()
+            installer = Installer.from_ini_path(
+                args.ini_file,
+                user=args.user,
+                python=python,
+                symlink=args.symlink,
+                deps=args.deps,
+                extras=args.extras,
+                pth=args.pth_file
+            )
+            if args.only_deps:
+                installer.install_requirements()
+            else:
+                installer.install()
         except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:
             sys.exit(e.args[0])
 
