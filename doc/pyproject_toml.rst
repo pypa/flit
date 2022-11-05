@@ -72,6 +72,10 @@ name
   this name, with any hyphens replaced by underscores, is also the default value
   of the import name (see :ref:`pyproject_module` if that needs to be
   different).
+
+  .. versionchanged:: 3.8
+     Hyphens in the project name are now translated to underscores for the
+     import name.
 version
   Version number as a string. If you want Flit to get this from a
   ``__version__`` attribute, leave it out of the TOML config and include
@@ -414,11 +418,13 @@ These paths:
 - Must be relative paths from the directory containing ``pyproject.toml``
 - Cannot go outside that directory (no ``../`` paths)
 - Cannot contain control characters or ``<>:"\\``
-- Cannot use recursive glob patterns (``**/``)
 - Can refer to directories, in which case they include everything under the
   directory, including subdirectories
 - Should match the case of the files they refer to, as case-insensitive matching
   is platform dependent
+
+.. versionchanged:: 3.8
+   Include and exclude patterns can now use recursive glob patterns (``**``).
 
 Exclusions have priority over inclusions. Bytecode is excluded by default and cannot
 be included.

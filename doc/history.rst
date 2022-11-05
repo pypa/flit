@@ -1,10 +1,32 @@
 Release history
 ===============
 
-Unreleased
-----------
+Version 3.8
+-----------
 
-- Add support for recursive globbing (``**``) in sdist includes and excludes (:ghpull:`550`).
+- A project name containing hyphens is now automatically translated to use
+  underscores for the import name (:ghpull:`566`).
+- New option :option:`flit install --only-deps` to install the dependencies of
+  the package, but not the package itself.
+- Add support for recursive globbing (``**``) in sdist includes and excludes
+  (:ghpull:`550`).
+- Python's bytecode cache files (``__pycache__`` folders and ``.pyc`` files)
+  are now always excluded from sdists (:ghpull:`581`).
+- Use tomllib in Python 3.11, rather than tomli (:ghpull:`573`, :ghpull:`604`).
+- Fix crash when unable to get a password from ``keyring`` (:ghpull:`567`).
+- Fix including modified files in sdist when using Mercurial (:ghpull:`541`).
+- Fix for some cases of determining whether a package supports Python 2 or not
+  (:ghpull:`593`).
+- Fix parsing version number from code using multiple assignments (:ghpull:`474`).
+- Document how to use a PyPI token with :envvar:`FLIT_PASSWORD` (:ghpull:`602`).
+- Fix link to information about environment variables for pip (:ghpull:`576`).
+- Link to the docs for the latest stable version in package metadata
+  (:ghpull:`589`).
+- Remove a mention of the ``toml`` package, which is no longer needed, from the
+  :doc:`development` page (:ghpull:`601`).
+- The :doc:`bootstrap <bootstrap>` install script for ``flit_core`` accepts a
+  new ``--install-root`` option.
+- Ensure the license file is included in packages on PyPI (:ghpull:`603`).
 
 Version 3.7.1
 -------------
