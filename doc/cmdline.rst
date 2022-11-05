@@ -137,6 +137,15 @@ Flit guess.
    install all optional dependencies, or a comma-separated list of extras.
    Default depends on ``--deps``.
 
+.. option:: --only-deps
+
+   Install the dependencies of this package, but not the package itself.
+
+   This can be useful for e.g. building a container image, where your own code
+   is copied or mounted into the container at a later stage.
+
+   .. versionadded:: 3.8
+
 .. option:: --user
 
    Do a user-local installation. This is the default if flit is not in a
