@@ -6,6 +6,8 @@ Version 3.8
 
 - A project name containing hyphens is now automatically translated to use
   underscores for the import name (:ghpull:`566`).
+- New option :option:`flit install --only-deps` to install the dependencies of
+  the package, but not the package itself.
 - Add support for recursive globbing (``**``) in sdist includes and excludes
   (:ghpull:`550`).
 - Python's bytecode cache files (``__pycache__`` folders and ``.pyc`` files)
