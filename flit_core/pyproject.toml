@@ -11,6 +11,7 @@ authors=[
 description = "Distribution-building parts of Flit. See flit package for more information"
 dependencies = []
 requires-python = '>=3.6'
+readme = "README.rst"
 license = {file = "LICENSE"}
 classifiers = [
     "License :: OSI Approved :: BSD License",
@@ -19,6 +20,7 @@ classifiers = [
 dynamic = ["version"]
 
 [project.urls]
+Documentation = "https://flit.pypa.io"
 Source = "https://github.com/pypa/flit"
 
 [tool.flit.sdist]
