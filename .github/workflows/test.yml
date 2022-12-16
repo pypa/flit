@@ -19,7 +19,31 @@ jobs:
     strategy:
       matrix:
         platform: ["ubuntu-latest", "windows-latest"]
-        python-version: [ "3.6", "3.7", "3.8", "3.9", "3.10", "3.11-dev" ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11-dev" ]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tox tox-gh-actions codecov
+
+      - name: Run tests
+        run: tox
+
+      - name: Codecov upload
+        run: codecov
+
+  test-py36:
+    runs-on: "ubuntu-20.04"
+    strategy:
+      matrix:
+        python-version: [ "3.6", ]
     steps:
       - uses: actions/checkout@v3
 
