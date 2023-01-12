@@ -60,7 +60,8 @@ def zip_timestamp_from_env() -> Optional[tuple]:
 
 class WheelBuilder:
     def __init__(
-            self, directory, module, metadata, entrypoints, target_fp, data_directory
+            self, directory, module, metadata, entrypoints, target_fp, data_directory,
+            license_files
     ):
         """Build a wheel from a module/package
         """
@@ -69,6 +70,7 @@ class WheelBuilder:
         self.metadata = metadata
         self.entrypoints = entrypoints
         self.data_directory = data_directory
+        self.license_files = license_files
 
         self.records = []
         self.source_time_stamp = zip_timestamp_from_env()
@@ -86,7 +88,8 @@ class WheelBuilder:
         module = common.Module(ini_info.module, directory)
         metadata = common.make_metadata(module, ini_info)
         return cls(
-            directory, module, metadata, entrypoints, target_fp, ini_info.data_directory
+            directory, module, metadata, entrypoints, target_fp, ini_info.data_directory,
+            ini_info.license_files
         )
 
     @property
@@ -181,10 +184,8 @@ class WheelBuilder:
             with self._write_to_zip(self.dist_info + '/entry_points.txt') as f:
                 common.write_entry_points(self.entrypoints, f)
 
-        for base in ('COPYING', 'LICENSE'):
-            for path in sorted(self.directory.glob(base + '*')):
-                if path.is_file():
-                    self._add_file(path, '%s/%s' % (self.dist_info, path.name))
+        for path in self.license_files:
+            self._add_file(path, '%s/%s' % (self.dist_info, path.name))
 
         with self._write_to_zip(self.dist_info + '/WHEEL') as f:
             _write_wheel_file(f, supports_py2=self.metadata.supports_py2)
