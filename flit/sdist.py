@@ -156,7 +156,18 @@ class SdistBuilder(SdistBuilderCore):
     - Add a generated setup.py for compatibility with tools which don't yet know
       about PEP 517.
     """
+    use_vcs = True
+
+    @classmethod
+    def from_ini_path(cls, ini_path: Path, use_vcs=True):
+        inst = super().from_ini_path(ini_path)
+        inst.use_vcs = use_vcs
+        return inst
+
     def select_files(self):
+        if not self.use_vcs:
+            return super().select_files()
+
         vcs_mod = identify_vcs(self.cfgdir)
         if vcs_mod is not None:
             untracked_deleted = vcs_mod.list_untracked_deleted_files(self.cfgdir)

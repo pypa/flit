@@ -260,7 +260,8 @@ def do_upload(file:Path, metadata:Metadata, pypirc_path="~/.pypirc", repo_name=N
         log.info("Package is at %s/%s", repo['url'], metadata.name)
 
 
-def main(ini_path, repo_name, pypirc_path=None, formats=None, gen_setup_py=True):
+def main(ini_path, repo_name, pypirc_path=None, formats=None, gen_setup_py=True,
+         use_vcs=True):
     """Build and upload wheel and sdist."""
     if pypirc_path is None:
         pypirc_path = PYPIRC_DEFAULT
@@ -268,7 +269,9 @@ def main(ini_path, repo_name, pypirc_path=None, formats=None, gen_setup_py=True)
         raise FileNotFoundError("The specified pypirc config file does not exist.")
 
     from . import build
-    built = build.main(ini_path, formats=formats, gen_setup_py=gen_setup_py)
+    built = build.main(
+        ini_path, formats=formats, gen_setup_py=gen_setup_py, use_vcs=use_vcs
+    )
 
     if built.wheel is not None:
         do_upload(built.wheel.file, built.wheel.builder.metadata, pypirc_path, repo_name)
