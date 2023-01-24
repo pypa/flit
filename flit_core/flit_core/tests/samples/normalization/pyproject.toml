@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "my-python-module"
 version = "0.0.1"
-description = "Hyphenated package name, infered import name"
+description = "Hyphenated package name, inferred import name"
 authors = [
     {name = "Sir Robin", email = "robin@camelot.uk"}
 ]
