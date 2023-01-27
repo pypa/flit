@@ -92,7 +92,7 @@ def add_shared_build_options(parser: argparse.ArgumentParser):
     vcs_grp = parser.add_mutually_exclusive_group()
 
     vcs_grp.add_argument('--use-vcs', action='store_true',
-        help=("Get the list of files to include in the sdist from git or hg. "
+        help=("Choose which files to include in the sdist using git or hg. "
               "This is a convenient way to include all checked-in files, like "
               "tests and doc source files, in your sdist, but requires that git "
               "or hg is available on the command line. This is currently the "

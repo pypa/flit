@@ -400,10 +400,13 @@ Sdist section
 
 .. versionadded:: 2.0
 
-When you use :ref:`build_cmd` or :ref:`publish_cmd`, Flit builds an sdist
-(source distribution) tarball containing the files that are checked into version
-control (git or mercurial). If you want more control, or it doesn't recognise
-your version control system, you can give lists of paths or glob patterns as
+With no configuration, Flit can make an sdist with everything it needs
+to build and install your module: the package contents (including non-Python
+data files, but not ``.pyc`` bytecode files), your ``pyproject.toml`` file,
+the readme & license files given in the metadata, and the :ref:`external data
+folder <pyproject_toml_external_data>` if you specified that.
+
+If you want more control, you can give lists of paths or glob patterns as
 ``include`` and ``exclude`` in this section. For example:
 
 .. code-block:: toml
@@ -429,13 +432,22 @@ These paths:
 Exclusions have priority over inclusions. Bytecode is excluded by default and cannot
 be included.
 
-.. note::
+Including files committed in git/hg
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   If you are not using :ref:`build_cmd` but  ``flit_core`` via another build
-   frontend, Flit doesn't doesn't check the VCS for files to include but instead
-   builds a 'minimal' sdist (which includes the files necessary to build a wheel).
-   You'll have to adapt your inclusion/exclusion rules to achieve the same result
-   as you'd get with :ref:`build_cmd`.
+If you use :ref:`build_cmd` or :ref:`publish_cmd`, you can also make sdists with
+the files which are committed in version control (git or hg). This is a shortcut
+to e.g. include documentation source files, but not built HTML or PDF
+documentation. The include and exclude patterns are then applied on top of this
+list.
+
+For now, including files from version control is the default for :ref:`build_cmd`
+and :ref:`publish_cmd`, and can be disabled with ``--no-use-vcs``. The default
+will switch in a future version.
+
+Using ``flit_core`` as a backend to other tools such as `build
+<https://pypa-build.readthedocs.io/en/latest/>`_ never gets the list of files
+for the sdist from version control.
 
 .. _pyproject_toml_external_data:
 
