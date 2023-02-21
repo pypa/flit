@@ -67,7 +67,47 @@ def add_shared_install_options(parser: argparse.ArgumentParser):
         help="Install the dependencies of these (comma separated) extras additionally to the ones implied by --deps. "
              "--extras=all can be useful in combination with --deps=production, --deps=none precludes using --extras"
     )
-    
+
+
+def add_shared_build_options(parser: argparse.ArgumentParser):
+    parser.add_argument('--format', action='append',
+        help="Select a format to publish. Options: 'wheel', 'sdist'"
+    )
+
+    setup_py_grp = parser.add_mutually_exclusive_group()
+
+    setup_py_grp.add_argument('--setup-py', action='store_true',
+        help=("Generate a setup.py file in the sdist. "
+              "The sdist will work with older tools that predate PEP 517. "
+            )
+    )
+
+    setup_py_grp.add_argument('--no-setup-py', action='store_true',
+        help=("Don't generate a setup.py file in the sdist. This is the default. "
+              "The sdist will only work with tools that support PEP 517, "
+              "but the wheel will still be usable by any compatible tool."
+             )
+    )
+
+    vcs_grp = parser.add_mutually_exclusive_group()
+
+    vcs_grp.add_argument('--use-vcs', action='store_true',
+        help=("Choose which files to include in the sdist using git or hg. "
+              "This is a convenient way to include all checked-in files, like "
+              "tests and doc source files, in your sdist, but requires that git "
+              "or hg is available on the command line. This is currently the "
+              "default, but it will change in a future version. "
+             )
+    )
+
+    vcs_grp.add_argument('--no-use-vcs', action='store_true',
+        help=("Select the files to include in the sdist without using git or hg. "
+              "This should include all essential files to install and use your "
+              "package; see the documentation for precisely what is included. "
+              "This will become the default in a future version."
+             )
+    )
+
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
@@ -85,45 +125,14 @@ def main(argv=None):
         help="Build wheel and sdist",
     )
 
-    parser_build.add_argument('--format', action='append',
-        help="Select a format to build. Options: 'wheel', 'sdist'"
-    )
-
-    parser_build.add_argument('--setup-py', action='store_true',
-        help=("Generate a setup.py file in the sdist. "
-              "The sdist will work with older tools that predate PEP 517. "
-              )
-    )
-
-    parser_build.add_argument('--no-setup-py', action='store_true',
-        help=("Don't generate a setup.py file in the sdist. This is the default. "
-              "The sdist will only work with tools that support PEP 517, "
-              "but the wheel will still be usable by any compatible tool."
-             )
-    )
+    add_shared_build_options(parser_build)
 
     # flit publish --------------------------------------------
     parser_publish = subparsers.add_parser('publish',
         help="Upload wheel and sdist",
     )
 
-    parser_publish.add_argument('--format', action='append',
-        help="Select a format to publish. Options: 'wheel', 'sdist'"
-    )
-
-    parser_publish.add_argument('--setup-py', action='store_true',
-        help=("Generate a setup.py file in the sdist. "
-              "The sdist will work with older tools that predate PEP 517. "
-              "This is the default for now, but will change in a future version."
-              )
-    )
-
-    parser_publish.add_argument('--no-setup-py', action='store_true',
-        help=("Don't generate a setup.py file in the sdist. "
-              "The sdist will only work with tools that support PEP 517, "
-              "but the wheel will still be usable by any compatible tool."
-             )
-    )
+    add_shared_build_options(parser_publish)
 
     parser_publish.add_argument('--pypirc',
         help="The .pypirc config file to be used. DEFAULT = \"~/.pypirc\""
@@ -173,11 +182,14 @@ def main(argv=None):
             return False
         return args.setup_py
 
+    def sdist_use_vcs():
+        return not args.no_use_vcs
+
     if args.subcmd == 'build':
         from .build import main
         try:
             main(args.ini_file, formats=set(args.format or []),
-                 gen_setup_py=gen_setup_py())
+                 gen_setup_py=gen_setup_py(), use_vcs=sdist_use_vcs())
         except(common.NoDocstringError, common.VCSError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'publish':
@@ -186,7 +198,7 @@ def main(argv=None):
         repository = args.repository or args.deprecated_repository
         from .upload import main
         main(args.ini_file, repository, args.pypirc, formats=set(args.format or []),
-                gen_setup_py=gen_setup_py())
+                gen_setup_py=gen_setup_py(), use_vcs=sdist_use_vcs())
 
     elif args.subcmd == 'install':
         from .install import Installer

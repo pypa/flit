@@ -26,7 +26,7 @@ def unpacked_tarball(path):
         assert len(files) == 1, files
         yield os.path.join(tmpdir, files[0])
 
-def main(ini_file: Path, formats=None, gen_setup_py=True):
+def main(ini_file: Path, formats=None, gen_setup_py=True, use_vcs=True):
     """Build wheel and sdist"""
     if not formats:
         formats = ALL_FORMATS
@@ -42,7 +42,7 @@ def main(ini_file: Path, formats=None, gen_setup_py=True):
         read_flit_config(ini_file)
 
         if 'sdist' in formats:
-            sb = SdistBuilder.from_ini_path(ini_file)
+            sb = SdistBuilder.from_ini_path(ini_file, use_vcs=use_vcs)
             sdist_file = sb.build(dist_dir, gen_setup_py=gen_setup_py)
             sdist_info = SimpleNamespace(builder=sb, file=sdist_file)
             # When we're building both, build the wheel from the unpacked sdist.
