@@ -59,3 +59,12 @@ def test_data_dir():
     files = builder.apply_includes_excludes(builder.select_files())
 
     assert osp.join('data', 'share', 'man', 'man1', 'foo.1') in files
+
+
+def test_pep625(tmp_path):
+    builder = sdist.SdistBuilder.from_ini_path(
+        samples_dir / 'normalization' / 'pyproject.toml'
+    )
+    path = builder.build(tmp_path)
+    assert path == tmp_path / 'my_python_module-0.0.1.tar.gz'
+    assert_isfile(path)

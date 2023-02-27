@@ -157,13 +157,11 @@ class SdistBuilder:
 
     @property
     def dir_name(self):
-        return '{}-{}'.format(self.metadata.name, self.metadata.version)
+        return common.normalize_dist_name(self.metadata.name, self.metadata.version)
 
     def build(self, target_dir, gen_setup_py=True):
         os.makedirs(str(target_dir), exist_ok=True)
-        target = target_dir / '{}-{}.tar.gz'.format(
-                self.metadata.name, self.metadata.version
-        )
+        target = target_dir / '{}.tar.gz'.format(self.dir_name)
         source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
         mtime = int(source_date_epoch) if source_date_epoch else None
         gz = GzipFile(str(target), mode='wb', mtime=mtime)
