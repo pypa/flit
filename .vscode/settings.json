@@ -11,12 +11,6 @@
     "python.formatting.provider": "autopep8",
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "pylint.args": [
-        "--rcfile=pyproject.toml"
-    ],
-    "pylint.path": [
-        "/usr/local/py-utils/bin/pylint"
-    ],
     "flake8.args": [
         "--config=.flake8"
     ],

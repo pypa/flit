@@ -290,6 +290,7 @@ class InstallTests(TestCase):
         calls = mockpy.get_calls()
         assert len(calls) == 1
         assert calls[0]["argv"][1:5] == ["-m", "pip", "install", "-r"]
+        del os.environ['FLIT_ALLOW_INVALID']
 
     def test_install_reqs_my_python_if_needed_pep621(self):
         ins = Installer.from_ini_path(

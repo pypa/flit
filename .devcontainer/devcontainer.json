@@ -14,7 +14,6 @@
 				"ms-azuretools.vscode-docker",
 				"ms-python.python",
 				"ms-python.vscode-pylance",
-				"ms-python.pylint",
 				"ms-python.flake8",
 				"ms-vsliveshare.vsliveshare",
 				"ryanluker.vscode-coverage-gutters",
@@ -23,13 +22,6 @@
 			],
 			"settings": {
 				"python.defaultInterpreterPath": "/usr/local/bin/python",
-				"python.formatting.provider": "black",
-				"[python]": {
-					"editor.defaultFormatter": "ms-python.black-formatter"
-				},
-				"pylint.path": [
-					"/usr/local/py-utils/bin/pylint"
-				],
 				"flake8.path": [
 					"/usr/local/py-utils/bin/flake8"
 				]
