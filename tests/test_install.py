@@ -281,16 +281,16 @@ class InstallTests(TestCase):
 
     def test_install_only_deps(self):
         """Test if we can install using --only-deps with the pyproject.toml, and without the README or module folder"""
-        os.environ.setdefault("FLIT_ALLOW_INVALID", "1")
+        os.environ.setdefault('FLIT_ALLOW_INVALID', '1')
         ins = Installer.from_ini_path(
-            samples_dir / "only-deps.toml", user=False, python="mock_python"
+            samples_dir / 'missing-description-file.toml', user=False, python='mock_python'
         )
 
-        with MockCommand("mock_python") as mockpy:
+        with MockCommand('mock_python') as mockpy:
             ins.install_requirements()
         calls = mockpy.get_calls()
         assert len(calls) == 1
-        assert calls[0]["argv"][1:5] == ["-m", "pip", "install", "-r"]
+        assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
         del os.environ['FLIT_ALLOW_INVALID']
 
     def test_install_only_deps_fail(self):
@@ -300,7 +300,7 @@ class InstallTests(TestCase):
             )
         with pytest.raises(ValueError, match=r"No file/folder found for module nomodule"):
             Installer.from_ini_path(
-                samples_dir / "missing-module.toml", user=False, python="mock_python"
+                samples_dir / 'missing-module.toml', user=False, python='mock_python'
             )
 
     def test_install_reqs_my_python_if_needed_pep621(self):
