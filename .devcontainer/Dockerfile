@@ -10,3 +10,9 @@ COPY pyproject.toml README.rst ./
 RUN mkdir -p flit \
     && python -m flit install --only-deps --deps develop \
     && rm -r pyproject.toml README.rst flit
+
+// ENV FLIT_ALLOW_INVALID=1
+
+// COPY pyproject.toml .
+// RUN python -m flit install --only-deps --deps develop \
+//     && rm -r pyproject.toml
