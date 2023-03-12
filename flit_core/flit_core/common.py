@@ -59,8 +59,8 @@ class Module(object):
             if not os.environ.get("FLIT_ALLOW_INVALID"):
                 raise ValueError("No file/folder found for module {}".format(name))
             log.warning("Allowing invalid data (FLIT_ALLOW_INVALID set). Uploads may still fail.")
-
-        self.source_dir = directory / self.prefix
+        else:
+            self.source_dir = directory / self.prefix
 
         if '.' in name:
             self.namespace_package_name = name.rpartition('.')[0]
