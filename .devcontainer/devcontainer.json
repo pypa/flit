@@ -16,7 +16,6 @@
 				"ms-python.vscode-pylance",
 				"ms-python.pylint",
 				"ms-python.flake8",
-				"ms-python.black-formatter",
 				"ms-vsliveshare.vsliveshare",
 				"ryanluker.vscode-coverage-gutters",
 				"bungcip.better-toml",
@@ -28,9 +27,6 @@
 				"[python]": {
 					"editor.defaultFormatter": "ms-python.black-formatter"
 				},
-				"black-formatter.path": [
-					"/usr/local/py-utils/bin/black"
-				],
 				"pylint.path": [
 					"/usr/local/py-utils/bin/pylint"
 				],

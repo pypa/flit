@@ -7,11 +7,8 @@
     "[jsonc]": {
         "editor.defaultFormatter": "vscode.json-language-features"
     },
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
-    },
     "python.defaultInterpreterPath": "/usr/local/bin/python",
-    "python.formatting.provider": "black",
+    "python.formatting.provider": "autopep8",
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "pylint.args": [
@@ -19,12 +16,6 @@
     ],
     "pylint.path": [
         "/usr/local/py-utils/bin/pylint"
-    ],
-    "black-formatter.args": [
-        "--config=pyproject.toml"
-    ],
-    "black-formatter.path": [
-        "/usr/local/py-utils/bin/black"
     ],
     "flake8.args": [
         "--config=.flake8"
