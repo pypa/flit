@@ -71,6 +71,17 @@ class Module(object):
         else:
             return self.path
 
+    @property
+    def version_files(self):
+        if self.is_package:
+            paths = [self.path / '__init__.py']
+            for filename in ('version.py', '_version.py', '__version__.py'):
+                if (self.path / filename).is_file():
+                    paths.insert(0, self.path / filename)
+            return paths
+        else:
+            return [self.path]
+
     def iter_files(self):
         """Iterate over the files contained in this module.
 
@@ -127,26 +138,26 @@ def get_docstring_and_version_via_ast(target):
     Return a tuple like (docstring, version) for the given module,
     extracted by parsing its AST.
     """
-    # read as bytes to enable custom encodings
-    with target.file.open('rb') as f:
-        node = ast.parse(f.read())
-    for child in node.body:
-        # Only use the version from the given module if it's a simple
-        # string assignment to __version__
-        is_version_str = (
-                isinstance(child, ast.Assign)
-                and any(
-                    isinstance(target, ast.Name)
-                    and target.id == "__version__"
-                    for target in child.targets
-                )
-                and isinstance(child.value, ast.Str)
-        )
-        if is_version_str:
-            version = child.value.s
-            break
-    else:
-        version = None
+    version = None
+    for target_path in target.version_files:
+        # read as bytes to enable custom encodings
+        with target_path.open('rb') as f:
+            node = ast.parse(f.read())
+        for child in node.body:
+            # Only use the version from the given module if it's a simple
+            # string assignment to __version__
+            is_version_str = (
+                    isinstance(child, ast.Assign)
+                    and any(
+                        isinstance(target, ast.Name)
+                        and target.id == "__version__"
+                        for target in child.targets
+                    )
+                    and isinstance(child.value, ast.Str)
+            )
+            if is_version_str:
+                version = child.value.s
+                break
     return ast.get_docstring(node), version
 
 
