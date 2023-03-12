@@ -13,6 +13,7 @@ from testpath import (
 
 from flit import install
 from flit.install import Installer, _requires_dist_to_pip_requirement, DependencyError
+from flit_core.config import ConfigError
 import flit_core.tests
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
