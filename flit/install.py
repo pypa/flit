@@ -21,51 +21,48 @@ from ._get_dirs import get_dirs
 
 log = logging.getLogger(__name__)
 
-
 def _requires_dist_to_pip_requirement(requires_dist):
     """Parse "Foo (v); python_version == '2.x'" from Requires-Dist
 
     Returns pip-style appropriate for requirements.txt.
     """
-    env_mark = ""
-    if ";" in requires_dist:
-        name_version, env_mark = requires_dist.split(";", 1)
+    env_mark = ''
+    if ';' in requires_dist:
+        name_version, env_mark = requires_dist.split(';', 1)
     else:
         name_version = requires_dist
-    if "(" in name_version:
+    if '(' in name_version:
         # turn 'name (X)' and 'name (<X.Y)'
         # into 'name == X' and 'name < X.Y'
-        name, version = name_version.split("(", 1)
+        name, version = name_version.split('(', 1)
         name = name.strip()
-        version = version.replace(")", "").strip()
-        if not any(c in version for c in "=<>"):
-            version = "==" + version
+        version = version.replace(')', '').strip()
+        if not any(c in version for c in '=<>'):
+            version = '==' + version
         name_version = name + version
     # re-add environment marker
-    return " ;".join([name_version, env_mark])
-
+    return ' ;'.join([name_version, env_mark])
 
 def test_writable_dir(path):
     """Check if a directory is writable.
 
     Uses os.access() on POSIX, tries creating files on Windows.
     """
-    if os.name == "posix":
+    if os.name == 'posix':
         return os.access(path, os.W_OK)
 
     return _test_writable_dir_win(path)
 
-
 def _test_writable_dir_win(path):
     # os.access doesn't work on Windows: http://bugs.python.org/issue2528
     # and we can't use tempfile: http://bugs.python.org/issue22107
-    basename = "accesstest_deleteme_fishfingers_custard_"
-    alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
+    basename = 'accesstest_deleteme_fishfingers_custard_'
+    alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
     for i in range(10):
-        name = basename + "".join(random.choice(alphabet) for _ in range(6))
+        name = basename + ''.join(random.choice(alphabet) for _ in range(6))
         file = osp.join(path, name)
         try:
-            with open(file, mode="xb"):
+            with open(file, mode='xb'):
                 pass
         except FileExistsError:
             continue
@@ -79,38 +76,22 @@ def _test_writable_dir_win(path):
             return True
 
     # This should never be reached
-    msg = (
-        "Unexpected condition testing for writable directory {!r}. "
-        "Please open an issue on flit to debug why this occurred."
-    )  # pragma: no cover
+    msg = ('Unexpected condition testing for writable directory {!r}. '
+           'Please open an issue on flit to debug why this occurred.') # pragma: no cover
     raise EnvironmentError(msg.format(path))  # pragma: no cover
-
 
 class RootInstallError(Exception):
     def __str__(self):
-        return (
-            "Installing packages as root is not recommended. "
-            "To allow this, set FLIT_ROOT_INSTALL=1 and try again."
-        )
-
+        return ("Installing packages as root is not recommended. "
+            "To allow this, set FLIT_ROOT_INSTALL=1 and try again.")
 
 class DependencyError(Exception):
     def __str__(self):
-        return "To install dependencies for extras, you cannot set deps=none."
-
+        return 'To install dependencies for extras, you cannot set deps=none.'
 
 class Installer(object):
-    def __init__(
-        self,
-        directory,
-        ini_info,
-        user=None,
-        python=sys.executable,
-        symlink=False,
-        deps="all",
-        extras=(),
-        pth=False,
-    ):
+    def __init__(self, directory, ini_info, user=None, python=sys.executable,
+                 symlink=False, deps='all', extras=(), pth=False):
         self.directory = directory
         self.ini_info = ini_info
         self.python = python
@@ -118,77 +99,56 @@ class Installer(object):
         self.pth = pth
         self.deps = deps
         self.extras = extras
-        if deps != "none" and os.environ.get("FLIT_NO_NETWORK", ""):
-            self.deps = "none"
-            log.warning("Not installing dependencies, because FLIT_NO_NETWORK is set")
-        if deps == "none" and extras:
+        if deps != 'none' and os.environ.get('FLIT_NO_NETWORK', ''):
+            self.deps = 'none'
+            log.warning('Not installing dependencies, because FLIT_NO_NETWORK is set')
+        if deps == 'none' and extras:
             raise DependencyError()
 
+        self.module = common.Module(self.ini_info.module, directory)
         try:
             self.module = common.Module(self.ini_info.module, directory)
-        except AttributeError as exec:
-            if os.environ.get("FLIT_ALLOW_INVALID"):
-                log.warning(
-                    "Allowing invalid data (FLIT_ALLOW_INVALID set). Uploads may still fail."
-                )
-            else:
-                raise ValueError() from exec
+        except AttributeError as error:
+            if not os.environ.get('FLIT_ALLOW_INVALID'):
+                raise AttributeError() from error
+            log.warning('Allowing invalid data (FLIT_ALLOW_INVALID set). Uploads may still fail.')
 
-        if (
-            hasattr(os, "getuid")
-            and (os.getuid() == 0)
-            and (not os.environ.get("FLIT_ROOT_INSTALL"))
-        ):
+        if (hasattr(os, 'getuid') and (os.getuid() == 0) and
+                (not os.environ.get('FLIT_ROOT_INSTALL'))):
             raise RootInstallError
 
         if user is None:
             self.user = self._auto_user(python)
         else:
             self.user = user
-        log.debug("User install? %s", self.user)
+        log.debug('User install? %s', self.user)
 
         self.installed_files = []
 
     @classmethod
-    def from_ini_path(
-        cls,
-        ini_path,
-        user=None,
-        python=sys.executable,
-        symlink=False,
-        deps="all",
-        extras=(),
-        pth=False,
-    ):
+    def from_ini_path(cls, ini_path, user=None, python=sys.executable,
+                      symlink=False, deps='all', extras=(), pth=False):
         ini_info = read_flit_config(ini_path)
-        return cls(
-            ini_path.parent,
-            ini_info,
-            user=user,
-            python=python,
-            symlink=symlink,
-            deps=deps,
-            extras=extras,
-            pth=pth,
-        )
+        return cls(ini_path.parent, ini_info, user=user, python=python,
+                   symlink=symlink, deps=deps, extras=extras, pth=pth)
 
     def _run_python(self, code=None, file=None, extra_args=()):
         if code and file:
-            raise ValueError("Specify code or file, not both")
+            raise ValueError('Specify code or file, not both')
         if not (code or file):
-            raise ValueError("Specify code or file")
+            raise ValueError('Specify code or file')
 
         if code:
-            args = [self.python, "-c", code]
+            args = [self.python, '-c', code]
         else:
             args = [self.python, file]
         args.extend(extra_args)
         env = os.environ.copy()
-        env["PYTHONIOENCODING"] = "utf-8"
+        env['PYTHONIOENCODING'] = 'utf-8'
         # On Windows, shell needs to be True to pick up our local PATH
         # when finding the Python command.
-        shell = os.name == "nt"
-        return check_output(args, shell=shell, env=env).decode("utf-8")
+        shell = (os.name == 'nt')
+        return check_output(args, shell=shell, env=env).decode('utf-8')
 
     def _auto_user(self, python):
         """Default guess for whether to do user-level install.
@@ -197,53 +157,47 @@ class Installer(object):
         """
         if python == sys.executable:
             user_site = site.ENABLE_USER_SITE
-            lib_dir = sysconfig.get_path("purelib")
+            lib_dir = sysconfig.get_path('purelib')
         else:
-            out = self._run_python(
-                code=(
-                    "import sysconfig, site; "
-                    "print(site.ENABLE_USER_SITE); "
-                    "print(sysconfig.get_path('purelib'))"
-                )
-            )
-            user_site, lib_dir = out.split("\n", 1)
-            user_site = user_site.strip() == "True"
+            out = self._run_python(code=
+                ("import sysconfig, site; "
+                 "print(site.ENABLE_USER_SITE); "
+                 "print(sysconfig.get_path('purelib'))"))
+            user_site, lib_dir = out.split('\n', 1)
+            user_site = (user_site.strip() == 'True')
             lib_dir = lib_dir.strip()
 
         if not user_site:
             # No user site packages - probably a virtualenv
-            log.debug("User site packages not available - env install")
+            log.debug('User site packages not available - env install')
             return False
 
-        log.debug("Checking access to %s", lib_dir)
+        log.debug('Checking access to %s', lib_dir)
         return not test_writable_dir(lib_dir)
 
     def install_scripts(self, script_defs, scripts_dir):
         for name, ep in script_defs.items():
             module, func = common.parse_entry_point(ep)
-            import_name = func.split(".")[0]
+            import_name = func.split('.')[0]
             script_file = pathlib.Path(scripts_dir) / name
-            log.info("Writing script to %s", script_file)
-            with script_file.open("w", encoding="utf-8") as f:
-                f.write(
-                    common.script_template.format(
-                        interpreter=self.python,
-                        module=module,
-                        import_name=import_name,
-                        func=func,
-                    )
-                )
+            log.info('Writing script to %s', script_file)
+            with script_file.open('w', encoding='utf-8') as f:
+                f.write(common.script_template.format(
+                    interpreter=self.python,
+                    module=module,
+                    import_name=import_name,
+                    func=func
+                ))
             script_file.chmod(0o755)
 
             self.installed_files.append(script_file)
 
-            if sys.platform == "win32":
-                cmd_file = script_file.with_suffix(".cmd")
+            if sys.platform == 'win32':
+                cmd_file = script_file.with_suffix('.cmd')
                 cmd = '@echo off\r\n"{python}" "%~dp0\\{script}" %*\r\n'.format(
-                    python=self.python, script=name
-                )
+                            python=self.python, script=name)
                 log.debug("Writing script wrapper to %s", cmd_file)
-                with cmd_file.open("w") as f:
+                with cmd_file.open('w') as f:
                     f.write(cmd)
 
                 self.installed_files.append(cmd_file)
@@ -266,15 +220,15 @@ class Installer(object):
 
     def _extras_to_install(self):
         extras_to_install = set(self.extras)
-        if self.deps == "all" or "all" in extras_to_install:
+        if self.deps == 'all' or 'all' in extras_to_install:
             extras_to_install |= set(self.ini_info.reqs_by_extra.keys())
             # We don’t remove 'all' from the set because there might be an extra called “all”.
-        elif self.deps == "develop":
-            extras_to_install |= {"dev", "doc", "test"}
+        elif self.deps == 'develop':
+            extras_to_install |= {'dev', 'doc', 'test'}
 
-        if self.deps != "none":
+        if self.deps != 'none':
             # '.none' is an internal token for normal requirements
-            extras_to_install.add(".none")
+            extras_to_install.add('.none')
         log.info("Extras to install for deps %r: %s", self.deps, extras_to_install)
         return extras_to_install
 
@@ -286,7 +240,7 @@ class Installer(object):
         # construct the full list of requirements, including dev requirements
         requirements = []
 
-        if self.deps == "none":
+        if self.deps == 'none':
             return
 
         for extra in self._extras_to_install():
@@ -297,18 +251,19 @@ class Installer(object):
             return
 
         requirements = [
-            _requires_dist_to_pip_requirement(req_d) for req_d in requirements
+            _requires_dist_to_pip_requirement(req_d)
+            for req_d in requirements
         ]
 
         # install the requirements with pip
-        cmd = [self.python, "-m", "pip", "install"]
+        cmd = [self.python, '-m', 'pip', 'install']
         if self.user:
-            cmd.append("--user")
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix="requirements.txt", delete=False
-        ) as tf:
-            tf.file.write("\n".join(requirements))
-        cmd.extend(["-r", tf.name])
+            cmd.append('--user')
+        with tempfile.NamedTemporaryFile(mode='w',
+                                         suffix='requirements.txt',
+                                         delete=False) as tf:
+            tf.file.write('\n'.join(requirements))
+        cmd.extend(['-r', tf.name])
         log.info("Installing requirements")
         try:
             check_call(cmd)
@@ -325,12 +280,12 @@ class Installer(object):
         try:
             common.get_info_from_module(self.module, self.ini_info.dynamic_metadata)
         except ImportError:
-            if self.deps == "none":
+            if self.deps == 'none':
                 raise  # We were asked not to install deps, so bail out.
 
             log.warning("Installing requirements to Flit's env to import module.")
             user = self.user if (self.python == sys.executable) else None
-            i2 = Installer(self.directory, self.ini_info, user=user, deps="production")
+            i2 = Installer(self.directory, self.ini_info, user=user, deps='production')
             i2.install_requirements()
 
     def _get_dirs(self, user):
@@ -338,19 +293,19 @@ class Installer(object):
             return get_dirs(user=user)
         else:
             import json
-
-            path = osp.join(osp.dirname(__file__), "_get_dirs.py")
-            args = ["--user"] if user else []
+            path = osp.join(osp.dirname(__file__), '_get_dirs.py')
+            args = ['--user'] if user else []
             return json.loads(self._run_python(file=path, extra_args=args))
 
     def install_directly(self):
-        """Install a module/package into site-packages, and create its scripts."""
+        """Install a module/package into site-packages, and create its scripts.
+        """
         dirs = self._get_dirs(user=self.user)
-        os.makedirs(dirs["purelib"], exist_ok=True)
-        os.makedirs(dirs["scripts"], exist_ok=True)
+        os.makedirs(dirs['purelib'], exist_ok=True)
+        os.makedirs(dirs['scripts'], exist_ok=True)
 
         module_rel_path = self.module.path.relative_to(self.module.source_dir)
-        dst = osp.join(dirs["purelib"], module_rel_path)
+        dst = osp.join(dirs['purelib'], module_rel_path)
         if osp.lexists(dst):
             if osp.isdir(dst) and not osp.islink(dst):
                 shutil.rmtree(dst)
@@ -377,9 +332,9 @@ class Installer(object):
         elif self.pth:
             # .pth points to the the folder containing the module (which is
             # added to sys.path)
-            pth_file = pathlib.Path(dirs["purelib"], self.module.name + ".pth")
+            pth_file = pathlib.Path(dirs['purelib'], self.module.name + '.pth')
             log.info("Adding .pth file %s for %s", pth_file, self.module.source_dir)
-            pth_file.write_text(str(self.module.source_dir.resolve()), "utf-8")
+            pth_file.write_text(str(self.module.source_dir.resolve()), 'utf-8')
             self.installed_files.append(pth_file)
         elif self.module.is_package:
             log.info("Copying directory %s -> %s", src, dst)
@@ -391,12 +346,12 @@ class Installer(object):
             shutil.copy2(src, dst)
             self.installed_files.append(dst)
 
-        scripts = self.ini_info.entrypoints.get("console_scripts", {})
-        self.install_scripts(scripts, dirs["scripts"])
+        scripts = self.ini_info.entrypoints.get('console_scripts', {})
+        self.install_scripts(scripts, dirs['scripts'])
 
-        self.install_data_dir(dirs["data"])
+        self.install_data_dir(dirs['data'])
 
-        self.write_dist_info(dirs["purelib"])
+        self.write_dist_info(dirs['purelib'])
 
     def install_with_pip(self):
         """Let pip install the project directory
@@ -409,69 +364,64 @@ class Installer(object):
         """
         self.install_reqs_my_python_if_needed()
         extras = self._extras_to_install()
-        extras.discard(".none")
-        req_with_extras = (
-            "{}[{}]".format(self.directory, ",".join(extras))
-            if extras
-            else str(self.directory)
-        )
-        cmd = [self.python, "-m", "pip", "install", req_with_extras]
+        extras.discard('.none')
+        req_with_extras = '{}[{}]'.format(self.directory, ','.join(extras)) \
+            if extras else str(self.directory)
+        cmd = [self.python, '-m', 'pip', 'install', req_with_extras]
         if self.user:
-            cmd.append("--user")
-        if self.deps == "none":
-            cmd.append("--no-deps")
-        shell = os.name == "nt"
+            cmd.append('--user')
+        if self.deps == 'none':
+            cmd.append('--no-deps')
+        shell = (os.name == 'nt')
         check_call(cmd, shell=shell)
 
     def write_dist_info(self, site_pkgs):
         """Write dist-info folder, according to PEP 376"""
         metadata = common.make_metadata(self.module, self.ini_info)
         dist_info = pathlib.Path(site_pkgs) / common.dist_info_name(
-            metadata.name, metadata.version
-        )
+                                                metadata.name, metadata.version)
         try:
             dist_info.mkdir()
         except FileExistsError:
             shutil.rmtree(str(dist_info))
             dist_info.mkdir()
 
-        with (dist_info / "METADATA").open("w", encoding="utf-8") as f:
+        with (dist_info / 'METADATA').open('w', encoding='utf-8') as f:
             metadata.write_metadata_file(f)
-        self.installed_files.append(dist_info / "METADATA")
+        self.installed_files.append(dist_info / 'METADATA')
 
-        with (dist_info / "INSTALLER").open("w", encoding="utf-8") as f:
-            f.write("flit")
-        self.installed_files.append(dist_info / "INSTALLER")
+        with (dist_info / 'INSTALLER').open('w', encoding='utf-8') as f:
+            f.write('flit')
+        self.installed_files.append(dist_info / 'INSTALLER')
 
         # We only handle explicitly requested installations
-        with (dist_info / "REQUESTED").open("wb"):
-            pass
-        self.installed_files.append(dist_info / "REQUESTED")
+        with (dist_info / 'REQUESTED').open('wb'): pass
+        self.installed_files.append(dist_info / 'REQUESTED')
 
         if self.ini_info.entrypoints:
-            with (dist_info / "entry_points.txt").open("w") as f:
+            with (dist_info / 'entry_points.txt').open('w') as f:
                 common.write_entry_points(self.ini_info.entrypoints, f)
-            self.installed_files.append(dist_info / "entry_points.txt")
+            self.installed_files.append(dist_info / 'entry_points.txt')
 
-        with (dist_info / "direct_url.json").open("w", encoding="utf-8") as f:
+        with (dist_info / 'direct_url.json').open('w', encoding='utf-8') as f:
             json.dump(
                 {
                     "url": self.directory.resolve().as_uri(),
-                    "dir_info": {"editable": bool(self.symlink or self.pth)},
+                    "dir_info": {"editable": bool(self.symlink or self.pth)}
                 },
-                f,
+                f
             )
-        self.installed_files.append(dist_info / "direct_url.json")
+        self.installed_files.append(dist_info / 'direct_url.json')
 
         # newline='' because the csv module does its own newline translation
-        with (dist_info / "RECORD").open("w", encoding="utf-8", newline="") as f:
+        with (dist_info / 'RECORD').open('w', encoding='utf-8', newline='') as f:
             cf = csv.writer(f)
             for path in sorted(self.installed_files, key=str):
                 path = pathlib.Path(path)
-                if path.is_symlink() or path.suffix in {".pyc", ".pyo"}:
-                    hash, size = "", ""
+                if path.is_symlink() or path.suffix in {'.pyc', '.pyo'}:
+                    hash, size = '', ''
                 else:
-                    hash = "sha256=" + common.hash_file(str(path))
+                    hash = 'sha256=' + common.hash_file(str(path))
                     size = path.stat().st_size
                 try:
                     path = path.relative_to(site_pkgs)
@@ -479,25 +429,10 @@ class Installer(object):
                     pass
                 cf.writerow((str(path), hash, size))
 
-            cf.writerow(((dist_info / "RECORD").relative_to(site_pkgs), "", ""))
+            cf.writerow(((dist_info / 'RECORD').relative_to(site_pkgs), '', ''))
 
     def install(self):
         if self.symlink or self.pth:
             self.install_directly()
         else:
             self.install_with_pip()
-
-
-class DependencyInstaller(Installer):
-    def __init__(
-        self,
-        directory,
-        ini_info,
-        user=None,
-        python=sys.executable,
-        symlink=False,
-        deps="all",
-        extras=(),
-        pth=False,
-    ):
-        super().__init__(directory, ini_info, user, python, symlink, deps, extras, pth)

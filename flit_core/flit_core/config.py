@@ -332,7 +332,7 @@ def _prep_metadata(md_sect, path):
             md_dict["description_content_type"] = mimetype
         except ConfigError as ex:
             if not os.environ.get("FLIT_ALLOW_INVALID"):
-                raise ConfigError("Description file .* does not exist") from ex
+                raise ConfigError("Invalid config values (see log)") from ex
             log.warning("Allowing invalid data (FLIT_ALLOW_INVALID set). Skipping missing description-file. Uploads may still fail.")
 
 
