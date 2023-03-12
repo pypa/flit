@@ -106,12 +106,6 @@ class Installer(object):
             raise DependencyError()
 
         self.module = common.Module(self.ini_info.module, directory)
-        try:
-            self.module = common.Module(self.ini_info.module, directory)
-        except AttributeError as error:
-            if not os.environ.get('FLIT_ALLOW_INVALID'):
-                raise AttributeError() from error
-            log.warning('Allowing invalid data (FLIT_ALLOW_INVALID set). Uploads may still fail.')
 
         if (hasattr(os, 'getuid') and (os.getuid() == 0) and
                 (not os.environ.get('FLIT_ROOT_INSTALL'))):
