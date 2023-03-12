@@ -1,0 +1,46 @@
+[build-system]
+requires = ["flit_core >=3.8.0,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "flit"
+authors = [
+    {name = "Thomas Kluyver", email = "thomas@kluyver.me.uk"},
+]
+dependencies = [
+    "flit_core >=3.8.0",
+    "requests",
+    "docutils",
+    "tomli-w",
+]
+requires-python = ">=3.6"
+readme = "README.rst"
+license = {file = "LICENSE"}
+classifiers = ["Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ['version', 'description']
+
+[project.optional-dependencies]
+test = [
+	"testpath",
+	"responses",
+	"pytest>=2.7.3",
+	"pytest-cov",
+	"tomli",
+]
+doc = [
+	"sphinx",
+	"sphinxcontrib_github_alt",
+	"pygments-github-lexers",  # TOML highlighting
+]
+
+[project.urls]
+Documentation = "https://flit.pypa.io"
+Source = "https://github.com/pypa/flit"
+Changelog = "https://flit.pypa.io/en/stable/history.html"
+
+[project.scripts]
+flit = "flit:main"
