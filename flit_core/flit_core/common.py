@@ -62,10 +62,7 @@ class Module(object):
                     .format(name)
                 )
             else:
-                raise ValueError(
-                    "No file/folder found for module {}"
-                    .format(name)
-                )
+                raise ValueError("No file/folder found for module {}".format(name))
         else:
             self.source_dir = directory / self.prefix
 
