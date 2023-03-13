@@ -281,6 +281,8 @@ def description_from_file(rel_path: str, proj_dir: Path, guess_mimetype=True):
         with desc_path.open('r', encoding='utf-8') as f:
             raw_desc = f.read()
     except IOError as e:
+        if os.environ.get('FLIT_ALLOW_INVALID'):
+            return None, None
         if e.errno == errno.ENOENT:
             raise ConfigError(
                 "Description file {} does not exist".format(desc_path)
@@ -324,17 +326,11 @@ def _prep_metadata(md_sect, path):
 
     # Description file
     if "description-file" in md_sect:
-        try:
-            desc_path = md_sect.get("description-file")
-            res.referenced_files.append(desc_path)
-            desc_content, mimetype = description_from_file(desc_path, path.parent)
-            md_dict["description"] = desc_content
-            md_dict["description_content_type"] = mimetype
-        except ConfigError as ex:
-            if not os.environ.get('FLIT_ALLOW_INVALID'):
-                raise ConfigError('Description file .* does not exist') from ex
-            log.warning('Allowing invalid data (FLIT_ALLOW_INVALID set). Skipping missing description-file. Uploads may still fail.')
-
+        desc_path = md_sect.get("description-file")
+        res.referenced_files.append(desc_path)
+        desc_content, mimetype = description_from_file(desc_path, path.parent)
+        md_dict["description"] = desc_content
+        md_dict["description_content_type"] = mimetype
 
     if 'urls' in md_sect:
         project_urls = md_dict['project_urls'] = []
