@@ -282,16 +282,18 @@ class InstallTests(TestCase):
     def test_install_only_deps(self):
         """Test if we can install using --only-deps with the pyproject.toml, and without the README or module folder"""
         os.environ.setdefault('FLIT_ALLOW_INVALID', '1')
-        ins = Installer.from_ini_path(
-            samples_dir / 'missing-description-file.toml', user=False, python='mock_python'
-        )
+        try:
+            ins = Installer.from_ini_path(
+                samples_dir / 'missing-description-file.toml', user=False, python='mock_python'
+            )
 
-        with MockCommand('mock_python') as mockpy:
-            ins.install_requirements()
-        calls = mockpy.get_calls()
-        assert len(calls) == 1
-        assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
-        del os.environ['FLIT_ALLOW_INVALID']
+            with MockCommand('mock_python') as mockpy:
+                ins.install_requirements()
+            calls = mockpy.get_calls()
+            assert len(calls) == 1
+            assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
+        finally:
+            del os.environ['FLIT_ALLOW_INVALID']
 
     def test_install_only_deps_fail(self):
         with pytest.raises(ConfigError, match=r"Description file .* does not exist"):
