@@ -57,7 +57,7 @@ class Module(object):
             )
         elif not existing:
             if os.environ.get("FLIT_ALLOW_INVALID"):
-                log.warning("Allowing invalid data (FLIT_ALLOW_INVALID set). No file/folder found for module.")
+                log.warning("Allowing invalid data (FLIT_ALLOW_INVALID set). No file/folder found for module {}".format(name))
             else:
                 raise ValueError("No file/folder found for module {}".format(name))
         else:
