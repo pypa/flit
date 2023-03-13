@@ -300,7 +300,7 @@ class InstallTests(TestCase):
             Installer.from_ini_path(
                 samples_dir / 'missing-description-file.toml', user=False, python='mock_python'
             )
-        with pytest.raises(ValueError, match=r"No file/folder found for module nomodule"):
+        with pytest.raises(ValueError, match=r"No file/folder found for module definitelymissingmodule"):
             Installer.from_ini_path(
                 samples_dir / 'missing-module.toml', user=False, python='mock_python'
             )
