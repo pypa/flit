@@ -1,5 +1,6 @@
 import configparser
 import os
+import stat
 from pathlib import Path
 import tempfile
 from unittest import skipIf
@@ -198,6 +199,10 @@ def test_permissions_normed(copy_sample):
         info = zf.getinfo('module1-0.1.dist-info/METADATA')
         perms = (info.external_attr >> 16) & 0o777
         assert perms == 0o644, oct(perms)
+
+        info = zf.getinfo('module1-0.1.dist-info/RECORD')
+        perms = (info.external_attr >> 16) & stat.S_IFREG
+        assert perms
 
 def test_compression(tmp_path):
     info = make_wheel_in(samples_dir / 'module1_toml' / 'pyproject.toml', tmp_path)

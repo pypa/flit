@@ -33,7 +33,7 @@ def _write_wheel_file(f, supports_py2=False):
 
 
 def _set_zinfo_mode(zinfo, mode):
-    # Set the bits for the mode and bit 0xFFFF for “regular file”
+    # Set the bits for the mode
     zinfo.external_attr = mode << 16
 
 
@@ -147,7 +147,8 @@ class WheelBuilder:
         # give you the exact same result.
         date_time = self.source_time_stamp or (2016, 1, 1, 0, 0, 0)
         zi = zipfile.ZipInfo(rel_path, date_time)
-        _set_zinfo_mode(zi, mode)
+        # Also sets bit 0x8000 for "regular file" (S_IFREG)
+        _set_zinfo_mode(zi, mode | stat.S_IFREG)
         b = sio.getvalue().encode('utf-8')
         hashsum = hashlib.sha256(b)
         hash_digest = urlsafe_b64encode(hashsum.digest()).decode('ascii').rstrip('=')
