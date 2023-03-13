@@ -56,9 +56,10 @@ class Module(object):
                 .format(name, ", ".join([str(p) for p in sorted(existing)]))
             )
         elif not existing:
-            if not os.environ.get("FLIT_ALLOW_INVALID"):
+            if os.environ.get("FLIT_ALLOW_INVALID"):
+                log.warning("Allowing invalid data (FLIT_ALLOW_INVALID set). No file/folder found for module.")
+            else:
                 raise ValueError("No file/folder found for module {}".format(name))
-            log.warning("Allowing invalid data (FLIT_ALLOW_INVALID set). Uploads may still fail.")
         else:
             self.source_dir = directory / self.prefix
 
