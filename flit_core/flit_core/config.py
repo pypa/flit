@@ -86,7 +86,7 @@ class EntryPointsConflict(ConfigError):
 
 def prep_toml_config(d, path):
     """Validate config loaded from pyproject.toml and prepare common metadata
-
+    
     Returns a LoadedConfig object.
     """
     dtool = d.get('tool', {}).get('flit', {})
@@ -309,11 +309,11 @@ def description_from_file(rel_path: str, proj_dir: Path, guess_mimetype=True):
 
 def _prep_metadata(md_sect, path):
     """Process & verify the metadata from a config file
-
+    
     - Pull out the module name we're packaging.
     - Read description-file and check that it's valid rst
     - Convert dashes in key names to underscores
-      (e.g. home-page in config -> home_page in metadata)
+      (e.g. home-page in config -> home_page in metadata) 
     """
     if not set(md_sect).issuperset(metadata_required_fields):
         missing = metadata_required_fields - set(md_sect)
@@ -332,7 +332,7 @@ def _prep_metadata(md_sect, path):
         desc_path = md_sect.get('description-file')
         res.referenced_files.append(desc_path)
         desc_content, mimetype = description_from_file(desc_path, path.parent)
-        md_dict['description'] = desc_content
+        md_dict['description'] =  desc_content
         md_dict['description_content_type'] = mimetype
 
     if 'urls' in md_sect:
