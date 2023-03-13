@@ -282,6 +282,7 @@ def description_from_file(rel_path: str, proj_dir: Path, guess_mimetype=True):
             raw_desc = f.read()
     except IOError as e:
         if os.environ.get('FLIT_ALLOW_INVALID'):
+            log.warning("Allowing invalid data (FLIT_ALLOW_INVALID set). Uploads may still fail.")
             return None, None
         if e.errno == errno.ENOENT:
             raise ConfigError(
