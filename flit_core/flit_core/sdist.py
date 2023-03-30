@@ -166,7 +166,10 @@ class SdistBuilder:
         )
         source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
         mtime = int(source_date_epoch) if source_date_epoch else None
-        gz = GzipFile(str(target), mode='wb', mtime=mtime)
+        # For the gzip timestamp, default to 2016-1-1 00:00 (UTC)
+        # This makes the sdist reproducible even without SOURCE_DATE_EPOCH,
+        # if the source file mtimes don't change, i.e. from the same checkout.
+        gz = GzipFile(str(target), mode='wb', mtime=(mtime or 1451606400))
         tf = tarfile.TarFile(str(target), mode='w', fileobj=gz,
                              format=tarfile.PAX_FORMAT)
 
