@@ -73,6 +73,10 @@ class Module(object):
 
     @property
     def version_files(self):
+    """Files which will be parsed to find a version number
+    
+    Files later in this list take precedence over earlier ones.
+    """
         if self.is_package:
             paths = [self.path / '__init__.py']
             for filename in ('version.py', '_version.py', '__version__.py'):
