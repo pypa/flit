@@ -54,6 +54,24 @@ Build a wheel and an sdist (tarball) from the package.
 
       Generating ``setup.py`` disabled by default.
 
+.. option:: --use-vcs
+
+   Use the files checked in to git or mercurial as the starting list to include
+   in an sdist, and then apply inclusions and exclusions :ref:`from pyproject.toml
+   <pyproject_toml_sdist>`.
+
+   This is the default for now, but we're planning to switch to ``--no-use-vcs``
+   as the default in a future version.
+
+.. option:: --no-use-vcs
+
+   Create the sdist starting with only the files inside the installed module
+   or package, along with any inclusions and exclusions defined in pyproject.toml.
+
+   With this option, sdists from ``flit build`` are equivalent to those built
+   by tools calling Flit as a backend, such as `build
+   <https://pypa-build.readthedocs.io/en/stable/>`_.
+
 .. _publish_cmd:
 
 ``flit publish``
@@ -70,19 +88,12 @@ or another repository.
    You should normally publish the two formats together.
 
 .. option:: --setup-py
-
-   Generate a ``setup.py`` file in the sdist, so it can be installed by older
-   versions of pip.
-
 .. option:: --no-setup-py
+.. option:: --use-vcs
+.. option:: --no-use-vcs
 
-   Don't generate a setup.py file in the sdist. This is the default.
-   An sdist built without this will only work with tools that support PEP 517,
-   but the wheel will still be usable by any compatible tool.
-
-   .. versionchanged:: 3.5
-
-      Generating ``setup.py`` disabled by default.
+   These options affecting what goes in the sdist are described for
+   :ref:`build_cmd` above.
 
 .. option:: --repository <repository>
 
