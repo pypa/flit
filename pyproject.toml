@@ -25,6 +25,7 @@ dynamic = ['version', 'description']
 
 [project.optional-dependencies]
 test = [
+	"yaml",
 	"testpath",
 	"responses",
 	"pytest>=2.7.3",
