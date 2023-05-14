@@ -12,7 +12,7 @@ from flit_core import common
 from .config import ConfigError
 from .log import enable_colourful_output
 
-__version__ = '3.8.0'
+__version__ = '3.9.0'
 
 log = logging.getLogger(__name__)
 
