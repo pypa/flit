@@ -1,6 +1,27 @@
 Release history
 ===============
 
+Version 3.9
+-----------
+
+- New options :option:`flit build --use-vcs` and :option:`flit build --no-use-vcs`
+  to enable & disable including all committed files in the sdist. For now
+  ``--use-vcs`` is the default, but this is likely to change in a future
+  version, to bring ``flit build`` in line with standard build frontends like
+  ``python -m build`` (:ghpull:`625`).
+- Sdist file names, and the name of the top-level folder in an sdist, are now
+  normalised, in accordance with :pep:`625` (:ghpull:`628`).
+- A statically defined version number can now be parsed from files called
+  ``version.py``, ``_version.py`` or ``__version__.py`` inside a packge, as well
+  as from ``__init__.py``, so executing code is required in fewer cases
+  (:ghpull:`630`).
+- Fix setting the flag for regular files in zip metadata (:ghpull:`639`).
+- The timestamp embedded in the gzip wrapper for sdists now defaults to a fixed
+  date, so building an sdist twice on the same machine should produce identical
+  results, even without any special steps (:ghpull:`635`). Setting
+  :envvar:`SOURCE_DATE_EPOCH` is still recommended for properly
+  :doc:`reproducible builds <reproducible>`.
+
 Version 3.8
 -----------
 
