@@ -12,6 +12,7 @@ dependencies = [
     "requests",
     "docutils",
     "tomli-w",
+    "pip",
 ]
 requires-python = ">=3.6"
 readme = "README.rst"
