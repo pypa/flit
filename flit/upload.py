@@ -190,7 +190,7 @@ def get_password(repo: RepoDetails):
     return pw
 
 
-def find_token(repo: RepoDetails, project_name):
+def find_token(repo: RepoDetails, project_name: str):
     # https://packaging.python.org/en/latest/specifications/name-normalization/
     project_name = re.sub(r"[-_.]+", "-", project_name).lower()
     candidate_keys = [f"pypi_token:project:{project_name}"]
@@ -306,7 +306,7 @@ def main(ini_path, repo_name, pypirc_path=None, formats=None, gen_setup_py=True,
     srcdir = ini_path.parent
     module = Module(ini_info.module, srcdir)
     metadata = make_metadata(module, ini_info)
-    repo = get_repository(pypirc_path, repo_name, metadata.name)
+    repo = get_repository(pypirc_path, repo_name, project_name=metadata.name)
 
     from . import build
     built = build.main(
