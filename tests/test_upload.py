@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 from flit import upload
 from flit.build import ALL_FORMATS
+from flit.upload import get_repository, RepoDetails
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 
@@ -98,13 +99,16 @@ index-servers =
 username: fred
 """
 
-def test_get_repository_keyring():
-    with modified_env({'FLIT_PASSWORD': None}), \
-            _fake_keyring({upload.PYPI: {'fred': 'tops3cret'}}):
-        repo = upload.get_repository(pypirc_path=io.StringIO(pypirc2), project_name='foo')
+def test_get_repository_keyring(monkeypatch):
+    monkeypatch.delenv('FLIT_PASSWORD', raising=False)
+    with _fake_keyring({upload.PYPI: {'fred': 'tops3cret'}}):
+        repo = get_repository(pypirc_path=io.StringIO(pypirc2), project_name='foo')
+    assert repo == RepoDetails(upload.PYPI, username='fred', password='tops3cret')
 
-    assert repo.username == 'fred'
-    assert repo.password == 'tops3cret'
+    for token_key in ['pypi_token:project:foo', 'pypi_token:user:fred']:
+        with _fake_keyring({upload.PYPI: {token_key: 'xyz'}}):
+            repo = get_repository(pypirc_path=io.StringIO(pypirc2), project_name='foo')
+        assert repo == RepoDetails(upload.PYPI, username='__token__', password='xyz')
 
 
 pypirc3_repo = "https://invalid-repo.inv"
