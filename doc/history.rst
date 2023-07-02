@@ -12,7 +12,7 @@ Version 3.9
 - Sdist file names, and the name of the top-level folder in an sdist, are now
   normalised, in accordance with :pep:`625` (:ghpull:`628`).
 - A statically defined version number can now be parsed from files called
-  ``version.py``, ``_version.py`` or ``__version__.py`` inside a packge, as well
+  ``version.py``, ``_version.py`` or ``__version__.py`` inside a package, as well
   as from ``__init__.py``, so executing code is required in fewer cases
   (:ghpull:`630`).
 - Fix setting the flag for regular files in zip metadata (:ghpull:`639`).
