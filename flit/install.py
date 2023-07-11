@@ -249,8 +249,16 @@ class Installer(object):
             for req_d in requirements
         ]
 
+        # Use either pip in the venv or in the current environment,
+        # whichever is available.
+        try:
+            import pip  # noqa: F401
+        except ImportError:
+            cmd = [self.python, '-m', 'pip', 'install']
+        else:
+            cmd = [sys.executable, '-m', 'pip', 'install', '--python', self.python]
+
         # install the requirements with pip
-        cmd = [self.python, '-m', 'pip', 'install']
         if self.user:
             cmd.append('--user')
         with tempfile.NamedTemporaryFile(mode='w',
