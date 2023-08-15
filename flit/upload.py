@@ -33,7 +33,7 @@ def get_repositories(file="~/.pypirc"):
     This returns a dict keyed by name, of dicts with keys 'url', 'username',
     'password'. Username and password may be None.
     """
-    cp = configparser.ConfigParser()
+    cp = configparser.ConfigParser(interpolation=None)
     if isinstance(file, str):
         file = os.path.expanduser(file)
 
