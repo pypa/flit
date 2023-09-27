@@ -201,8 +201,7 @@ class Installer(object):
             rel_path = os.path.relpath(src_path, self.ini_info.data_directory)
             dst_path = os.path.join(target_data_dir, rel_path)
             os.makedirs(os.path.dirname(dst_path), exist_ok=True)
-            if os.path.exists(dst_path):
-                os.remove(dst_path)
+            pathlib.Path(dst_path, missing_ok=True)
             if self.symlink:
                 os.symlink(os.path.realpath(src_path), dst_path)
             else:
