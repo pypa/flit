@@ -37,7 +37,12 @@ class RepoDetails:
     url: str
     username: Optional[str] = None
     password: Optional[str] = None
-    is_warehouse: bool = True
+
+    @property
+    def is_pypi(self):
+        # Main PyPI (pypi.org) or TestPyPI (test.pypi.org)
+        # This is used to guess the URL for the project's HTML page
+        return self.url.rstrip('/').endswith('/legacy')
 
 
 def get_repositories(file="~/.pypirc"):
@@ -120,7 +125,6 @@ def get_repository(pypirc_path="~/.pypirc", name=None, project_name=None):
         log.warning("Unencrypted connection - credentials may be visible on "
                     "the network.")
 
-    repo.is_warehouse = repo.url.rstrip('/').endswith('/legacy')
     log.info("Using repository at %s", repo.url)
 
     if 'FLIT_USERNAME' in os.environ:
@@ -285,7 +289,7 @@ def do_upload(file:Path, metadata:Metadata, repo: RepoDetails):
     """
     upload_file(file, metadata, repo)
 
-    if repo.is_warehouse:
+    if repo.is_pypi:
         domain = urlparse(repo.url).netloc
         if domain.startswith('upload.'):
             domain = domain[7:]
