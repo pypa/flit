@@ -12,14 +12,13 @@ from unittest.mock import patch
 
 from flit import upload
 from flit.build import ALL_FORMATS
+from flit.upload import get_repository, RepoDetails
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 
-repo_settings = {'url': upload.PYPI,
-                 'username': 'user',
-                 'password': 'pw',
-                 'is_warehouse': True,
-                }
+repo_settings = upload.RepoDetails(
+    url=upload.PYPI, username='user', password='pw'
+)
 
 pypirc1 = """
 [distutils]
@@ -34,8 +33,8 @@ password: s3cret
 
 @contextmanager
 def temp_pypirc(content):
+    temp_file = NamedTemporaryFile("w+", delete=False)
     try:
-        temp_file = NamedTemporaryFile("w+", delete=False)
         temp_file.write(content)
         temp_file.close()
         yield temp_file.name
@@ -56,10 +55,10 @@ def test_upload(copy_sample):
 
 def test_get_repository():
     with temp_pypirc(pypirc1) as pypirc:
-        repo = upload.get_repository(pypirc_path=pypirc)
-        assert repo['url'] == upload.PYPI
-        assert repo['username'] == 'fred'
-        assert repo['password'] == 's3cret'
+        repo = upload.get_repository(pypirc_path=pypirc, project_name='foo')
+        assert repo.url == upload.PYPI
+        assert repo.username == 'fred'
+        assert repo.password == 's3cret'
 
 def test_get_repository_env():
     with temp_pypirc(pypirc1) as pypirc, \
@@ -68,19 +67,19 @@ def test_get_repository_env():
         'FLIT_USERNAME': 'alice',
         'FLIT_PASSWORD': 'p4ssword',  # Also not a real password
     }):
-        repo = upload.get_repository(pypirc_path=pypirc)
+        repo = upload.get_repository(pypirc_path=pypirc, project_name='foo')
         # Because we haven't specified a repo name, environment variables should
         # have higher priority than the config file.
-        assert repo['url'] == 'https://pypi.example.com'
-        assert repo['username'] == 'alice'
-        assert repo['password'] == 'p4ssword'
+        assert repo.url == 'https://pypi.example.com'
+        assert repo.username == 'alice'
+        assert repo.password == 'p4ssword'
 
 @contextmanager
-def _fake_keyring(pw):
+def _fake_keyring(d):
     class FakeKeyring:
         @staticmethod
         def get_password(service_name, username):
-            return pw
+            return d.get(service_name, {}).get(username, None)
 
     class FakeKeyringErrMod:
         class KeyringError(Exception):
@@ -100,13 +99,16 @@ index-servers =
 username: fred
 """
 
-def test_get_repository_keyring():
-    with modified_env({'FLIT_PASSWORD': None}), \
-            _fake_keyring('tops3cret'):
-        repo = upload.get_repository(pypirc_path=io.StringIO(pypirc2))
+def test_get_repository_keyring(monkeypatch):
+    monkeypatch.delenv('FLIT_PASSWORD', raising=False)
+    with _fake_keyring({upload.PYPI: {'fred': 'tops3cret'}}):
+        repo = get_repository(pypirc_path=io.StringIO(pypirc2), project_name='foo')
+    assert repo == RepoDetails(upload.PYPI, username='fred', password='tops3cret')
 
-    assert repo['username'] == 'fred'
-    assert repo['password'] == 'tops3cret'
+    for token_key in ['pypi_token:project:foo', 'pypi_token:user:fred']:
+        with _fake_keyring({upload.PYPI: {token_key: 'xyz'}}):
+            repo = get_repository(pypirc_path=io.StringIO(pypirc2), project_name='foo')
+        assert repo == RepoDetails(upload.PYPI, username='__token__', password='xyz')
 
 
 pypirc3_repo = "https://invalid-repo.inv"
@@ -137,9 +139,9 @@ def test_upload_pypirc_file(copy_sample):
         )
         _, _, repo = upload_file.call_args[0]
 
-        assert repo["url"] == pypirc3_repo
-        assert repo["username"] == pypirc3_user
-        assert repo["password"] == pypirc3_pass
+        assert repo.url == pypirc3_repo
+        assert repo.username == pypirc3_user
+        assert repo.password == pypirc3_pass
 
 
 def test_upload_invalid_pypirc_file(copy_sample):
@@ -153,16 +155,3 @@ def test_upload_invalid_pypirc_file(copy_sample):
                 repo_name="test123",
                 pypirc_path="./file.invalid",
             )
-
-def test_upload_default_pypirc_file(copy_sample):
-    with patch("flit.upload.do_upload") as do_upload:
-        td = copy_sample("module1_toml")
-        formats = list(ALL_FORMATS)[:1]
-        upload.main(
-            td / "pyproject.toml",
-            formats=set(formats),
-            repo_name="test123",
-        )
-
-        file = do_upload.call_args[0][2]
-        assert file == "~/.pypirc"
