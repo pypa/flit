@@ -73,7 +73,7 @@ or as a directory — and you want to distribute it.
 
 Once your package is published, people can install it using *pip* just like
 any other package. In most cases, pip will download a 'wheel' package, a
-standard format it knows how to install. If you specifically ask Pip to install
+standard format it knows how to install. If you specifically ask pip to install
 a 'sdist' package, it will install and use Flit in a temporary environment.
 
 
