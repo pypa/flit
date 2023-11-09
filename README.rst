@@ -1,5 +1,5 @@
 **Flit** is a simple way to put Python packages and modules on PyPI.
-It tries to require less thought about packaging and help you avoid common
+It tries to require less thought about packaging and helps you avoid common
 mistakes.
 See `Why use Flit? <https://flit.readthedocs.io/en/latest/rationale.html>`_ for
 more about how it compares to other Python packaging tools.
@@ -59,7 +59,7 @@ or as a directory — and you want to distribute it.
        [project.urls]
        Home = "https://github.com/sirrobin/foobar"
 
-   You can edit this file to add other metadata, for example to set up
+   You can edit this file to add other metadata, for example, to set up
    command line scripts. See the
    `pyproject.toml page <https://flit.readthedocs.io/en/latest/pyproject_toml.html#scripts-section>`_
    of the documentation.
@@ -73,8 +73,8 @@ or as a directory — and you want to distribute it.
 
 Once your package is published, people can install it using *pip* just like
 any other package. In most cases, pip will download a 'wheel' package, a
-standard format it knows how to install. If you specifically ask pip to install
-an 'sdist' package, it will install and use Flit in a temporary environment.
+standard format it knows how to install. If you specifically ask Pip to install
+a 'sdist' package, it will install and use Flit in a temporary environment.
 
 
 To install a package locally for development, run::
