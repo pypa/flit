@@ -11,8 +11,9 @@ Install
 
     $ python3 -m pip install flit
 or
+
 ::
-    
+
     $ pip3 install flit
 
 Flit requires Python 3 and therefore needs to be installed using the Python 3
