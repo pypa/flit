@@ -12,7 +12,7 @@ To report a security vulnerability
 
 You can also directly propose a GitHub  security advisory on the Flit Security page of github:
 
-[https://github.com/pypa/flit/security](https://github.com/pypa/flit/security])
+[https://github.com/pypa/flit/security](https://github.com/pypa/flit/security)
 
 ### via Tidelift:
 
