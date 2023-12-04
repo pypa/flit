@@ -26,6 +26,15 @@ def find_python_executable(python: Optional[str] = None) -> str:
         python = os.environ.get("FLIT_INSTALL_PYTHON")
     if not python:
         return sys.executable
+    if os.path.isdir(python):
+        # Assume it's a virtual environment and look for the environment's
+        # Python executable.  This is the same behavior used by pip.
+        #
+        # Try both Unix and Windows paths in case of odd cases like cygwin.
+        for exe in ("bin/python", "Scripts/python.exe"):
+            py = os.path.join(python, exe)
+            if os.path.exists(py):
+                python = py
     if os.path.isabs(python):  # sys.executable is absolute too
         return python
     # get absolute filepath of {python}
