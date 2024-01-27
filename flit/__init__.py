@@ -34,7 +34,7 @@ def find_python_executable(python: Optional[str] = None) -> str:
         for exe in ("bin/python", "Scripts/python.exe"):
             py = os.path.join(python, exe)
             if os.path.exists(py):
-                python = py
+                return os.path.abspath(py)
     if os.path.isabs(python):  # sys.executable is absolute too
         return python
     # get absolute filepath of {python}
