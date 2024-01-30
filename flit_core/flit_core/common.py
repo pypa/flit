@@ -56,9 +56,15 @@ class Module(object):
                 .format(name, ", ".join([str(p) for p in sorted(existing)]))
             )
         elif not existing:
-            raise ValueError("No file/folder found for module {}".format(name))
-
-        self.source_dir = directory / self.prefix
+            if os.environ.get("FLIT_ALLOW_INVALID"):
+                log.warning(
+                    "Allowing invalid data (FLIT_ALLOW_INVALID set). No file/folder found for module {}"
+                    .format(name)
+                )
+            else:
+                raise ValueError("No file/folder found for module {}".format(name))
+        else:
+            self.source_dir = directory / self.prefix
 
         if '.' in name:
             self.namespace_package_name = name.rpartition('.')[0]
