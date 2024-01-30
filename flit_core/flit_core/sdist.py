@@ -91,7 +91,8 @@ class SdistBuilder:
         srcdir = ini_path.parent
         module = common.Module(ini_info.module, srcdir)
         metadata = common.make_metadata(module, ini_info)
-        extra_files = [ini_path.name] + ini_info.referenced_files
+        license_files = list(map(str, ini_info.license_files))
+        extra_files = [ini_path.name] + ini_info.referenced_files + license_files
         return cls(
             module, metadata, srcdir, ini_info.reqs_by_extra,
             ini_info.entrypoints, extra_files, ini_info.data_directory,
