@@ -226,7 +226,7 @@ def build_post_data(action, metadata:Metadata):
         "version": metadata.version,
 
         # additional meta-data
-        "metadata_version": '2.1',
+        "metadata_version": '2.3',
         "summary": metadata.summary,
         "home_page": metadata.home_page,
         "author": metadata.author,
