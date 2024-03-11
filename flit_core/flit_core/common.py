@@ -348,7 +348,7 @@ class Metadata(object):
     requires_external = ()
     provides_extra = ()
 
-    metadata_version = "2.1"
+    metadata_version = "2.3"
 
     def __init__(self, data):
         data = data.copy()
@@ -359,8 +359,12 @@ class Metadata(object):
             assert hasattr(self, k), "data does not have attribute '{}'".format(k)
             setattr(self, k, v)
 
-    def _normalise_name(self, n):
+    def _normalise_field_name(self, n):
         return n.lower().replace('-', '_')
+
+    def _normalise_core_metadata_name(self, name):
+        # Normalized Names (PEP 503)
+        return re.sub(r"[-_.]+", "-", name).lower()
 
     def write_metadata_file(self, fp):
         """Write out metadata in the email headers format"""
@@ -383,11 +387,11 @@ class Metadata(object):
         ]
 
         for field in fields:
-            value = getattr(self, self._normalise_name(field))
+            value = getattr(self, self._normalise_field_name(field))
             fp.write(u"{}: {}\n".format(field, value))
 
         for field in optional_fields:
-            value = getattr(self, self._normalise_name(field))
+            value = getattr(self, self._normalise_field_name(field))
             if value is not None:
                 # TODO: verify which fields can be multiline
                 # The spec has multiline examples for Author, Maintainer &
@@ -400,13 +404,15 @@ class Metadata(object):
             fp.write(u'Classifier: {}\n'.format(clsfr))
 
         for req in self.requires_dist:
-            fp.write(u'Requires-Dist: {}\n'.format(req))
+            normalised_req = self._normalise_core_metadata_name(req)
+            fp.write(u'Requires-Dist: {}\n'.format(normalised_req))
 
         for url in self.project_urls:
             fp.write(u'Project-URL: {}\n'.format(url))
 
         for extra in self.provides_extra:
-            fp.write(u'Provides-Extra: {}\n'.format(extra))
+            normalised_extra = self._normalise_core_metadata_name(extra)
+            fp.write(u'Provides-Extra: {}\n'.format(normalised_extra))
 
         if self.description is not None:
             fp.write(u'\n' + self.description + u'\n')
