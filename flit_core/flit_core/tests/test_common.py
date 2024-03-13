@@ -163,6 +163,10 @@ def test_metadata_multiline(tmp_path):
         ('foo [extra_1, extra.2, extra-3, extra__4, extra..5, extra--6]', 'foo [extra-1, extra-2, extra-3, extra-4, extra-5, extra-6]'),
         ('foo', 'foo'),
         ('foo[bar]', 'foo[bar]'),
+        # https://packaging.python.org/en/latest/specifications/core-metadata/#requires-dist-multiple-use
+        ('pkginfo', 'pkginfo'),
+        ('zope.interface (>3.5.0)', 'zope.interface (>3.5.0)'),
+        ("pywin32 >1.0; sys_platform == 'win32'", "pywin32 >1.0; sys_platform == 'win32'"),
     ],
 )
 def test_metadata_2_3_requires_dist(requires_dist, expected_result):
