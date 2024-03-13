@@ -366,6 +366,24 @@ class Metadata(object):
         # Normalized Names (PEP 503)
         return re.sub(r"[-_.]+", "-", name).lower()
 
+    def _extract_extras(self, req):
+        match = re.search(r'\[([^]]*)\]', req)
+        if match:
+            list_str = match.group(1)
+            return [item.strip() for item in list_str.split(',')]
+        else:
+            return None
+    
+    def _normalise_requires_dist(self, req):
+        extras = self._extract_extras(req)
+        if extras:
+            normalised_extras = [self._normalise_core_metadata_name(extra) for extra in extras]
+            normalised_extras_str = ', '.join(normalised_extras)
+            normalised_req = re.sub(r'\[([^]]*)\]', f"[{normalised_extras_str}]", req)
+            return normalised_req
+        else:
+            return req
+
     def write_metadata_file(self, fp):
         """Write out metadata in the email headers format"""
         fields = [
@@ -404,7 +422,7 @@ class Metadata(object):
             fp.write(u'Classifier: {}\n'.format(clsfr))
 
         for req in self.requires_dist:
-            normalised_req = self._normalise_core_metadata_name(req)
+            normalised_req = self._normalise_requires_dist(req)
             fp.write(u'Requires-Dist: {}\n'.format(normalised_req))
 
         for url in self.project_urls:

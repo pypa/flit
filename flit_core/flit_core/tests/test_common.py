@@ -156,3 +156,48 @@ def test_metadata_multiline(tmp_path):
     assert msg['Version'] == d['version']
     assert [l.lstrip() for l in msg['Author'].splitlines()] == d['author'].splitlines()
     assert not msg.defects
+
+@pytest.mark.parametrize(
+    ("requires_dist", "expected_result"),
+    [
+        ('foo [extra_1, extra.2, extra-3, extra__4, extra..5, extra--6]', 'foo [extra-1, extra-2, extra-3, extra-4, extra-5, extra-6]'),
+        ('foo', 'foo'),
+        ('foo[bar]', 'foo[bar]'),
+    ],
+)
+def test_metadata_2_3_requires_dist(requires_dist, expected_result):
+    d = {
+        'name': 'foo',
+        'version': '1.0',
+        'requires_dist': [requires_dist],
+    }
+    md = Metadata(d)
+    sio = StringIO()
+    md.write_metadata_file(sio)
+    sio.seek(0)
+
+    msg = email.parser.Parser(policy=email.policy.compat32).parse(sio)
+    assert msg['Requires-Dist'] == expected_result
+    assert not msg.defects
+
+@pytest.mark.parametrize(
+    ("provides_extra", "expected_result"),
+    [
+        ('foo', 'foo'),
+        ('foo__bar..baz', 'foo-bar-baz'),
+    ],
+)
+def test_metadata_2_3_provides_extra(provides_extra, expected_result):
+    d = {
+        'name': 'foo',
+        'version': '1.0',
+        'provides_extra': [provides_extra],
+    }
+    md = Metadata(d)
+    sio = StringIO()
+    md.write_metadata_file(sio)
+    sio.seek(0)
+
+    msg = email.parser.Parser(policy=email.policy.compat32).parse(sio)
+    assert msg['Provides-Extra'] == expected_result
+    assert not msg.defects
