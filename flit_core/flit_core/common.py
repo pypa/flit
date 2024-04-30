@@ -347,6 +347,7 @@ class Metadata(object):
     obsoletes_dist = ()
     requires_external = ()
     provides_extra = ()
+    dynamic = ()
 
     metadata_version = "2.3"
 
