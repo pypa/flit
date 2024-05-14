@@ -2,6 +2,7 @@ import argparse
 from base64 import urlsafe_b64encode
 import contextlib
 from datetime import datetime
+from datetime import timezone
 import hashlib
 import io
 import logging
@@ -42,7 +43,8 @@ def zip_timestamp_from_env() -> Optional[tuple]:
     try:
         # If SOURCE_DATE_EPOCH is set (e.g. by Debian), it's used for
         # timestamps inside the zip file.
-        d = datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
+        t = int(os.environ['SOURCE_DATE_EPOCH'])
+        d = datetime.fromtimestamp(t, timezone.utc)
     except (KeyError, ValueError):
         # Otherwise, we'll use the mtime of files, and generated files will
         # default to 2016-1-1 00:00:00
