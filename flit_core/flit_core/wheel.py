@@ -1,8 +1,7 @@
 import argparse
 from base64 import urlsafe_b64encode
 import contextlib
-from datetime import datetime
-from datetime import timezone
+from datetime import datetime, timezone
 import hashlib
 import io
 import logging
