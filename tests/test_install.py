@@ -13,6 +13,7 @@ from testpath import (
 
 from flit import install
 from flit.install import Installer, _requires_dist_to_pip_requirement, DependencyError
+from flit_core.config import ConfigError
 import flit_core.tests
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
@@ -277,6 +278,32 @@ class InstallTests(TestCase):
         calls = mockpy.get_calls()
         assert len(calls) == 1
         assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
+
+    def test_install_only_deps(self):
+        """Test if we can install using --only-deps with the pyproject.toml, and without the README or module folder"""
+        os.environ.setdefault('FLIT_ALLOW_INVALID', '1')
+        try:
+            ins = Installer.from_ini_path(
+                samples_dir / 'missing-description-file.toml', user=False, python='mock_python'
+            )
+
+            with MockCommand('mock_python') as mockpy:
+                ins.install_requirements()
+            calls = mockpy.get_calls()
+            assert len(calls) == 1
+            assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
+        finally:
+            del os.environ['FLIT_ALLOW_INVALID']
+
+    def test_install_only_deps_fail(self):
+        with pytest.raises(ConfigError, match=r"Description file .* does not exist"):
+            Installer.from_ini_path(
+                samples_dir / 'missing-description-file.toml', user=False, python='mock_python'
+            )
+        with pytest.raises(ValueError, match=r"No file/folder found for module definitelymissingmodule"):
+            Installer.from_ini_path(
+                samples_dir / 'missing-module.toml', user=False, python='mock_python'
+            )
 
     def test_install_reqs_my_python_if_needed_pep621(self):
         ins = Installer.from_ini_path(
