@@ -148,6 +148,10 @@ def get_docstring_and_version_via_ast(target):
         with target_path.open('rb') as f:
             node = ast.parse(f.read())
         for child in node.body:
+            if sys.version_info >= (3, 8):
+                target_type = ast.Constant
+            else:
+                target_type = ast.Str
             # Only use the version from the given module if it's a simple
             # string assignment to __version__
             is_version_str = (
@@ -157,10 +161,13 @@ def get_docstring_and_version_via_ast(target):
                         and target.id == "__version__"
                         for target in child.targets
                     )
-                    and isinstance(child.value, ast.Str)
+                    and isinstance(child.value, target_type)
             )
             if is_version_str:
-                version = child.value.s
+                if sys.version_info >= (3, 8):
+                    version = child.value.value
+                else:
+                    version = child.value.s
                 break
     return ast.get_docstring(node), version
 
