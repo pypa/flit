@@ -21,6 +21,9 @@ from .versionno import normalise_version
 
 log = logging.getLogger(__name__)
 
+# These are the same patterns used by setuptools/wheel
+# besides `LICENSES/*.txt` which is from the REUSE specification
+LICENSE_PATTERNS = ('AUTHORS*', 'COPYING*', 'LICEN[CS]E*', 'LICENSES/*.txt')
 
 class ConfigError(ValueError):
     pass
@@ -257,6 +260,7 @@ class LoadedConfig(object):
         self.sdist_exclude_patterns = []
         self.dynamic_metadata = []
         self.data_directory = None
+        self.license_files = []
 
     def add_scripts(self, scripts_dict):
         if scripts_dict:
@@ -401,6 +405,8 @@ def _prep_metadata(md_sect, path):
     # For internal use, record the main requirements as a '.none' extra.
     res.reqs_by_extra['.none'] = reqs_noextra
 
+    res.license_files = find_licenses(path.parent if path else Path("."))
+
     return res
 
 def _expand_requires_extra(re):
@@ -506,7 +512,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                 "Unrecognised keys in [project.license]: {}".format(unrec_keys)
             )
 
-        # TODO: Do something with license info.
+        # TODO: Include license info in the metadata.
         # The 'License' field in packaging metadata is a brief description of
         # a license, not the full text or a file path. PEP 639 will improve on
         # how licenses are recorded.
@@ -515,13 +521,15 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                 raise ConfigError(
                     "[project.license] should specify file or text, not both"
                 )
-            lc.referenced_files.append(license_tbl['file'])
+            lc.license_files.append(Path(license_tbl['file']))
         elif 'text' in license_tbl:
             pass
         else:
             raise ConfigError(
                 "file or text field required in [project.license] table"
             )
+    if not lc.license_files:
+        lc.license_files = find_licenses(path.parent)
 
     if 'authors' in proj:
         _check_type(proj, 'authors', list)
@@ -658,3 +666,11 @@ def pep621_people(people, group_name='author') -> dict:
     if emails:
         res[group_name + '_email'] = ", ".join(emails)
     return res
+
+def find_licenses(path):
+    found = []
+    for pattern in LICENSE_PATTERNS:
+        found.extend(file for file in path.glob(pattern) if file.is_file())
+    if not found:
+        log.warning("No licenses were found in %s. Add a license!", LICENSE_PATTERNS)
+    return found

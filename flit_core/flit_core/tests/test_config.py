@@ -163,3 +163,20 @@ def test_bad_pep621_readme(readme, err_match):
     }
     with pytest.raises(config.ConfigError, match=err_match):
         config.read_pep621_metadata(proj, samples_dir / 'pep621')
+
+def test_license_file_auto_detect(tmp_path):
+    proj = {'name': 'module1', 'version': '1.0', 'description': 'x'}
+    tmp_path.joinpath('module1').mkdir()
+    for file in ('LICENSE', 'COPYING.md', 'module1/__init__.py'):
+        tmp_path.joinpath(file).touch()
+    parsed_config = config.read_pep621_metadata(proj, tmp_path / "pyproject.toml")
+    assert parsed_config.license_files == [tmp_path / 'COPYING.md', tmp_path / 'LICENSE']
+
+def test_missing_license_warning(tmp_path, caplog):
+    proj = {'name': 'module1', 'version': '1.0', 'description': 'x'}
+    tmp_path.joinpath('module1').mkdir()
+    for file in ('module1/__init__.py',):
+        tmp_path.joinpath(file).touch()
+    config.read_pep621_metadata(proj, tmp_path / 'pyproject.toml')
+    message = f"No licenses were found in {config.LICENSE_PATTERNS}. Add a license!"
+    assert message in caplog.messages
