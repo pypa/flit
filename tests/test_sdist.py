@@ -1,6 +1,7 @@
 import ast
 from os.path import join as pjoin
 from pathlib import Path
+from unittest.mock import patch
 import pytest
 from shutil import which, copy, copytree
 import sys
@@ -81,7 +82,8 @@ def test_get_files_list_git(copy_sample):
 
     builder = sdist.SdistBuilder.from_ini_path(td / 'pyproject.toml')
     with MockCommand('git', LIST_FILES_GIT):
-        files = builder.select_files()
+        with patch('flit.vcs.git_validate_ignore', return_value=True):
+            files = builder.select_files()
 
     assert set(files) == {
         'foo', pjoin('dir1', 'bar'), pjoin('dir1', 'subdir', 'qux'),
