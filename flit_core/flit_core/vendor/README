@@ -1,4 +1,5 @@
-flit_core bundles the 'tomli' TOML parser, to avoid a bootstrapping problem.
+flit_core bundles the 'tomli' TOML parser, to avoid a
+[bootstrapping problem](https://github.com/pypa/packaging-problems/issues/342).
 tomli is packaged using Flit, so there would be a dependency cycle when building
 from source. Vendoring a copy of tomli avoids this. The code in tomli is under
 the MIT license, and the LICENSE file is in the .dist-info folder.
