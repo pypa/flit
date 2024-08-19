@@ -1,6 +1,5 @@
 from collections import defaultdict
 from copy import copy
-from glob import glob
 from gzip import GzipFile
 import io
 import logging
@@ -34,36 +33,6 @@ def clean_tarinfo(ti, mtime=None):
     return ti
 
 
-class FilePatterns:
-    """Manage a set of file inclusion/exclusion patterns relative to basedir"""
-    def __init__(self, patterns, basedir):
-        self.basedir = basedir
-
-        self.dirs = set()
-        self.files = set()
-
-        for pattern in patterns:
-            for path in sorted(glob(osp.join(basedir, pattern), recursive=True)):
-                rel = osp.relpath(path, basedir)
-                if osp.isdir(path):
-                    self.dirs.add(rel)
-                else:
-                    self.files.add(rel)
-
-    def match_file(self, rel_path):
-        if rel_path in self.files:
-            return True
-
-        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
-
-    def match_dir(self, rel_path):
-        if rel_path in self.dirs:
-            return True
-
-        # Check if it's a subdirectory of any directory in the list
-        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
-
-
 class SdistBuilder:
     """Builds a minimal sdist
 
@@ -80,8 +49,8 @@ class SdistBuilder:
         self.entrypoints = entrypoints
         self.extra_files = extra_files
         self.data_directory = data_directory
-        self.includes = FilePatterns(include_patterns, str(cfgdir))
-        self.excludes = FilePatterns(exclude_patterns, str(cfgdir))
+        self.includes = common.FilePatterns(include_patterns, str(cfgdir))
+        self.excludes = common.FilePatterns(exclude_patterns, str(cfgdir))
 
     @classmethod
     def from_ini_path(cls, ini_path: Path):

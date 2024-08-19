@@ -1,8 +1,10 @@
 import ast
 from contextlib import contextmanager
+from glob import glob
 import hashlib
 import logging
 import os
+import os.path as osp
 import sys
 
 from pathlib import Path
@@ -11,6 +13,37 @@ import re
 log = logging.getLogger(__name__)
 
 from .versionno import normalise_version
+
+
+class FilePatterns:
+    """Manage a set of file inclusion/exclusion patterns relative to basedir"""
+    def __init__(self, patterns, basedir):
+        self.basedir = basedir
+
+        self.dirs = set()
+        self.files = set()
+
+        for pattern in patterns:
+            for path in sorted(glob(osp.join(basedir, pattern), recursive=True)):
+                rel = osp.relpath(path, basedir)
+                if osp.isdir(path):
+                    self.dirs.add(rel)
+                else:
+                    self.files.add(rel)
+
+    def match_file(self, rel_path):
+        if rel_path in self.files:
+            return True
+
+        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
+
+    def match_dir(self, rel_path):
+        if rel_path in self.dirs:
+            return True
+
+        # Check if it's a subdirectory of any directory in the list
+        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
+
 
 class Module(object):
     """This represents the module/package that we are going to distribute

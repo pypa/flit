@@ -129,7 +129,7 @@ def prep_toml_config(d, path):
         )
 
     unknown_sections = set(dtool) - {
-        'metadata', 'module', 'scripts', 'entrypoints', 'sdist', 'external-data'
+        'metadata', 'module', 'scripts', 'entrypoints', 'sdist', 'wheel', 'external-data'
     }
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
@@ -153,6 +153,17 @@ def prep_toml_config(d, path):
         ] + dtool['sdist'].get('exclude', [])
         loaded_cfg.sdist_exclude_patterns = _check_glob_patterns(
             exclude, 'exclude'
+        )
+
+    if 'wheel' in dtool:
+        unknown_keys = set(dtool['wheel']) - {'exclude'}
+        if unknown_keys:
+            raise ConfigError(
+                "Unknown keys in [tool.flit.wheel]:" + ", ".join(unknown_keys)
+            )
+
+        loaded_cfg.wheel_exclude_patterns = _check_glob_patterns(
+            dtool['wheel'].get('exclude', []), 'exclude'
         )
 
     data_dir = dtool.get('external-data', {}).get('directory', None)

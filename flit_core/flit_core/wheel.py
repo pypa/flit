@@ -61,7 +61,8 @@ def zip_timestamp_from_env() -> Optional[tuple]:
 
 class WheelBuilder:
     def __init__(
-            self, directory, module, metadata, entrypoints, target_fp, data_directory
+            self, directory, module, metadata, entrypoints, target_fp, data_directory,
+            exclude_patterns=(),
     ):
         """Build a wheel from a module/package
         """
@@ -70,6 +71,7 @@ class WheelBuilder:
         self.metadata = metadata
         self.entrypoints = entrypoints
         self.data_directory = data_directory
+        self.excludes = common.FilePatterns(exclude_patterns, str(directory))
 
         self.records = []
         self.source_time_stamp = zip_timestamp_from_env()
@@ -87,7 +89,8 @@ class WheelBuilder:
         module = common.Module(ini_info.module, directory)
         metadata = common.make_metadata(module, ini_info)
         return cls(
-            directory, module, metadata, entrypoints, target_fp, ini_info.data_directory
+            directory, module, metadata, entrypoints, target_fp, ini_info.data_directory,
+            ini_info.wheel_exclude_patterns,
         )
 
     @property
@@ -162,7 +165,8 @@ class WheelBuilder:
 
         for full_path in self.module.iter_files():
             rel_path = osp.relpath(full_path, source_dir)
-            self._add_file(full_path, rel_path)
+            if not self.excludes.match_file(rel_path):
+                self._add_file(full_path, rel_path)
 
     def add_pth(self):
         with self._write_to_zip(self.module.name + ".pth") as f:
