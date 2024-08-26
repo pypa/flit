@@ -266,6 +266,7 @@ class LoadedConfig(object):
         self.referenced_files = []
         self.sdist_include_patterns = []
         self.sdist_exclude_patterns = []
+        self.wheel_exclude_patterns = []
         self.dynamic_metadata = []
         self.data_directory = None
 
