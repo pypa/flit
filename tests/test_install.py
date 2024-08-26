@@ -3,7 +3,7 @@ import os
 import pathlib
 import sys
 import tempfile
-from unittest import TestCase, SkipTest
+from unittest import TestCase, SkipTest, skipIf
 from unittest.mock import patch
 
 import pytest
@@ -13,10 +13,10 @@ from testpath import (
 
 from flit import install
 from flit.install import Installer, _requires_dist_to_pip_requirement, DependencyError
-import flit_core.tests
 
-samples_dir = pathlib.Path(__file__).parent / 'samples'
-core_samples_dir = pathlib.Path(flit_core.tests.__file__).parent / 'samples'
+tests_dir = pathlib.Path(__file__).parent
+samples_dir = tests_dir / 'samples'
+core_samples_dir = tests_dir.parent / 'flit_core' / 'tests_core' / 'samples'
 
 class InstallTests(TestCase):
     def setUp(self):
@@ -56,6 +56,7 @@ class InstallTests(TestCase):
             samples_dir / 'module1_toml', 'module1', '0.1', expected_editable=False
         )
 
+    @skipIf(not core_samples_dir.is_dir(), "Missing flit_core samples")
     def test_install_module_pep621(self):
         Installer.from_ini_path(
             core_samples_dir / 'pep621_nodynamic' / 'pyproject.toml',
@@ -154,6 +155,7 @@ class InstallTests(TestCase):
             samples_dir / 'package1', 'package1', '0.1', expected_editable=True
         )
 
+    @skipIf(not core_samples_dir.is_dir(), "Missing flit_core samples")
     def test_symlink_module_pep621(self):
         if os.name == 'nt':
             raise SkipTest("symlink")
@@ -278,6 +280,7 @@ class InstallTests(TestCase):
         assert len(calls) == 1
         assert calls[0]['argv'][1:5] == ['-m', 'pip', 'install', '-r']
 
+    @skipIf(not core_samples_dir.is_dir(), "Missing flit_core samples")
     def test_install_reqs_my_python_if_needed_pep621(self):
         ins = Installer.from_ini_path(
             core_samples_dir / 'pep621_nodynamic' / 'pyproject.toml',
@@ -292,6 +295,7 @@ class InstallTests(TestCase):
             Installer.from_ini_path(samples_dir / 'requires-requests.toml',
                             user=False, deps='none', extras='dev')
 
+    @skipIf(not core_samples_dir.is_dir(), "Missing flit_core samples")
     def test_install_data_dir(self):
         Installer.from_ini_path(
             core_samples_dir / 'with_data_dir' / 'pyproject.toml',
@@ -299,6 +303,7 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'site-packages' / 'module1.py')
         assert_isfile(self.tmpdir / 'data' / 'share' / 'man' / 'man1' / 'foo.1')
 
+    @skipIf(not core_samples_dir.is_dir(), "Missing flit_core samples")
     def test_symlink_data_dir(self):
         if os.name == 'nt':
             raise SkipTest("symlink")
