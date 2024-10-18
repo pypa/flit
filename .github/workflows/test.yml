@@ -81,6 +81,7 @@ jobs:
 
       - name: Build flit_core & flit packages
         run: |
+          python flit_core/build_dists.py
           python -m pip install .
           python -m flit build
           # Copy flit_core packages to same location
