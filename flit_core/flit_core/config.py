@@ -17,6 +17,7 @@ except ImportError:
     except ImportError:
         import tomli as tomllib
 
+from .common import normalise_core_metadata_name
 from .versionno import normalise_version
 
 log = logging.getLogger(__name__)
@@ -381,7 +382,31 @@ def _prep_metadata(md_sect, path):
 
     # Move dev-requires into requires-extra
     reqs_noextra = md_dict.pop('requires_dist', [])
-    res.reqs_by_extra = md_dict.pop('requires_extra', {})
+
+    reqs_extra = md_dict.pop('requires_extra', {})
+    extra_names_by_normed = {}
+    for e, reqs in reqs_extra.items():
+        if not all(isinstance(a, str) for a in reqs):
+            raise ConfigError(
+                f'Expected a string list for requires-extra group {e}'
+            )
+        if not name_is_valid(e):
+            raise ConfigError(
+                f'requires-extra group name {e!r} is not valid'
+            )
+        enorm = normalise_core_metadata_name(e)
+        extra_names_by_normed.setdefault(enorm, set()).add(e)
+        res.reqs_by_extra[enorm] = reqs
+
+    clashing_extra_names = [
+        g for g in extra_names_by_normed.values() if len(g) > 1
+    ]
+    if clashing_extra_names:
+        fmted = ['/'.join(sorted(g)) for g in clashing_extra_names]
+        raise ConfigError(
+            f"requires-extra group names clash: {'; '.join(fmted)}"
+        )
+
     dev_requires = md_dict.pop('dev_requires', None)
     if dev_requires is not None:
         if 'dev' in res.reqs_by_extra:
@@ -434,6 +459,8 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
     if 'name' not in proj:
         raise ConfigError('name must be specified in [project] table')
     _check_type(proj, 'name', str)
+    if not name_is_valid(proj['name']):
+        raise ConfigError(f"name {proj['name']} is not valid")
     md_dict['name'] = proj['name']
     lc.module = md_dict['name'].replace('-', '_')
 
@@ -592,13 +619,29 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
             raise ConfigError(
                 'Expected a dict of lists in optional-dependencies field'
             )
+        extra_names_by_normed = {}
         for e, reqs in optdeps.items():
             if not all(isinstance(a, str) for a in reqs):
                 raise ConfigError(
                     'Expected a string list for optional-dependencies ({})'.format(e)
                 )
+            if not name_is_valid(e):
+                raise ConfigError(
+                    f'optional-dependencies group name {e!r} is not valid'
+                )
+            enorm = normalise_core_metadata_name(e)
+            extra_names_by_normed.setdefault(enorm, set()).add(e)
+            lc.reqs_by_extra[enorm] = reqs
 
-        lc.reqs_by_extra = optdeps.copy()
+        clashing_extra_names = [
+            g for g in extra_names_by_normed.values() if len(g) > 1
+        ]
+        if clashing_extra_names:
+            fmted = ['/'.join(sorted(g)) for g in clashing_extra_names]
+            raise ConfigError(
+                f"optional-dependencies group names clash: {'; '.join(fmted)}"
+            )
+
         md_dict['provides_extra'] = sorted(lc.reqs_by_extra.keys())
 
     md_dict['requires_dist'] = \
@@ -632,6 +675,13 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         )
 
     return lc
+
+
+def name_is_valid(name) -> bool:
+    return bool(re.match(
+        r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", name, re.IGNORECASE
+    ))
+
 
 def pep621_people(people, group_name='author') -> dict:
     """Convert authors/maintainers from PEP 621 to core metadata fields"""

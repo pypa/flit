@@ -12,4 +12,4 @@ requires = ["toml"]
 
 [tool.flit.metadata.requires-extra]
 test = ["pytest"]
-custom = ["requests"]
+cus__Tom = ["requests"]  # To test normalisation
