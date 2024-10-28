@@ -28,7 +28,6 @@ SWITCH_TO_HTTPS = (
     "http://pypi.python.org/",
     "http://testpypi.python.org/",
     "http://upload.pypi.org/",
-    "http://upload.pypi.io/",
 )
 
 
