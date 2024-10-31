@@ -1,6 +1,34 @@
 Release history
 ===============
 
+Version 3.10
+------------
+
+- ``flit publish`` can now use PyPI tokens stored in keyring (:ghpull:`649`),
+  either project tokens with a 'username' like
+  :samp:`pypi_token:project:{project_name}` (use the `normalised form of the
+  name <https://packaging.python.org/en/latest/specifications/name-normalization/>`_)
+  or user tokens (:samp:`pypi_token:user:{username}`).
+- The ``--python`` option can now take the path of a virtualenv folder, as an
+  alternative to a Python executable (:ghpull:`667`).
+- Flit will work with current development versions of Pythona again (:ghpull:`684`).
+- The ``flit`` command line package now requires Python 3.8 or above (:ghpulL:`660`).
+  ``flit_core`` still works with Python 3.6 or above.
+- The metadata in packages now has the names of optional dependency groups
+  ("extras") normalised, complying with version 2.3 of the metadata standard
+  (:ghpull:`676`, :ghpull:`697`).
+- The ``flit`` command line package now depends on pip (:ghpull:`647`).
+- Fix potential substitution of environment variables into passwords read from
+  ``.pypirc`` files (:ghpull:`652`).
+- A warning is now shown when building packages which specify the old
+  ``flit.buildapi`` backend, which should be replaced by ``flit_core.buildapi``
+  (:ghpull:`674`). It's a good idea to always set a maximum version for the
+  build requirement, to protect against changes in future major versions of Flit.
+- Avoid using the deprecated ``datetime.utcfromtimestamp()`` (:ghpull:`682`).
+- Flit now has a ``SECURITY.md`` file in the Github repository (:ghpull:`665`).
+- The tests for ``flit_core`` are no longer part of the installed package,
+  reducing the size of the wheels (:ghpull:`691`).
+
 Version 3.9
 -----------
 
