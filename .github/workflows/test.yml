@@ -82,7 +82,7 @@ jobs:
       - name: Build flit_core & flit packages
         run: |
           python flit_core/build_dists.py
-          python -m pip install .
+          PYTHONPATH=flit_core python -m pip install . --no-build-isolation
           python -m flit build
           # Copy flit_core packages to same location
           cp flit_core/dist/* dist/
