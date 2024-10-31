@@ -4,6 +4,7 @@ import errno
 import logging
 import os
 import os.path as osp
+from os.path import isabs
 from pathlib import Path
 import re
 
@@ -163,7 +164,7 @@ def prep_toml_config(d, path):
             raise ConfigError(f"{toml_key} must be a string")
 
         normp = osp.normpath(data_dir)
-        if osp.isabs(normp):
+        if isabs_ish(normp):
             raise ConfigError(f"{toml_key} cannot be an absolute path")
         if normp.startswith('..' + os.sep):
             raise ConfigError(
@@ -233,9 +234,9 @@ def _check_glob_patterns(pats, clude):
 
         normp = osp.normpath(p)
 
-        if osp.isabs(normp):
+        if isabs_ish(normp):
             raise ConfigError(
-                '{} pattern {!r} is an absolute path'.format(clude, p)
+                f'{clude} pattern {p!r} is an absolute path'
             )
         if normp.startswith('..' + os.sep):
             raise ConfigError(
@@ -274,7 +275,7 @@ readme_ext_to_content_type = {
 
 
 def description_from_file(rel_path: str, proj_dir: Path, guess_mimetype=True):
-    if osp.isabs(rel_path):
+    if isabs_ish(rel_path):
         raise ConfigError("Readme path must be relative")
 
     desc_path = proj_dir / rel_path
@@ -708,3 +709,12 @@ def pep621_people(people, group_name='author') -> dict:
     if emails:
         res[group_name + '_email'] = ", ".join(emails)
     return res
+
+
+def isabs_ish(path):
+    """Like os.path.isabs(), but Windows paths from a drive root count as absolute
+
+    isabs() worked this way up to Python 3.12 (inclusive), and where we reject
+    absolute paths, we also want to reject these odd halfway paths.
+    """
+    return os.path.isabs(path) or path.startswith(('/', '\\'))
