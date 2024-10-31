@@ -14,7 +14,10 @@ Version 3.10
 - Flit will work with current development versions of Pythona again (:ghpull:`684`).
 - The ``flit`` command line package now requires Python 3.8 or above (:ghpulL:`660`).
   ``flit_core`` still works with Python 3.6 or above.
-- THe ``flit`` command line package now depends on pip (:ghpull:`647`).
+- The metadata in packages now has the names of optional dependency groups
+  ("extras") normalised, complying with version 2.3 of the metadata standard
+  (:ghpull:`676`, :ghpull:`697`).
+- The ``flit`` command line package now depends on pip (:ghpull:`647`).
 - Fix potential substitution of environment variables into passwords read from
   ``.pypirc`` files (:ghpull:`652`).
 - A warning is now shown when building packages which specify the old
