@@ -39,6 +39,8 @@ jobs:
         run: tox
 
       - name: Codecov upload
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: codecov
 
   test-py36:
@@ -63,6 +65,8 @@ jobs:
         run: tox
 
       - name: Codecov upload
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: codecov
 
 
