@@ -1,0 +1,13 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "module1"
+version = "0.1"
+description = "Example for testing"
+dependencies = ["toml"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+cus__Tom = ["requests"]  # To test normalisation

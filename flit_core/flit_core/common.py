@@ -370,10 +370,6 @@ class Metadata(object):
     def _normalise_field_name(self, n):
         return n.lower().replace('-', '_')
 
-    def _normalise_core_metadata_name(self, name):
-        # Normalized Names (PEP 503)
-        return re.sub(r"[-_.]+", "-", name).lower()
-
     def _extract_extras(self, req):
         match = re.search(r'\[([^]]*)\]', req)
         if match:
@@ -385,7 +381,7 @@ class Metadata(object):
     def _normalise_requires_dist(self, req):
         extras = self._extract_extras(req)
         if extras:
-            normalised_extras = [self._normalise_core_metadata_name(extra) for extra in extras]
+            normalised_extras = [normalise_core_metadata_name(extra) for extra in extras]
             normalised_extras_str = ', '.join(normalised_extras)
             normalised_req = re.sub(r'\[([^]]*)\]', f"[{normalised_extras_str}]", req)
             return normalised_req
@@ -437,7 +433,7 @@ class Metadata(object):
             fp.write(u'Project-URL: {}\n'.format(url))
 
         for extra in self.provides_extra:
-            normalised_extra = self._normalise_core_metadata_name(extra)
+            normalised_extra = normalise_core_metadata_name(extra)
             fp.write(u'Provides-Extra: {}\n'.format(normalised_extra))
 
         if self.description is not None:
@@ -458,6 +454,10 @@ def make_metadata(module, ini_info):
     md_dict.update(ini_info.metadata)
     return Metadata(md_dict)
 
+
+def normalise_core_metadata_name(name):
+    """Normalise a project or extra name (as in PEP 503, also PEP 685)"""
+    return re.sub(r"[-_.]+", "-", name).lower()
 
 
 def normalize_dist_name(name: str, version: str) -> str:

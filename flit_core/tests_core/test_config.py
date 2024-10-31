@@ -81,9 +81,20 @@ def test_extras():
     assert requires_dist == {
         'toml',
         'pytest ; extra == "test"',
-        'requests ; extra == "custom"',
+        'requests ; extra == "cus-tom"',
     }
-    assert set(info.metadata['provides_extra']) == {'test', 'custom'}
+    assert set(info.metadata['provides_extra']) == {'test', 'cus-tom'}
+
+def test_extras_newstyle():
+    # As above, but with new-style [project] table
+    info = config.read_flit_config(samples_dir / 'extras-newstyle.toml')
+    requires_dist = set(info.metadata['requires_dist'])
+    assert requires_dist == {
+        'toml',
+        'pytest ; extra == "test"',
+        'requests ; extra == "cus-tom"',
+    }
+    assert set(info.metadata['provides_extra']) == {'test', 'cus-tom'}
 
 def test_extras_dev_conflict():
     with pytest.raises(config.ConfigError, match=r'dev-requires'):
@@ -141,6 +152,10 @@ def test_bad_include_paths(path, err_match):
     ({'dynamic': ['version']}, r'dynamic.*\[project\]'),
     ({'authors': ['thomas']}, r'author.*\bdict'),
     ({'maintainers': [{'title': 'Dr'}]}, r'maintainer.*title'),
+    ({'name': 'mödule1'}, r'not valid'),
+    ({'name': 'module1_'}, r'not valid'),
+    ({'optional-dependencies': {'x_': []}}, r'not valid'),
+    ({'optional-dependencies': {'x_a': [], 'X--a': []}}, r'clash'),
 ])
 def test_bad_pep621_info(proj_bad, err_match):
     proj = {'name': 'module1', 'version': '1.0', 'description': 'x'}
