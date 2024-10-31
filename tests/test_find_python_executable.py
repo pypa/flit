@@ -1,4 +1,5 @@
 from os.path import isabs, basename, dirname
+import os
 import re
 import sys
 import venv
@@ -17,7 +18,8 @@ def test_self():
 
 
 def test_abs():
-    assert find_python_executable("/usr/bin/python") == "/usr/bin/python"
+    abs_path = "C:\\PythonXY\\python.exe" if os.name == 'nt' else '/usr/bin/python'
+    assert find_python_executable(abs_path) == abs_path
 
 
 def test_find_in_path():
