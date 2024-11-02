@@ -1,6 +1,12 @@
 Release history
 ===============
 
+Version 3.10.1
+--------------
+
+- The sdist of ``flit_core`` now includes the corresponding tests (:ghpull:`704`).
+  These were missing in 3.10.
+
 Version 3.10
 ------------
 
