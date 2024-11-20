@@ -60,6 +60,7 @@ pep621_allowed_fields = {
     'readme',
     'requires-python',
     'license',
+    'license-files',
     'authors',
     'maintainers',
     'keywords',
@@ -72,6 +73,8 @@ pep621_allowed_fields = {
     'optional-dependencies',
     'dynamic',
 }
+
+default_license_files_globs = ['COPYING*', 'LICENSE*']
 
 
 def read_flit_config(path):
@@ -427,6 +430,13 @@ def _prep_metadata(md_sect, path):
     # For internal use, record the main requirements as a '.none' extra.
     res.reqs_by_extra['.none'] = reqs_noextra
 
+    if path:
+        license_files = _license_files_from_globs(
+            path.parent, default_license_files_globs, use_defaults=True
+        )
+        res.referenced_files.extend(license_files)
+        md_dict['license_files'] = license_files
+
     return res
 
 def _expand_requires_extra(re):
@@ -438,6 +448,37 @@ def _expand_requires_extra(re):
             else:
                 yield '{} ; extra == "{}"'.format(req, extra)
 
+
+def _license_files_from_globs(project_dir: Path, globs, use_defaults = False):
+    license_files = []
+    for pattern in globs:
+        if pattern.startswith("/"):
+            raise ConfigError(
+                "Invalid glob pattern for [project.license-files]: '{}'. "
+                "Pattern must not start with '/'.".format(pattern)
+            )
+        if ".." in pattern:
+            raise ConfigError(
+                "Invalid glob pattern for [project.license-files]: '{}'. "
+                "Pattern must not contain '..'".format(pattern)
+            )
+        try:
+            files = [
+                str(file.relative_to(project_dir)).replace(osp.sep, "/")
+                for file in project_dir.glob(pattern)
+                if file.is_file()
+            ]
+        except ValueError as ex:
+            raise ConfigError(
+                "Invalid glob pattern for [project.license-files]: '{}'. {}".format(pattern, ex.args[0])
+            )
+
+        if not files and not use_defaults:
+            raise ConfigError(
+                "No files found for [project.license-files]: '{}' pattern".format(pattern)
+            )
+        license_files.extend(files)
+    return sorted(license_files)
 
 def _check_type(d, field_name, cls):
     if not isinstance(d[field_name], cls):
@@ -550,6 +591,18 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
             raise ConfigError(
                 "file or text field required in [project.license] table"
             )
+
+    license_files = []
+    if 'license-files' in proj:
+        _check_type(proj, 'license-files', list)
+        globs = proj['license-files']
+        license_files = _license_files_from_globs(path.parent, globs)
+    else:
+        license_files = _license_files_from_globs(
+            path.parent, default_license_files_globs, use_defaults=True
+        )
+    lc.referenced_files.extend(license_files)
+    md_dict['license_files'] = license_files
 
     if 'authors' in proj:
         _check_type(proj, 'authors', list)

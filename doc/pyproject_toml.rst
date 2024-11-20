@@ -98,6 +98,8 @@ requires-python
 license
   A table with either a ``file`` key (a relative path to a license file) or a
   ``text`` key (the license text).
+license-files
+  A list of glob patterns for license files to include. Defaults to ``['COPYING*', 'LICENSE*']``.
 authors
   A list of tables with ``name`` and ``email`` keys (both optional) describing
   the authors of the project.

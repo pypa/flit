@@ -354,6 +354,7 @@ class Metadata(object):
     obsoletes_dist = ()
     requires_external = ()
     provides_extra = ()
+    license_files = ()
     dynamic = ()
 
     metadata_version = "2.3"
@@ -424,6 +425,10 @@ class Metadata(object):
 
         for clsfr in self.classifiers:
             fp.write(u'Classifier: {}\n'.format(clsfr))
+
+        # TODO: License-File requires Metadata-Version '2.4'
+        # for file in self.license_files:
+        #     fp.write(u'License-File: {}\n'.format(file))
 
         for req in self.requires_dist:
             normalised_req = self._normalise_requires_dist(req)

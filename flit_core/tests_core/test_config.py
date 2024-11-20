@@ -1,5 +1,9 @@
 import logging
+import re
+import os
+import sys
 from pathlib import Path
+from unittest.mock import patch
 import pytest
 
 from flit_core import config
@@ -176,5 +180,54 @@ def test_bad_pep621_readme(readme, err_match):
     proj = {
         'name': 'module1', 'version': '1.0', 'description': 'x', 'readme': readme
     }
+    with pytest.raises(config.ConfigError, match=err_match):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621')
+
+
+@pytest.mark.parametrize(('value', 'files'), [
+    ('[]', []),
+    ('["LICENSE"]', ["LICENSE"]),
+    ('["LICENSE*"]', ["LICENSE"]),
+    ('["**/LICENSE*"]', ["LICENSE", "module/vendor/LICENSE_VENDOR"]),
+    ('["module/vendor/LICENSE*"]', ["module/vendor/LICENSE_VENDOR"]),
+    ('["LICENSE", "module/**/LICENSE*"]', ["LICENSE", "module/vendor/LICENSE_VENDOR"]),
+])
+def test_pep621_license_files(value, files):
+    path = samples_dir / 'pep621_license_files' / 'pyproject.toml'
+    data = path.read_text()
+    data = re.sub(
+        r"(^license-files = )(?:\[.*\])", r"\g<1>{}".format(value),
+        data, count=1, flags=re.M
+    )
+    dir = os.getcwd()
+    try:
+        os.chdir(samples_dir / 'pep621_license_files')
+        with patch("pathlib.Path.read_text", return_value=data):
+            info = config.read_flit_config(path)
+            assert info.metadata['license_files'] == files
+    finally:
+        os.chdir(dir)
+
+
+@pytest.mark.parametrize(('proj_bad', 'err_match'), [
+    ({'license-files': ["/LICENSE"]}, r"'/LICENSE'.+must not start with '/'"),
+    ({'license-files': ["../LICENSE"]}, r"'../LICENSE'.+must not contain '..'"),
+    ({'license-files': ["NOT_FOUND"]}, r"No files found.+'NOT_FOUND'"),
+    pytest.param(
+        {'license-files': ["**LICENSE"]}, r"'\*\*LICENSE'.+Invalid pattern",
+        marks=[pytest.mark.skipif(
+            sys.version_info >= (3, 13), reason="Pattern is valid for 3.13+"
+        )]
+    ),
+    pytest.param(
+        {'license-files': ["./"]}, r"'./'.+Unacceptable pattern",
+        marks=[pytest.mark.skipif(
+            sys.version_info < (3, 13), reason="Pattern started to raise ValueError in 3.13"
+        )]
+    ),
+])
+def test_bad_pep621_license_files(proj_bad, err_match):
+    proj = {'name': 'module1', 'version': '1.0', 'description': 'x'}
+    proj.update(proj_bad)
     with pytest.raises(config.ConfigError, match=err_match):
         config.read_pep621_metadata(proj, samples_dir / 'pep621')
