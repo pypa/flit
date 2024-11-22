@@ -74,7 +74,7 @@ pep621_allowed_fields = {
     'dynamic',
 }
 
-default_license_files_globs = ['COPYING*', 'LICENSE*']
+default_license_files_globs = ['COPYING*', 'LICEN[CS]E*']
 
 
 def read_flit_config(path):
