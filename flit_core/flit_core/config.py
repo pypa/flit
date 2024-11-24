@@ -18,6 +18,13 @@ except ImportError:
     except ImportError:
         import tomli as tomllib
 
+try:
+    from .vendor.packaging import licenses
+# Some downstream distributors remove the vendored packaging.
+# When that is removed, import packaging from the regular location.
+except ImportError:
+    from packaging import licenses
+
 from .common import normalise_core_metadata_name
 from .versionno import normalise_version
 
@@ -445,6 +452,14 @@ def _check_type(d, field_name, cls):
             "{} field should be {}, not {}".format(field_name, cls, type(d[field_name]))
         )
 
+def _check_types(d, field_name, cls_list) -> None:
+    if not isinstance(d[field_name], cls_list):
+        raise ConfigError(
+            "{} field should be {}, not {}".format(
+                field_name, ' or '.join(map(str, cls_list)), type(d[field_name])
+            )
+        )
+
 def _check_list_of_str(d, field_name):
     if not isinstance(d[field_name], list) or not all(
         isinstance(e, str) for e in d[field_name]
@@ -526,30 +541,42 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         md_dict['requires_python'] = proj['requires-python']
 
     if 'license' in proj:
-        _check_type(proj, 'license', dict)
-        license_tbl = proj['license']
-        unrec_keys = set(license_tbl.keys()) - {'text', 'file'}
-        if unrec_keys:
-            raise ConfigError(
-                "Unrecognised keys in [project.license]: {}".format(unrec_keys)
-            )
-
-        # TODO: Do something with license info.
-        # The 'License' field in packaging metadata is a brief description of
-        # a license, not the full text or a file path. PEP 639 will improve on
-        # how licenses are recorded.
-        if 'file' in license_tbl:
-            if 'text' in license_tbl:
-                raise ConfigError(
-                    "[project.license] should specify file or text, not both"
-                )
-            lc.referenced_files.append(license_tbl['file'])
-        elif 'text' in license_tbl:
-            pass
+        _check_types(proj, 'license', (str, dict))
+        if isinstance(proj['license'], str):
+            license_expr = proj['license']
+            try:
+                license_expr = licenses.canonicalize_license_expression(license_expr)
+            except licenses.InvalidLicenseExpression as ex:
+                raise ConfigError(ex.args[0])
+            md_dict['license_expression'] = license_expr
         else:
-            raise ConfigError(
-                "file or text field required in [project.license] table"
-            )
+            license_tbl = proj['license']
+            unrec_keys = set(license_tbl.keys()) - {'text', 'file'}
+            if unrec_keys:
+                raise ConfigError(
+                    "Unrecognised keys in [project.license]: {}".format(unrec_keys)
+                )
+
+            # The 'License' field in packaging metadata is a brief description of
+            # a license, not the full text or a file path.
+            if 'file' in license_tbl:
+                if 'text' in license_tbl:
+                    raise ConfigError(
+                        "[project.license] should specify file or text, not both"
+                    )
+                lc.referenced_files.append(license_tbl['file'])
+            elif 'text' in license_tbl:
+                license = license_tbl['text']
+                try:
+                    # Normalize license if it's a valid SPDX expression
+                    license = licenses.canonicalize_license_expression(license)
+                except licenses.InvalidLicenseExpression:
+                    pass
+                md_dict['license'] = license
+            else:
+                raise ConfigError(
+                    "file or text field required in [project.license] table"
+                )
 
     if 'authors' in proj:
         _check_type(proj, 'authors', list)
@@ -565,6 +592,16 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
 
     if 'classifiers' in proj:
         _check_list_of_str(proj, 'classifiers')
+        classifiers = proj['classifiers']
+        license_expr = md_dict.get('license_expression', None)
+        if license_expr:
+            for cl in classifiers:
+                if not cl.startswith('License :: '):
+                    continue
+                raise ConfigError(
+                    "License classifier are deprecated in favor of the license expression. "
+                    "Remove the '{}' classifier".format(cl)
+                )
         md_dict['classifiers'] = proj['classifiers']
 
     if 'urls' in proj:

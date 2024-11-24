@@ -95,8 +95,9 @@ readme
 requires-python
   A version specifier for the versions of Python this requires, e.g. ``~=3.3`` or
   ``>=3.3,<4``, which are equivalents.
-license
-  A table with either a ``file`` key (a relative path to a license file) or a
+license  # TODO
+  A valid SPDX `license expression <https://peps.python.org/pep-0639/#term-license-expression>`_
+  or a table with either a ``file`` key (a relative path to a license file) or a
   ``text`` key (the license text).
 authors
   A list of tables with ``name`` and ``email`` keys (both optional) describing
