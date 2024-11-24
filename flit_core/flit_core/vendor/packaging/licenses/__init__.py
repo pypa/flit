@@ -29,7 +29,6 @@
 # `LicenseRef-Public-Domain` and `LicenseRef-Proprietary`.
 #
 #######################################################################################
-from __future__ import annotations
 
 import re
 from typing import NewType, cast

@@ -25,4 +25,12 @@ rm flit_core/vendor/packaging*.dist-info/{INSTALLER,RECORD,REQUESTED,WHEEL}
 for file in flit_core/vendor/packaging/licenses/*.py; do
   # Convert absolute imports to relative (from packaging.licenses.foo -> from .foo)
   sed -i -E 's/((from|import)[[:space:]]+)packaging\.licenses\./\1\./' "$file"
+  # Remove PEP 563 future import, requires Python 3.7
+  sed -i -E '/^from __future__ import annotations/d' "$file"
+  # Remove variable annotations, requires Python 3.7
+  sed -i -E 's/([[:alnum:]]+): .+ =/\1 =/' "$file"
 done
+
+# Remove TypedDict definitions, requires Python 3.8
+line=$(awk '/VERSION =/{ print NR - 1; }' flit_core/vendor/packaging/licenses/_spdx.py)
+sed -i "2,${line}d" "$file"
