@@ -143,6 +143,22 @@ def test_bad_include_paths(path, err_match):
     ({'license': {'fromage': 2}}, '[Uu]nrecognised'),
     ({'license': {'file': 'LICENSE', 'text': 'xyz'}}, 'both'),
     ({'license': {}}, 'required'),
+    ({'license-files': 1}, r"\blist\b"),
+    ({'license-files': ["/LICENSE"]}, r"'/LICENSE'.+must not start with '/'"),
+    ({'license-files': ["../LICENSE"]}, r"'../LICENSE'.+must not contain '..'"),
+    ({'license-files': ["NOT_FOUND"]}, r"No files found.+'NOT_FOUND'"),
+    pytest.param(
+        {'license-files': ["**LICENSE"]}, r"'\*\*LICENSE'.+Invalid pattern",
+        marks=[pytest.mark.skipif(
+            sys.version_info >= (3, 13), reason="Pattern is valid for 3.13+"
+        )]
+    ),
+    pytest.param(
+        {'license-files': ["./"]}, r"'./'.+Unacceptable pattern",
+        marks=[pytest.mark.skipif(
+            sys.version_info < (3, 13), reason="Pattern started to raise ValueError in 3.13"
+        )]
+    ),
     ({'keywords': 'foo'}, 'list'),
     ({'keywords': ['foo', 7]}, 'strings'),
     ({'entry-points': {'foo': 'module1:main'}}, 'entry-point.*tables'),
@@ -207,27 +223,3 @@ def test_pep621_license_files(value, files):
             assert info.metadata['license_files'] == files
     finally:
         os.chdir(dir)
-
-
-@pytest.mark.parametrize(('proj_bad', 'err_match'), [
-    ({'license-files': ["/LICENSE"]}, r"'/LICENSE'.+must not start with '/'"),
-    ({'license-files': ["../LICENSE"]}, r"'../LICENSE'.+must not contain '..'"),
-    ({'license-files': ["NOT_FOUND"]}, r"No files found.+'NOT_FOUND'"),
-    pytest.param(
-        {'license-files': ["**LICENSE"]}, r"'\*\*LICENSE'.+Invalid pattern",
-        marks=[pytest.mark.skipif(
-            sys.version_info >= (3, 13), reason="Pattern is valid for 3.13+"
-        )]
-    ),
-    pytest.param(
-        {'license-files': ["./"]}, r"'./'.+Unacceptable pattern",
-        marks=[pytest.mark.skipif(
-            sys.version_info < (3, 13), reason="Pattern started to raise ValueError in 3.13"
-        )]
-    ),
-])
-def test_bad_pep621_license_files(proj_bad, err_match):
-    proj = {'name': 'module1', 'version': '1.0', 'description': 'x'}
-    proj.update(proj_bad)
-    with pytest.raises(config.ConfigError, match=err_match):
-        config.read_pep621_metadata(proj, samples_dir / 'pep621')
