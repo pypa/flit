@@ -205,3 +205,27 @@ def test_metadata_2_3_provides_extra(provides_extra, expected_result):
     msg = email.parser.Parser(policy=email.policy.compat32).parse(sio)
     assert msg['Provides-Extra'] == expected_result
     assert not msg.defects
+
+@pytest.mark.parametrize(
+    ('value', 'expected_license', 'expected_license_expression'),
+    [
+        ({'license': 'MIT'}, 'MIT', None),
+        ({'license_expression': 'MIT'}, 'MIT', None),  # TODO Metadata 2.4
+        ({'license_expression': 'Apache-2.0'}, 'Apache-2.0', None)  # TODO Metadata 2.4
+    ],
+)
+def test_metadata_license(value, expected_license, expected_license_expression):
+    d = {
+        'name': 'foo',
+        'version': '1.0',
+        **value,
+    }
+    md = Metadata(d)
+    sio = StringIO()
+    md.write_metadata_file(sio)
+    sio.seek(0)
+
+    msg = email.parser.Parser(policy=email.policy.compat32).parse(sio)
+    assert msg.get('License') == expected_license
+    assert msg.get('License-Expression') == expected_license_expression
+    assert not msg.defects
