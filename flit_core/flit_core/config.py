@@ -18,13 +18,6 @@ except ImportError:
     except ImportError:
         import tomli as tomllib
 
-try:
-    from .vendor.packaging import licenses
-# Some downstream distributors remove the vendored packaging.
-# When that is removed, import packaging from the regular location.
-except ImportError:
-    from packaging import licenses
-
 from .common import normalise_core_metadata_name
 from .versionno import normalise_version
 
@@ -544,10 +537,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         _check_types(proj, 'license', (str, dict))
         if isinstance(proj['license'], str):
             license_expr = proj['license']
-            try:
-                license_expr = licenses.canonicalize_license_expression(license_expr)
-            except licenses.InvalidLicenseExpression as ex:
-                raise ConfigError(ex.args[0])
+            # TODO Validate and normalize license expression
             md_dict['license_expression'] = license_expr
         else:
             license_tbl = proj['license']
@@ -567,11 +557,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                 lc.referenced_files.append(license_tbl['file'])
             elif 'text' in license_tbl:
                 license = license_tbl['text']
-                try:
-                    # Normalize license if it's a valid SPDX expression
-                    license = licenses.canonicalize_license_expression(license)
-                except licenses.InvalidLicenseExpression:
-                    pass
+                # TODO Normalize license if it's a valid SPDX expression
                 md_dict['license'] = license
             else:
                 raise ConfigError(

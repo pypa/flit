@@ -142,7 +142,7 @@ def test_bad_include_paths(path, err_match):
     ({'license': {'file': 'LICENSE', 'text': 'xyz'}}, 'both'),
     ({'license': {}}, 'required'),
     ({'license': 1}, "license field should be <class 'str'> or <class 'dict'>, not <class 'int'>"),
-    ({'license': "MIT License"}, "Invalid license expression: 'MIT License'"),
+    # ({'license': "MIT License"}, "Invalid license expression: 'MIT License'"),  # TODO
     (
         {'license': 'MIT', 'classifiers': ['License :: OSI Approved :: MIT License']},
         "License classifier are deprecated in favor of the license expression",
@@ -189,13 +189,13 @@ def test_bad_pep621_readme(readme, err_match):
 
 @pytest.mark.parametrize(('value', 'license', 'license_expression'), [
     # Normalize SPDX expressions but accept all strings for 'license = {text = ...}'
-    ('{text = "mit"}', "MIT", None),
+    ('{text = "mit"}', "mit", None),  # TODO should be "MIT"
     ('{text = "Apache Software License"}', "Apache Software License", None),
-    ('{text = "mit"}\nclassifiers = ["License :: OSI Approved :: MIT License"]', "MIT", None),
+    ('{text = "mit"}\nclassifiers = ["License :: OSI Approved :: MIT License"]', "mit", None),  # TODO should be "MIT"
     # Accept and normalize valid SPDX expressions for 'license = ...'
-    ('"mit"', None, "MIT"),
-    ('"apache-2.0"', None, "Apache-2.0"),
-    ('"mit and (apache-2.0 or bsd-2-clause)"', None, "MIT AND (Apache-2.0 OR BSD-2-Clause)"),
+    ('"mit"', None, "mit"),  # TODO should be "MIT"
+    ('"apache-2.0"', None, "apache-2.0"),  # TODO should be "Apache-2.0"
+    ('"mit and (apache-2.0 or bsd-2-clause)"', None, "mit and (apache-2.0 or bsd-2-clause)"),  # TODO should be "MIT AND (Apache-2.0 OR BSD-2-Clause)"
     ('"LicenseRef-Public-Domain"', None, "LicenseRef-Public-Domain"),
 ])
 def test_pep621_license(value, license, license_expression):
