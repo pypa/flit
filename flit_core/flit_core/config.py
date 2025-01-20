@@ -765,6 +765,10 @@ def normalize_license_expr(s: str):
     try:
         info = licenses[ls]
     except KeyError:
+        if os.environ.get('FLIT_ALLOW_INVALID'):
+            log.warning("Invalid license ID {!r} allowed by FLIT_ALLOW_INVALID"
+                        .format(s))
+            return s
         raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
 
     return info['id'] + ('+' if or_later else '')
