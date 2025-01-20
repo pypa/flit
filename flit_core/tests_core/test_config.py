@@ -1,7 +1,5 @@
 import logging
-import re
 from pathlib import Path
-from unittest.mock import patch
 import pytest
 
 from flit_core import config
@@ -187,25 +185,44 @@ def test_bad_pep621_readme(readme, err_match):
     with pytest.raises(config.ConfigError, match=err_match):
         config.read_pep621_metadata(proj, samples_dir / 'pep621')
 
-@pytest.mark.parametrize(('value', 'license', 'license_expression'), [
-    # Normalize SPDX expressions but accept all strings for 'license = {text = ...}'
-    ('{text = "mit"}', "mit", None),  # TODO should be "MIT"
-    ('{text = "Apache Software License"}', "Apache Software License", None),
-    ('{text = "mit"}\nclassifiers = ["License :: OSI Approved :: MIT License"]', "mit", None),  # TODO should be "MIT"
-    # Accept and normalize valid SPDX expressions for 'license = ...'
-    ('"mit"', None, "mit"),  # TODO should be "MIT"
-    ('"apache-2.0"', None, "apache-2.0"),  # TODO should be "Apache-2.0"
-    ('"mit and (apache-2.0 or bsd-2-clause)"', None, "mit and (apache-2.0 or bsd-2-clause)"),  # TODO should be "MIT AND (Apache-2.0 OR BSD-2-Clause)"
-    ('"LicenseRef-Public-Domain"', None, "LicenseRef-Public-Domain"),
+@pytest.mark.parametrize(('value', 'license'), [
+    # Accept any string in project.license.text
+    ({"text": "mit"}, "mit"),
+    ({"text": "Apache Software License"}, "Apache Software License"),
 ])
-def test_pep621_license(value, license, license_expression):
-    path = samples_dir / 'pep621' / 'pyproject.toml'
-    data = path.read_text()
-    data = re.sub(
-        r"(^license = )(?:\{.*\})", r"\g<1>{}".format(value),
-        data, count=1, flags=re.M,
-)
-    with patch("pathlib.Path.read_text", return_value=data):
-        info = config.read_flit_config(path)
-        assert info.metadata.get('license', None) == license
-        assert info.metadata.get('license_expression', None) == license_expression
+def test_license_text(value, license):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x', 'license': value
+    }
+    info = config.read_pep621_metadata(proj, samples_dir / 'pep621')
+    assert info.metadata['license'] == license
+
+@pytest.mark.parametrize(('value', 'license_expression'), [
+    # Accept and normalize valid SPDX expressions for 'license = ...'
+    ("mit",  "MIT"),
+    ("apache-2.0", "Apache-2.0"),
+    ("APACHE-2.0+", "Apache-2.0+"),
+    # TODO: compound expressions
+    #("mit and (apache-2.0 or bsd-2-clause)", "MIT AND (Apache-2.0 OR BSD-2-Clause)"),
+    # LicenseRef expressions: only the LicenseRef is normalised
+    ("LiceNseref-Public-DoMain", "LicenseRef-Public-DoMain"),
+])
+def test_license_expr(value, license_expression):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x', 'license': value
+    }
+    info = config.read_pep621_metadata(proj, samples_dir / 'pep621')
+    assert 'license' not in info.metadata
+    assert info.metadata['license_expression'] == license_expression
+
+def test_license_expr_error():
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x',
+        'license': 'LicenseRef-foo_bar',  # Underscore not allowed
+    }
+    with pytest.raises(config.ConfigError, match="can only contain"):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621')
+
+    proj['license'] = "BSD-33-Clause"  # Not a real license
+    with pytest.raises(config.ConfigError, match="recognised"):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621')

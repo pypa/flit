@@ -536,9 +536,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
     if 'license' in proj:
         _check_types(proj, 'license', (str, dict))
         if isinstance(proj['license'], str):
-            license_expr = proj['license']
-            # TODO Validate and normalize license expression
-            md_dict['license_expression'] = license_expr
+            md_dict['license_expression'] = normalize_license_expr(proj['license'])
         else:
             license_tbl = proj['license']
             unrec_keys = set(license_tbl.keys()) - {'text', 'file'}
@@ -741,3 +739,32 @@ def isabs_ish(path):
     absolute paths, we also want to reject these odd halfway paths.
     """
     return os.path.isabs(path) or path.startswith(('/', '\\'))
+
+
+def normalize_license_expr(s: str):
+    """Validate & normalise an SPDX license expression
+
+    For now this only handles simple expressions (referring to 1 license)
+    """
+    from ._spdx_data import licenses
+    ls = s.lower()
+    if ls.startswith('licenseref-'):
+        ref = s.partition('-')[2]
+        if re.match(r'([a-zA-Z0-9\-.])+$', ref):
+            # Normalise case of LicenseRef, leave the rest alone
+            return "LicenseRef-" + ref
+        raise ConfigError(
+            "LicenseRef- license expression can only contain ASCII letters "
+            "& digits, - and ."
+        )
+
+    or_later = s.endswith('+')
+    if or_later:
+        ls = ls[:-1]
+
+    try:
+        info = licenses[ls]
+    except KeyError:
+        raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
+
+    return info['id'] + ('+' if or_later else '')
