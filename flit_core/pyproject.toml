@@ -12,9 +12,8 @@ description = "Distribution-building parts of Flit. See flit package for more in
 dependencies = []
 requires-python = '>=3.6'
 readme = "README.rst"
-license = {file = "LICENSE"}
+license = "BSD-3-Clause"
 classifiers = [
-    "License :: OSI Approved :: BSD License",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dynamic = ["version"]

@@ -1,5 +1,7 @@
 import logging
+import re
 from pathlib import Path
+from unittest.mock import patch
 import pytest
 
 from flit_core import config
@@ -139,6 +141,12 @@ def test_bad_include_paths(path, err_match):
     ({'license': {'fromage': 2}}, '[Uu]nrecognised'),
     ({'license': {'file': 'LICENSE', 'text': 'xyz'}}, 'both'),
     ({'license': {}}, 'required'),
+    ({'license': 1}, "license field should be <class 'str'> or <class 'dict'>, not <class 'int'>"),
+    # ({'license': "MIT License"}, "Invalid license expression: 'MIT License'"),  # TODO
+    (
+        {'license': 'MIT', 'classifiers': ['License :: OSI Approved :: MIT License']},
+        "License classifier are deprecated in favor of the license expression",
+    ),
     ({'keywords': 'foo'}, 'list'),
     ({'keywords': ['foo', 7]}, 'strings'),
     ({'entry-points': {'foo': 'module1:main'}}, 'entry-point.*tables'),
@@ -178,3 +186,26 @@ def test_bad_pep621_readme(readme, err_match):
     }
     with pytest.raises(config.ConfigError, match=err_match):
         config.read_pep621_metadata(proj, samples_dir / 'pep621')
+
+@pytest.mark.parametrize(('value', 'license', 'license_expression'), [
+    # Normalize SPDX expressions but accept all strings for 'license = {text = ...}'
+    ('{text = "mit"}', "mit", None),  # TODO should be "MIT"
+    ('{text = "Apache Software License"}', "Apache Software License", None),
+    ('{text = "mit"}\nclassifiers = ["License :: OSI Approved :: MIT License"]', "mit", None),  # TODO should be "MIT"
+    # Accept and normalize valid SPDX expressions for 'license = ...'
+    ('"mit"', None, "mit"),  # TODO should be "MIT"
+    ('"apache-2.0"', None, "apache-2.0"),  # TODO should be "Apache-2.0"
+    ('"mit and (apache-2.0 or bsd-2-clause)"', None, "mit and (apache-2.0 or bsd-2-clause)"),  # TODO should be "MIT AND (Apache-2.0 OR BSD-2-Clause)"
+    ('"LicenseRef-Public-Domain"', None, "LicenseRef-Public-Domain"),
+])
+def test_pep621_license(value, license, license_expression):
+    path = samples_dir / 'pep621' / 'pyproject.toml'
+    data = path.read_text()
+    data = re.sub(
+        r"(^license = )(?:\{.*\})", r"\g<1>{}".format(value),
+        data, count=1, flags=re.M,
+)
+    with patch("pathlib.Path.read_text", return_value=data):
+        info = config.read_flit_config(path)
+        assert info.metadata.get('license', None) == license
+        assert info.metadata.get('license_expression', None) == license_expression
