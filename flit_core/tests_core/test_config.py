@@ -194,7 +194,7 @@ def test_license_text(value, license):
     proj = {
         'name': 'module1', 'version': '1.0', 'description': 'x', 'license': value
     }
-    info = config.read_pep621_metadata(proj, samples_dir / 'pep621')
+    info = config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
     assert info.metadata['license'] == license
 
 @pytest.mark.parametrize(('value', 'license_expression'), [
