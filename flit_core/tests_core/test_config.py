@@ -211,7 +211,7 @@ def test_license_expr(value, license_expression):
     proj = {
         'name': 'module1', 'version': '1.0', 'description': 'x', 'license': value
     }
-    info = config.read_pep621_metadata(proj, samples_dir / 'pep621')
+    info = config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
     assert 'license' not in info.metadata
     assert info.metadata['license_expression'] == license_expression
 
@@ -221,8 +221,8 @@ def test_license_expr_error():
         'license': 'LicenseRef-foo_bar',  # Underscore not allowed
     }
     with pytest.raises(config.ConfigError, match="can only contain"):
-        config.read_pep621_metadata(proj, samples_dir / 'pep621')
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
     proj['license'] = "BSD-33-Clause"  # Not a real license
     with pytest.raises(config.ConfigError, match="recognised"):
-        config.read_pep621_metadata(proj, samples_dir / 'pep621')
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
