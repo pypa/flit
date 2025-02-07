@@ -1,4 +1,5 @@
 import logging
+import sys
 from pathlib import Path
 import pytest
 
@@ -139,6 +140,27 @@ def test_bad_include_paths(path, err_match):
     ({'license': {'fromage': 2}}, '[Uu]nrecognised'),
     ({'license': {'file': 'LICENSE', 'text': 'xyz'}}, 'both'),
     ({'license': {}}, 'required'),
+    ({'license-files': 1}, r"\blist\b"),
+    ({'license-files': ["/LICENSE"]}, r"'/LICENSE'.+must not start with '/'"),
+    ({'license-files': ["../LICENSE"]}, r"'../LICENSE'.+must not contain '..'"),
+    ({'license-files': ["NOT_FOUND"]}, r"No files found.+'NOT_FOUND'"),
+    ({'license-files': ["(LICENSE | LICENCE)"]}, "Pattern contains invalid characters"),
+    pytest.param(
+        {'license-files': ["**LICENSE"]}, r"'\*\*LICENSE'.+Invalid pattern",
+        marks=[pytest.mark.skipif(
+            sys.version_info >= (3, 13), reason="Pattern is valid for 3.13+"
+        )]
+    ),
+    pytest.param(
+        {'license-files': ["./"]}, r"'./'.+Unacceptable pattern",
+        marks=[pytest.mark.skipif(
+            sys.version_info < (3, 13), reason="Pattern started to raise ValueError in 3.13"
+        )]
+    ),
+    (
+        {'license': {'file': 'LICENSE'}, 'license-files': ["LICENSE"]},
+        "license-files cannot be used with a license table",
+    ),
     ({'keywords': 'foo'}, 'list'),
     ({'keywords': ['foo', 7]}, 'strings'),
     ({'entry-points': {'foo': 'module1:main'}}, 'entry-point.*tables'),
@@ -161,7 +183,7 @@ def test_bad_pep621_info(proj_bad, err_match):
     proj = {'name': 'module1', 'version': '1.0', 'description': 'x'}
     proj.update(proj_bad)
     with pytest.raises(config.ConfigError, match=err_match):
-        config.read_pep621_metadata(proj, samples_dir / 'pep621')
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
 @pytest.mark.parametrize(('readme', 'err_match'), [
     ({'file': 'README.rst'}, 'required'),
@@ -177,4 +199,29 @@ def test_bad_pep621_readme(readme, err_match):
         'name': 'module1', 'version': '1.0', 'description': 'x', 'readme': readme
     }
     with pytest.raises(config.ConfigError, match=err_match):
-        config.read_pep621_metadata(proj, samples_dir / 'pep621')
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+
+
+def test_license_file_defaults_with_old_metadata():
+    metadata = {'module': 'mymod', 'author': ''}
+    info = config._prep_metadata(metadata, samples_dir / 'pep621_license_files' / 'pyproject.toml')
+    assert info.metadata['license_files'] == ["LICENSE"]
+
+
+@pytest.mark.parametrize(('proj_license_files', 'files'), [
+    ({}, ["LICENSE"]),  # Only match default patterns
+    ({'license-files': []}, []),
+    ({'license-files': ["LICENSE"]}, ["LICENSE"]),
+    ({'license-files': ["LICENSE*"]}, ["LICENSE"]),
+    ({'license-files': ["LICEN[CS]E*"]}, ["LICENSE"]),
+    ({'license-files': ["**/LICENSE*"]}, ["LICENSE", "module/vendor/LICENSE_VENDOR"]),
+    ({'license-files': ["module/vendor/LICENSE*"]}, ["module/vendor/LICENSE_VENDOR"]),
+    ({'license-files': ["LICENSE", "module/**/LICENSE*"]}, ["LICENSE", "module/vendor/LICENSE_VENDOR"]),
+    # Add project.license.file + match default patterns
+    ({'license': {'file': 'module/vendor/LICENSE_VENDOR'}}, ["LICENSE", "module/vendor/LICENSE_VENDOR"]),
+])
+def test_pep621_license_files(proj_license_files, files):
+    proj = {'name': 'module1', 'version': '1.0', 'description': 'x'}
+    proj.update(proj_license_files)
+    info = config.read_pep621_metadata(proj, samples_dir / 'pep621_license_files' / 'pyproject.toml')
+    assert info.metadata['license_files'] == files

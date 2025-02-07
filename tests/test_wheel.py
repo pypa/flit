@@ -90,7 +90,7 @@ def test_wheel_src_module(copy_sample):
     with unpack(whl_file) as unpacked:
         assert_isfile(Path(unpacked, 'module3.py'))
         assert_isdir(Path(unpacked, 'module3-0.1.dist-info'))
-        assert_isfile(Path(unpacked, 'module3-0.1.dist-info', 'LICENSE'))
+        assert_isfile(Path(unpacked, 'module3-0.1.dist-info', 'licenses', 'LICENSE'))
 
 def test_editable_wheel_src_module(copy_sample):
     td = copy_sample('module3')
