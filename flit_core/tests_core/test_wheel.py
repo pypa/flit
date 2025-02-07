@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -49,13 +48,8 @@ def test_data_dir(tmp_path):
 
 
 def test_license_files(tmp_path):
-    dir = os.getcwd()
-    try:
-        os.chdir(samples_dir / 'pep621_license_files')
-        info = make_wheel_in(samples_dir / 'pep621_license_files' / 'pyproject.toml', tmp_path)
-        assert_isfile(info.file)
-        with ZipFile(info.file, 'r') as zf:
-            assert 'module1-0.1.dist-info/licenses/LICENSE' in zf.namelist()
-            assert 'module1-0.1.dist-info/licenses/module/vendor/LICENSE_VENDOR' in zf.namelist()
-    finally:
-        os.chdir(dir)
+    info = make_wheel_in(samples_dir / 'pep621_license_files' / 'pyproject.toml', tmp_path)
+    assert_isfile(info.file)
+    with ZipFile(info.file, 'r') as zf:
+        assert 'module1-0.1.dist-info/licenses/LICENSE' in zf.namelist()
+        assert 'module1-0.1.dist-info/licenses/module/vendor/LICENSE_VENDOR' in zf.namelist()
