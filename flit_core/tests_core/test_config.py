@@ -208,6 +208,19 @@ def test_bad_pep621_readme(readme, err_match):
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
 
+@pytest.mark.parametrize(('value', 'license'), [
+    # Accept any string in project.license.text
+    ({"text": "mit"}, "mit"),
+    ({"text": "Apache Software License"}, "Apache Software License"),
+])
+def test_license_text(value, license):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x', 'license': value
+    }
+    info = config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+    assert info.metadata['license'] == license
+
+
 @pytest.mark.parametrize(('value', 'license_expression'), [
     # Accept and normalize valid SPDX expressions for 'license = ...'
     ("mit",  "MIT"),

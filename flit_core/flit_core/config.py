@@ -612,7 +612,9 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                     raise ConfigError(f"License file {license_f} does not exist")
                 license_files.add(license_tbl['file'])
             elif 'text' in license_tbl:
-                pass
+                license = license_tbl['text']
+                # TODO Normalize license if it's a valid SPDX expression
+                md_dict['license'] = license
             else:
                 raise ConfigError(
                     "file or text field required in [project.license] table"
