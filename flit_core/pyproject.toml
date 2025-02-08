@@ -13,6 +13,7 @@ dependencies = []
 requires-python = '>=3.6'
 readme = "README.rst"
 license = "BSD-3-Clause"
+license-files = ["LICENSE*", "flit_core/vendor/**/LICENSE*"]
 classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]

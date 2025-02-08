@@ -99,6 +99,9 @@ license
   A valid SPDX `license expression <https://peps.python.org/pep-0639/#term-license-expression>`_
   or a table with either a ``file`` key (a relative path to a license file) or a
   ``text`` key (the license text).
+license-files
+  A list of glob patterns for license files to include.
+  Defaults to ``['COPYING*', 'LICEN[CS]E*']``.
 authors
   A list of tables with ``name`` and ``email`` keys (both optional) describing
   the authors of the project.
