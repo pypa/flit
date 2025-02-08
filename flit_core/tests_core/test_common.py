@@ -210,8 +210,8 @@ def test_metadata_2_3_provides_extra(provides_extra, expected_result):
     ('value', 'expected_license', 'expected_license_expression'),
     [
         ({'license': 'MIT'}, 'MIT', None),
-        ({'license_expression': 'MIT'}, 'MIT', None),  # TODO Metadata 2.4
-        ({'license_expression': 'Apache-2.0'}, 'Apache-2.0', None)  # TODO Metadata 2.4
+        ({'license_expression': 'MIT'}, None, 'MIT'),
+        ({'license_expression': 'Apache-2.0'}, None, 'Apache-2.0'),
     ],
 )
 def test_metadata_license(value, expected_license, expected_license_expression):
