@@ -270,4 +270,3 @@ Environment variables
 
       `The SOURCE_DATE_EPOCH specification
       <https://reproducible-builds.org/specs/source-date-epoch/>`__
-

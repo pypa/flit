@@ -23,4 +23,3 @@ To run the tests in separate environments for each available Python version::
 To run the tests in your current environment, run::
 
     pytest
-
