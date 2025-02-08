@@ -603,7 +603,14 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                     raise ConfigError(
                         "[project.license] should specify file or text, not both"
                     )
-                lc.referenced_files.append(license_tbl['file'])
+                license_f = license_tbl['file']
+                if isabs_ish(license_f):
+                    raise ConfigError(
+                        f"License file path ({license_f}) cannot be an absolute path"
+                    )
+                if not (path.parent / license_f).is_file():
+                    raise ConfigError(f"License file {license_f} does not exist")
+                license_files.add(license_tbl['file'])
             elif 'text' in license_tbl:
                 pass
             else:
