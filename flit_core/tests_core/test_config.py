@@ -140,6 +140,12 @@ def test_bad_include_paths(path, err_match):
     ({'license': {'fromage': 2}}, '[Uu]nrecognised'),
     ({'license': {'file': 'LICENSE', 'text': 'xyz'}}, 'both'),
     ({'license': {}}, 'required'),
+    ({'license': 1}, "license field should be <class 'str'> or <class 'dict'>, not <class 'int'>"),
+    # ({'license': "MIT License"}, "Invalid license expression: 'MIT License'"),  # TODO
+    (
+        {'license': 'MIT', 'classifiers': ['License :: OSI Approved :: MIT License']},
+        "License classifier are deprecated in favor of the license expression",
+    ),
     ({'license-files': 1}, r"\blist\b"),
     ({'license-files': ["/LICENSE"]}, r"'/LICENSE'.+must not start with '/'"),
     ({'license-files': ["../LICENSE"]}, r"'../LICENSE'.+must not contain '..'"),
@@ -199,6 +205,37 @@ def test_bad_pep621_readme(readme, err_match):
         'name': 'module1', 'version': '1.0', 'description': 'x', 'readme': readme
     }
     with pytest.raises(config.ConfigError, match=err_match):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+
+
+@pytest.mark.parametrize(('value', 'license_expression'), [
+    # Accept and normalize valid SPDX expressions for 'license = ...'
+    ("mit",  "MIT"),
+    ("apache-2.0", "Apache-2.0"),
+    ("APACHE-2.0+", "Apache-2.0+"),
+    # TODO: compound expressions
+    #("mit and (apache-2.0 or bsd-2-clause)", "MIT AND (Apache-2.0 OR BSD-2-Clause)"),
+    # LicenseRef expressions: only the LicenseRef is normalised
+    ("LiceNseref-Public-DoMain", "LicenseRef-Public-DoMain"),
+])
+def test_license_expr(value, license_expression):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x', 'license': value
+    }
+    info = config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+    assert 'license' not in info.metadata
+    assert info.metadata['license_expression'] == license_expression
+
+def test_license_expr_error():
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x',
+        'license': 'LicenseRef-foo_bar',  # Underscore not allowed
+    }
+    with pytest.raises(config.ConfigError, match="can only contain"):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+
+    proj['license'] = "BSD-33-Clause"  # Not a real license
+    with pytest.raises(config.ConfigError, match="recognised"):
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
 

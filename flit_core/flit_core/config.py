@@ -495,6 +495,14 @@ def _check_type(d, field_name, cls):
             "{} field should be {}, not {}".format(field_name, cls, type(d[field_name]))
         )
 
+def _check_types(d, field_name, cls_list) -> None:
+    if not isinstance(d[field_name], cls_list):
+        raise ConfigError(
+            "{} field should be {}, not {}".format(
+                field_name, ' or '.join(map(str, cls_list)), type(d[field_name])
+            )
+        )
+
 def _check_list_of_str(d, field_name):
     if not isinstance(d[field_name], list) or not all(
         isinstance(e, str) for e in d[field_name]
@@ -577,30 +585,38 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
 
     license_files = set()
     if 'license' in proj:
-        _check_type(proj, 'license', dict)
-        license_tbl = proj['license']
-        unrec_keys = set(license_tbl.keys()) - {'text', 'file'}
-        if unrec_keys:
-            raise ConfigError(
-                "Unrecognised keys in [project.license]: {}".format(unrec_keys)
-            )
-
-        # TODO: Do something with license info.
-        # The 'License' field in packaging metadata is a brief description of
-        # a license, not the full text or a file path. PEP 639 will improve on
-        # how licenses are recorded.
-        if 'file' in license_tbl:
-            if 'text' in license_tbl:
-                raise ConfigError(
-                    "[project.license] should specify file or text, not both"
-                )
-            license_files.add(license_tbl['file'])
-        elif 'text' in license_tbl:
-            pass
+        _check_types(proj, 'license', (str, dict))
+        if isinstance(proj['license'], str):
+            md_dict['license_expression'] = normalize_license_expr(proj['license'])
         else:
-            raise ConfigError(
-                "file or text field required in [project.license] table"
-            )
+            license_tbl = proj['license']
+            unrec_keys = set(license_tbl.keys()) - {'text', 'file'}
+            if unrec_keys:
+                raise ConfigError(
+                    "Unrecognised keys in [project.license]: {}".format(unrec_keys)
+                )
+
+            # The 'License' field in packaging metadata is a brief description of
+            # a license, not the full text or a file path.
+            if 'file' in license_tbl:
+                if 'text' in license_tbl:
+                    raise ConfigError(
+                        "[project.license] should specify file or text, not both"
+                    )
+                license_f = license_tbl['file']
+                if isabs_ish(license_f):
+                    raise ConfigError(
+                        f"License file path ({license_f}) cannot be an absolute path"
+                    )
+                if not (path.parent / license_f).is_file():
+                    raise ConfigError(f"License file {license_f} does not exist")
+                license_files.add(license_tbl['file'])
+            elif 'text' in license_tbl:
+                pass
+            else:
+                raise ConfigError(
+                    "file or text field required in [project.license] table"
+                )
 
     if 'license-files' in proj:
         _check_type(proj, 'license-files', list)
@@ -635,6 +651,16 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
 
     if 'classifiers' in proj:
         _check_list_of_str(proj, 'classifiers')
+        classifiers = proj['classifiers']
+        license_expr = md_dict.get('license_expression', None)
+        if license_expr:
+            for cl in classifiers:
+                if not cl.startswith('License :: '):
+                    continue
+                raise ConfigError(
+                    "License classifier are deprecated in favor of the license expression. "
+                    "Remove the '{}' classifier".format(cl)
+                )
         md_dict['classifiers'] = proj['classifiers']
 
     if 'urls' in proj:
@@ -788,3 +814,36 @@ def isabs_ish(path):
     absolute paths, we also want to reject these odd halfway paths.
     """
     return os.path.isabs(path) or path.startswith(('/', '\\'))
+
+
+def normalize_license_expr(s: str):
+    """Validate & normalise an SPDX license expression
+
+    For now this only handles simple expressions (referring to 1 license)
+    """
+    from ._spdx_data import licenses
+    ls = s.lower()
+    if ls.startswith('licenseref-'):
+        ref = s.partition('-')[2]
+        if re.match(r'([a-zA-Z0-9\-.])+$', ref):
+            # Normalise case of LicenseRef, leave the rest alone
+            return "LicenseRef-" + ref
+        raise ConfigError(
+            "LicenseRef- license expression can only contain ASCII letters "
+            "& digits, - and ."
+        )
+
+    or_later = s.endswith('+')
+    if or_later:
+        ls = ls[:-1]
+
+    try:
+        info = licenses[ls]
+    except KeyError:
+        if os.environ.get('FLIT_ALLOW_INVALID'):
+            log.warning("Invalid license ID {!r} allowed by FLIT_ALLOW_INVALID"
+                        .format(s))
+            return s
+        raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
+
+    return info['id'] + ('+' if or_later else '')
