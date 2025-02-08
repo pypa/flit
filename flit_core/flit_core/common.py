@@ -379,7 +379,7 @@ class Metadata(object):
             return [item.strip() for item in list_str.split(',')]
         else:
             return None
-    
+
     def _normalise_requires_dist(self, req):
         extras = self._extract_extras(req)
         if extras:
