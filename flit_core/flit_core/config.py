@@ -823,6 +823,10 @@ def normalize_license_expr(s: str):
     """
     from ._spdx_data import licenses
     ls = s.lower()
+    if any(keyword in ls for keyword in ("and", "or", "with")):
+        # TODO complex license expressions
+        return s
+
     if ls.startswith('licenseref-'):
         ref = s.partition('-')[2]
         if re.match(r'([a-zA-Z0-9\-.])+$', ref):

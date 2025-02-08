@@ -213,8 +213,11 @@ def test_bad_pep621_readme(readme, err_match):
     ("mit",  "MIT"),
     ("apache-2.0", "Apache-2.0"),
     ("APACHE-2.0+", "Apache-2.0+"),
-    # TODO: compound expressions
-    #("mit and (apache-2.0 or bsd-2-clause)", "MIT AND (Apache-2.0 OR BSD-2-Clause)"),
+    ("MIT AND BSD-2-Clause", "MIT AND BSD-2-Clause"),
+    ("MIT OR BSD-2-Clause", "MIT OR BSD-2-Clause"),
+    ("GPL-2.0-only WITH Classpath-exception-2.0", "GPL-2.0-only WITH Classpath-exception-2.0"),
+    # TODO: compound expressions should be checked and normalized
+    # ("mit and (apache-2.0 or bsd-2-clause)", "MIT AND (Apache-2.0 OR BSD-2-Clause)"),
     # LicenseRef expressions: only the LicenseRef is normalised
     ("LiceNseref-Public-DoMain", "LicenseRef-Public-DoMain"),
 ])
