@@ -59,9 +59,7 @@ A simple ``[project]`` table might look like this:
         {name = "Thomas Kluyver", email = "thomas@kluyver.me.uk"},
     ]
     readme = "README.rst"
-    classifiers = [
-        "License :: OSI Approved :: MIT License",
-    ]
+    license = "MIT"
     requires-python = ">=3.5"
     dynamic = ["version", "description"]
 
