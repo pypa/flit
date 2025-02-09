@@ -113,7 +113,8 @@ def test_init():
             data = tomllib.load(f)
         assert data['project']['authors'][0]['email'] == "test@example.com"
         license = Path(td) / 'LICENSE'
-        assert data['project']['license']['file'] == 'LICENSE'
+        assert data['project']['license'] == 'MIT'
+        assert data['project']['license-files'] == ['LICENSE']
         assert_isfile(license)
         with license.open() as f:
             license_text = f.read()
