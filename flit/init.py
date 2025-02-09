@@ -49,10 +49,10 @@ license_choices = [
     ('skip', "Skip - choose a license later"),
 ]
 
-license_names_to_classifiers = {
-    'mit': 'License :: OSI Approved :: MIT License',
-    'gpl3': 'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-    'apache': 'License :: OSI Approved :: Apache Software License'
+license_names_to_spdx = {
+    'mit': 'MIT',
+    'apache': 'Apache-2.0',
+    'gpl3': 'GPL-3.0-or-later',
 }
 
 license_templates_dir = Path(__file__).parent / 'license_templates'
@@ -213,9 +213,7 @@ class TerminalIniter(IniterBase):
         else:
             authors_list = "[]"
 
-        classifiers = []
         if license != 'skip':
-            classifiers = [license_names_to_classifiers[license]]
             self.write_license(license, author)
 
         with (self.directory / 'pyproject.toml').open('w', encoding='utf-8') as f:
@@ -225,9 +223,8 @@ class TerminalIniter(IniterBase):
             if readme:
                 f.write(tomli_w.dumps({'readme': readme}))
             if license != 'skip':
-                f.write('license = {file = "LICENSE"}\n')
-            if classifiers:
-                f.write(f"classifiers = {json.dumps(classifiers)}\n")
+                f.write(tomli_w.dumps({'license': license_names_to_spdx[license]}))
+                f.write(f"license-files = {json.dumps(['LICENSE'])}\n")
             f.write('dynamic = ["version", "description"]\n')
             if home_page:
                 f.write("\n" + tomli_w.dumps({
@@ -239,7 +236,7 @@ class TerminalIniter(IniterBase):
 
 TEMPLATE = """\
 [build-system]
-requires = ["flit_core >=3.2,<4"]
+requires = ["flit_core >=3.11,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
