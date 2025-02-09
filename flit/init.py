@@ -119,11 +119,11 @@ class IniterBase:
         if (self.directory / 'LICENSE').exists():
             return
         year = date.today().year
-        with (license_templates_dir / name).open(encoding='utf-8') as f:
-            license_text = f.read()
+        license_text = (license_templates_dir / name).read_text('utf-8')
 
-        with (self.directory / 'LICENSE').open('w', encoding='utf-8') as f:
-            f.write(license_text.format(year=year, author=author))
+        (self.directory / 'LICENSE').write_text(
+            license_text.format(year=year, author=author), encoding='utf-8'
+        )
 
     def find_readme(self):
         allowed = ("readme.md","readme.rst","readme.txt")
