@@ -144,7 +144,7 @@ def test_bad_include_paths(path, err_match):
     # ({'license': "MIT License"}, "Invalid license expression: 'MIT License'"),  # TODO
     (
         {'license': 'MIT', 'classifiers': ['License :: OSI Approved :: MIT License']},
-        "License classifier are deprecated in favor of the license expression",
+        "License classifiers are deprecated in favor of the license expression",
     ),
     ({'license-files': 1}, r"\blist\b"),
     ({'license-files': ["/LICENSE"]}, r"'/LICENSE'.+must not start with '/'"),

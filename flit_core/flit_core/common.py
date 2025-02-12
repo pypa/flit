@@ -358,7 +358,7 @@ class Metadata(object):
     license_files = ()
     dynamic = ()
 
-    metadata_version = "2.3"
+    metadata_version = "2.4"
 
     def __init__(self, data):
         data = data.copy()
@@ -427,19 +427,15 @@ class Metadata(object):
         license_expr = getattr(self, self._normalise_field_name("License-Expression"))
         license = getattr(self, self._normalise_field_name("License"))
         if license_expr:
-            # TODO: License-Expression requires Metadata-Version '2.4'
-            # Backfill it to the 'License' field for now
-            # fp.write(u'License-Expression: {}\n'.format(license_expr))
-            fp.write(u'License: {}\n'.format(license_expr))
-        elif license:
+            fp.write(u'License-Expression: {}\n'.format(license_expr))
+        elif license:  # Deprecated, superseded by License-Expression
             fp.write(u'License: {}\n'.format(license))
 
         for clsfr in self.classifiers:
             fp.write(u'Classifier: {}\n'.format(clsfr))
 
-        # TODO: License-File requires Metadata-Version '2.4'
-        # for file in self.license_files:
-        #     fp.write(u'License-File: {}\n'.format(file))
+        for file in self.license_files:
+            fp.write(u'License-File: {}\n'.format(file))
 
         for req in self.requires_dist:
             normalised_req = self._normalise_requires_dist(req)

@@ -658,7 +658,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                 if not cl.startswith('License :: '):
                     continue
                 raise ConfigError(
-                    "License classifier are deprecated in favor of the license expression. "
+                    "License classifiers are deprecated in favor of the license expression. "
                     "Remove the '{}' classifier".format(cl)
                 )
         md_dict['classifiers'] = proj['classifiers']
