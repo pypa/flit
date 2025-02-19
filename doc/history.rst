@@ -1,6 +1,22 @@
 Release history
 ===============
 
+Version 3.11
+------------
+
+- Support for SPDX license expressions and multiple license files, as detailed
+  in :pep:`639`::
+
+        license = "BSD-3-Clause"
+        license-files = ["LICENSE"]
+
+  For now, only a single license identifier is allowed. More complex expressions
+  describing multiple licenses & expressions may be supported in a future
+  version.
+- The `metadata format <https://packaging.python.org/en/latest/specifications/core-metadata/>`_
+  in produced packages is now version 2.4, to support the expanded license
+  information.
+
 Version 3.10.1
 --------------
 

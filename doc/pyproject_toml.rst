@@ -20,13 +20,15 @@ defined by PEP 517. For any new project using Flit, it will look like this:
 .. code-block:: toml
 
     [build-system]
-    requires = ["flit_core >=3.2,<4"]
+    requires = ["flit_core >=3.11,<4"]
     build-backend = "flit_core.buildapi"
 
 Version constraints:
 
 - For now, all packages should specify ``<4``, so they won't be impacted by
   changes in the next major version.
+- ``license-files`` and license expressions in the ``license`` field require
+  ``flit_core >=3.11``.
 - :ref:`pyproject_toml_project` requires ``flit_core >=3.2``
 - :ref:`pyproject_old_metadata` requires ``flit_core >=2,<4``
 - The older :doc:`flit.ini file <flit_ini>` requires ``flit_core <3``.
