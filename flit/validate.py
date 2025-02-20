@@ -298,4 +298,3 @@ def validate_config(config_info):
     for p in problems:
         log.error(p)
     return problems
-

@@ -244,4 +244,3 @@ class SdistBuilder(SdistBuilderCore):
             url=self.metadata.home_page,
             extra='\n      '.join(extra),
         ).encode('utf-8')
-

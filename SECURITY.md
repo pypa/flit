@@ -21,4 +21,3 @@ You can use the
 fix and disclosure.
 
 If you are a tidelift subscriber, this is the preferred  path
-

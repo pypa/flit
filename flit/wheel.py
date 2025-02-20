@@ -9,4 +9,3 @@ def make_wheel_in(ini_path, wheel_directory, editable=False):
 
 class WheelBuilder(core_wheel.WheelBuilder):
     pass
-

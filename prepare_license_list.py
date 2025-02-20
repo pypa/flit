@@ -21,4 +21,3 @@ with Path('flit_core', 'flit_core', '_spdx_data.py').open('w') as f:
 
     f.write("licenses = \\\n")
     pprint.pprint(condensed, f)
-
