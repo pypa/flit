@@ -473,7 +473,7 @@ def _license_files_from_globs(project_dir: Path, globs, warn_no_files = True):
             )
         try:
             files = [
-                str(file.relative_to(project_dir)).replace(osp.sep, "/")
+                file.relative_to(project_dir).as_posix()
                 for file in project_dir.glob(pattern)
                 if file.is_file()
             ]
@@ -615,7 +615,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                 license_p = path.parent / license_f
                 if not license_p.is_file():
                     raise ConfigError(f"License file {license_tbl['file']} does not exist")
-                license_f = str(license_p.relative_to(path.parent)).replace(osp.sep, "/")
+                license_f = license_p.relative_to(path.parent).as_posix()
                 license_files.add(license_f)
             elif 'text' in license_tbl:
                 pass
