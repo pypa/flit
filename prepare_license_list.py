@@ -11,7 +11,7 @@ with (list_data_repo / 'json' / 'licenses.json').open('rb') as f:
     licenses_json = json.load(f)
 
 condensed = {
-    l['licenseId'].lower() : {'id': l['licenseId']}
+    l['licenseId'].lower(): {'id': l['licenseId']}
     for l in licenses_json['licenses']
     if not l['isDeprecatedLicenseId']
 }
