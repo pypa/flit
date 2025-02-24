@@ -148,7 +148,7 @@ def get_docstring_and_version_via_ast(target):
         with target_path.open('rb') as f:
             node = ast.parse(f.read())
         for child in node.body:
-            if is_version_str_node(child):
+            if is_version_str_assignment(child):
                 if sys.version_info >= (3, 8):
                     version = child.value.value
                 else:
@@ -157,7 +157,7 @@ def get_docstring_and_version_via_ast(target):
     return ast.get_docstring(node), version
 
 
-def is_version_str_node(node, /):
+def is_version_str_assignment(node):
     """Check if *node* is a simple string assignment to __version__"""
     if not isinstance(node, (ast.Assign, ast.AnnAssign)):
         return False
