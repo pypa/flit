@@ -124,4 +124,3 @@ def normalise_version(orig_version):
         log.warning("Version number normalised: {!r} -> {!r} (see PEP 440)"
                     .format(orig_version, version))
     return version
-
