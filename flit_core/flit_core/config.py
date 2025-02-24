@@ -473,7 +473,7 @@ def _license_files_from_globs(project_dir: Path, globs, warn_no_files = True):
             )
         try:
             files = [
-                str(file.relative_to(project_dir)).replace(osp.sep, "/")
+                file.relative_to(project_dir).as_posix()
                 for file in project_dir.glob(pattern)
                 if file.is_file()
             ]
@@ -603,14 +603,20 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                     raise ConfigError(
                         "[project.license] should specify file or text, not both"
                     )
-                license_f = license_tbl['file']
+                license_f = osp.normpath(license_tbl['file'])
                 if isabs_ish(license_f):
                     raise ConfigError(
-                        f"License file path ({license_f}) cannot be an absolute path"
+                        f"License file path ({license_tbl['file']}) cannot be an absolute path"
                     )
-                if not (path.parent / license_f).is_file():
-                    raise ConfigError(f"License file {license_f} does not exist")
-                license_files.add(license_tbl['file'])
+                if license_f.startswith('..' + os.sep):
+                    raise ConfigError(
+                        f"License file path ({license_tbl['file']}) cannot contain '..'"
+                    )
+                license_p = path.parent / license_f
+                if not license_p.is_file():
+                    raise ConfigError(f"License file {license_tbl['file']} does not exist")
+                license_f = license_p.relative_to(path.parent).as_posix()
+                license_files.add(license_f)
             elif 'text' in license_tbl:
                 pass
             else:
