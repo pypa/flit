@@ -783,6 +783,7 @@ def name_is_valid(name) -> bool:
 def pep621_people(people, group_name='author') -> dict:
     """Convert authors/maintainers from PEP 621 to core metadata fields"""
     names, emails = [], []
+    names_without_emails = False
     for person in people:
         if not isinstance(person, dict):
             raise ConfigError("{} info must be list of dicts".format(group_name))
@@ -796,11 +797,15 @@ def pep621_people(people, group_name='author') -> dict:
             if 'name' in person:
                 email = str(Address(person['name'], addr_spec=email))
             emails.append(email)
-        elif 'name' in person:
+        if 'name' in person:
             names.append(person['name'])
+            if 'email' not in person:
+                names_without_emails = True
 
     res = {}
-    if names:
+    # The -Email fields include names (name <email>), so are preferred if
+    # everyone in the list provides an email address.
+    if names_without_emails:
         res[group_name] = ", ".join(names)
     if emails:
         res[group_name + '_email'] = ", ".join(emails)
