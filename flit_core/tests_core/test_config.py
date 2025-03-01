@@ -1,4 +1,5 @@
 import logging
+import re
 import sys
 from pathlib import Path
 import pytest
@@ -139,6 +140,14 @@ def test_bad_include_paths(path, err_match):
     ({'version': 1}, r'\bstr\b'),
     ({'license': {'fromage': 2}}, '[Uu]nrecognised'),
     ({'license': {'file': 'LICENSE', 'text': 'xyz'}}, 'both'),
+    (
+        {'license': {'file': '/LICENSE'}},
+        re.escape("License file path (/LICENSE) cannot be an absolute path"),
+    ),
+    (
+        {'license': {'file': '../LICENSE'}},
+        re.escape("License file path (../LICENSE) cannot contain '..'"),
+    ),
     ({'license': {}}, 'required'),
     ({'license': 1}, "license field should be <class 'str'> or <class 'dict'>, not <class 'int'>"),
     # ({'license': "MIT License"}, "Invalid license expression: 'MIT License'"),  # TODO
