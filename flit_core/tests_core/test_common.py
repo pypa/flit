@@ -215,8 +215,12 @@ def test_metadata_2_3_provides_extra(provides_extra, expected_result):
     ('value', 'expected_license', 'expected_license_expression'),
     [
         ({'license': 'MIT'}, 'MIT', None),
+        ({'license': 'MIT OR Apache-2.0'}, 'MIT OR Apache-2.0', None),
+        ({'license': 'MIT AND Apache-2.0'}, 'MIT AND Apache-2.0', None),
         ({'license_expression': 'MIT'}, None, 'MIT'),
         ({'license_expression': 'Apache-2.0'}, None, 'Apache-2.0'),
+        ({'license_expression': 'MIT OR Apache-2.0'}, None, 'MIT OR Apache-2.0'),
+        ({'license_expression': 'MIT AND Apache-2.0'}, None, 'MIT AND Apache-2.0'),
     ],
 )
 def test_metadata_license(value, expected_license, expected_license_expression):

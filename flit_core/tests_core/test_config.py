@@ -222,8 +222,17 @@ def test_bad_pep621_readme(readme, err_match):
     ("mit",  "MIT"),
     ("apache-2.0", "Apache-2.0"),
     ("APACHE-2.0+", "Apache-2.0+"),
-    # TODO: compound expressions
-    #("mit and (apache-2.0 or bsd-2-clause)", "MIT AND (Apache-2.0 OR BSD-2-Clause)"),
+    ("mit AND (apache-2.0 OR bsd-2-clause)", "MIT AND (Apache-2.0 OR BSD-2-Clause)"),
+    ("(mit)", "(MIT)"),
+    ("MIT OR Apache-2.0", "MIT OR Apache-2.0"),
+    ("MIT AND Apache-2.0", "MIT AND Apache-2.0"),
+    ("MIT AND Apache-2.0+ OR 0BSD", "MIT AND Apache-2.0+ OR 0BSD"),
+    ("MIT AND (Apache-2.0+ OR (0BSD))", "MIT AND (Apache-2.0+ OR (0BSD))"),
+    ("MIT OR(mit)", "MIT OR (MIT)"),
+    ("(mit)AND mit", "(MIT) AND MIT"),
+    ("MIT OR (MIT OR ( MIT )) AND ((MIT) AND MIT) OR MIT", "MIT OR (MIT OR (MIT)) AND ((MIT) AND MIT) OR MIT"),
+    ("LICENSEREF-Public-Domain OR cc0-1.0 OR unlicense", "LicenseRef-Public-Domain OR CC0-1.0 OR Unlicense"),
+    ("mit  AND  ( apache-2.0+  OR  mpl-2.0+ )", "MIT AND (Apache-2.0+ OR MPL-2.0+)"),
     # LicenseRef expressions: only the LicenseRef is normalised
     ("LiceNseref-Public-DoMain", "LicenseRef-Public-DoMain"),
 ])
@@ -235,6 +244,7 @@ def test_license_expr(value, license_expression):
     assert 'license' not in info.metadata
     assert info.metadata['license_expression'] == license_expression
 
+
 def test_license_expr_error():
     proj = {
         'name': 'module1', 'version': '1.0', 'description': 'x',
@@ -244,6 +254,10 @@ def test_license_expr_error():
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
     proj['license'] = "BSD-33-Clause"  # Not a real license
+    with pytest.raises(config.ConfigError, match="recognised"):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+
+    proj['license'] = "MIT WITH MIT-Exception"  # WITH unsupported
     with pytest.raises(config.ConfigError, match="recognised"):
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
