@@ -24,4 +24,3 @@ def test_identify_git_parent():
         subdir.mkdir()
         with cwd(subdir):
             assert vcs.identify_vcs(Path('.')).name == 'git'
-

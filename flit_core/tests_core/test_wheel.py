@@ -39,7 +39,7 @@ def test_main(tmp_path):
     with ZipFile(wheels[0], 'r') as zf:
         assert 'module1a.py' in zf.namelist()
 
-        
+
 def test_data_dir(tmp_path):
     info = make_wheel_in(samples_dir / 'with_data_dir' / 'pyproject.toml', tmp_path)
     assert_isfile(info.file)

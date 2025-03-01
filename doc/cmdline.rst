@@ -227,7 +227,7 @@ Environment variables
    Set a username, password, and index URL for uploading packages.
    See :ref:`uploading packages with environment variables <upload_envvars>`
    for more information.
-   
+
    Token-based upload to PyPI is supported. To upload using a PyPI token,
    set ``FLIT_USERNAME`` to ``__token__``, and ``FLIT_PASSWORD`` to the
    token value.
@@ -270,4 +270,3 @@ Environment variables
 
       `The SOURCE_DATE_EPOCH specification
       <https://reproducible-builds.org/specs/source-date-epoch/>`__
-
