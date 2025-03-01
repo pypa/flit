@@ -148,28 +148,27 @@ def get_docstring_and_version_via_ast(target):
         with target_path.open('rb') as f:
             node = ast.parse(f.read())
         for child in node.body:
-            if sys.version_info >= (3, 8):
-                target_type = ast.Constant
-            else:
-                target_type = ast.Str
-            # Only use the version from the given module if it's a simple
-            # string assignment to __version__
-            is_version_str = (
-                    isinstance(child, ast.Assign)
-                    and any(
-                        isinstance(target, ast.Name)
-                        and target.id == "__version__"
-                        for target in child.targets
-                    )
-                    and isinstance(child.value, target_type)
-            )
-            if is_version_str:
+            if is_version_str_assignment(child):
                 if sys.version_info >= (3, 8):
                     version = child.value.value
                 else:
                     version = child.value.s
                 break
     return ast.get_docstring(node), version
+
+
+def is_version_str_assignment(node):
+    """Check if *node* is a simple string assignment to __version__"""
+    if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+        return False
+    constant_type = ast.Constant if sys.version_info >= (3, 8) else ast.Str
+    if not isinstance(node.value, constant_type):
+        return False
+    targets = (node.target,) if isinstance(node, ast.AnnAssign) else node.targets
+    for target in targets:
+        if isinstance(target, ast.Name) and target.id == "__version__":
+            return True
+    return False
 
 
 # To ensure we're actually loading the specified file, give it a unique name to
