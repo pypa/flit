@@ -290,6 +290,23 @@ def test_license_expr_error(invalid_expr: str):
 
 
 @pytest.mark.parametrize('invalid_expr', [
+    "mit or mit",
+    "or",
+    "and",
+    "MIT and MIT",
+    "MIT AND MIT or MIT",
+    "MIT AND (MIT or MIT)",
+])
+def test_license_expr_error_lowercase(invalid_expr: str):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x',
+        'license': invalid_expr,
+    }
+    with pytest.raises(config.ConfigError, match="must be uppercase"):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+
+
+@pytest.mark.parametrize('invalid_expr', [
     "LicenseRef-foo_bar",
     "LicenseRef-foo~bar",
     "LicenseRef-foo:bar",
