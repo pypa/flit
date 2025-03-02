@@ -824,7 +824,7 @@ def isabs_ish(path):
     return os.path.isabs(path) or path.startswith(('/', '\\'))
 
 
-def normalise_compound_license_expr(s: str):
+def normalise_compound_license_expr(s: str) -> str:
     """Validate and normalise a compund SPDX license expression.
 
     Per the specification, licence expression operators (AND, OR and WITH)
@@ -872,7 +872,7 @@ def normalise_compound_license_expr(s: str):
     return ''.join(parts)
 
 
-def normalise_simple_license_expr(s: str):
+def normalise_simple_license_expr(s: str) -> str:
     """Normalise a simple SPDX license expression.
 
     https://spdx.github.io/spdx-spec/v2.2.2/SPDX-license-expressions/#d3-simple-license-expressions
