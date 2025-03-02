@@ -867,7 +867,7 @@ def normalise_compound_license_expr(s: str) -> str:
                 simple_expr = normalise_simple_license_expr(part)
                 parts.append(simple_expr)
 
-        if stack != 0:
+        if stack != 0 or parts[-1] in {' AND ', ' OR ', ' WITH '}:
             raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
     except ConfigError:
         if os.environ.get('FLIT_ALLOW_INVALID'):

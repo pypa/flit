@@ -245,20 +245,80 @@ def test_license_expr(value, license_expression):
     assert info.metadata['license_expression'] == license_expression
 
 
-def test_license_expr_error():
+@pytest.mark.parametrize('invalid_expr', [
+    # Not a real licence
+    "BSD-33-Clause",
+    "MIT OR BSD-33-Clause",
+    "MIT OR (MIT AND BSD-33-Clause)",
+    # No operator
+    "MIT BSD-33-Clause",
+    "MIT OR (BSD-33-Clause MIT)",
+    # Only operator
+    "AND",
+    "OR",
+    "AND AND AND",
+    "OR OR OR",
+    "OR AND OR",
+    "AND OR OR AND OR OR AND",
+    # Too many operators
+    "MIT AND AND MIT",
+    "MIT OR OR OR MIT",
+    "MIT AND OR MIT",
+    # Missing operand
+    "MIT AND",
+    "AND MIT",
+    "MIT OR",
+    "OR MIT",
+    "MIT (AND MIT)",
+    "(MIT OR) MIT",
+    # Unbalanced brackets
+    ")(",
+    "(",
+    ")",
+    "MIT OR ()",
+    ") AND MIT",
+    "MIT OR (",
+    "MIT OR (MIT))",
+])
+def test_license_expr_error(invalid_expr: str):
     proj = {
         'name': 'module1', 'version': '1.0', 'description': 'x',
-        'license': 'LicenseRef-foo_bar',  # Underscore not allowed
+        'license': invalid_expr,
+    }
+    with pytest.raises(config.ConfigError, match="recognised"):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+
+
+@pytest.mark.parametrize('invalid_expr', [
+    "LicenseRef-foo_bar",
+    "LicenseRef-foo~bar",
+    "LicenseRef-foo:bar",
+    "LicenseRef-foo[bar]",
+    "LicenseRef-foo-bar+",
+])
+def test_license_expr_error_licenseref(invalid_expr: str):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x',
+        'license': invalid_expr,
     }
     with pytest.raises(config.ConfigError, match="can only contain"):
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
-    proj['license'] = "BSD-33-Clause"  # Not a real license
-    with pytest.raises(config.ConfigError, match="recognised"):
-        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
-    proj['license'] = "MIT WITH MIT-Exception"  # WITH unsupported
-    with pytest.raises(config.ConfigError, match="recognised"):
+@pytest.mark.parametrize('invalid_expr', [
+    "WITH",
+    "with",
+    "MIT WITH MIT-Exception",
+    "(MIT WITH MIT-Exception)",
+    "MIT OR MIT WITH MIT-Exception",
+    "MIT WITH MIT-Exception OR (MIT AND MIT)",
+])
+def test_license_expr_error_unsupported_with(invalid_expr: str):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x',
+        'license': invalid_expr,
+    }
+    with pytest.raises(config.ConfigError, match="not yet supported"):
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
 
