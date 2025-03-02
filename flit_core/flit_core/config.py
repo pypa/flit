@@ -839,8 +839,9 @@ def normalise_compound_license_expr(s: str) -> str:
     parts = []
     try:
         for part in filter(None, re.split(r' +|([()])', s)):
-            if part == 'WITH':
-                raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
+            if part in {'WITH', 'with'}:
+                # provide a sensible error message for the WITH operator
+                raise ConfigError(f"The SPDX 'WITH' operator is not yet supported!")
             elif part in {'AND', 'OR'}:
                 if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
                     raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
