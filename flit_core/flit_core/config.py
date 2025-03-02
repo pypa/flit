@@ -842,6 +842,11 @@ def normalise_compound_license_expr(s: str) -> str:
             if part in {'WITH', 'with'}:
                 # provide a sensible error message for the WITH operator
                 raise ConfigError(f"The SPDX 'WITH' operator is not yet supported!")
+            elif part in {'and', 'or', 'with'}:
+                # provide a sensible error message for lowercase operators
+                raise ConfigError(
+                    f"SPDX licence expression operators must be uppercase (saw {s!r})"
+                )
             elif part in {'AND', 'OR'}:
                 if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
                     raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
