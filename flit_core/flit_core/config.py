@@ -3,6 +3,7 @@ from email.headerregistry import Address
 import errno
 import logging
 import os
+from os.path import isabs
 import os.path as osp
 from pathlib import Path
 import re
