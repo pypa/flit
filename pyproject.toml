@@ -37,6 +37,9 @@ doc = [
 	"sphinxcontrib_github_alt",
 	"pygments-github-lexers",  # TOML highlighting
 ]
+lint = [
+    "ruff==0.9.9",
+]
 
 [project.urls]
 Documentation = "https://flit.pypa.io"
