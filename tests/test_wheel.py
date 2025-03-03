@@ -1,16 +1,16 @@
 import configparser
 import os
 import stat
-from pathlib import Path
 import tempfile
-from unittest import skipIf
 import zipfile
+from pathlib import Path
+from unittest import skipIf
 
 import pytest
-from testpath import assert_isfile, assert_isdir, assert_not_path_exists
+from testpath import assert_isdir, assert_isfile, assert_not_path_exists
 
-from flit.wheel import WheelBuilder, make_wheel_in
 from flit.config import EntryPointsConflict
+from flit.wheel import WheelBuilder, make_wheel_in
 
 samples_dir = Path(__file__).parent / 'samples'
 

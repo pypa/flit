@@ -1,8 +1,10 @@
 import errno
+
 import pytest
 import responses
 
 from flit import validate as fv
+
 
 def test_validate_entrypoints():
     assert fv.validate_entrypoints(

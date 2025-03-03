@@ -1,16 +1,16 @@
 import ast
-from contextlib import contextmanager
 import hashlib
 import logging
 import os
-import sys
-
-from pathlib import Path
 import re
+import sys
+from contextlib import contextmanager
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
 from .versionno import normalise_version
+
 
 class Module(object):
     """This represents the module/package that we are going to distribute
@@ -187,7 +187,7 @@ def get_docstring_and_version_via_import(target):
     _import_i += 1
 
     log.debug("Loading module %s", target.file)
-    from importlib.util import spec_from_file_location, module_from_spec
+    from importlib.util import module_from_spec, spec_from_file_location
     mod_name = 'flit_core.dummy.import%d' % _import_i
     spec = spec_from_file_location(mod_name, target.file)
     with _module_load_ctx():

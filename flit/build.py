@@ -1,15 +1,15 @@
 """flit build - build both wheel and sdist"""
 
-from contextlib import contextmanager
 import logging
 import os
-from pathlib import Path
+import sys
 import tarfile
+from contextlib import contextmanager
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
-import sys
 
-from .config import read_flit_config, ConfigError
+from .config import ConfigError, read_flit_config
 from .sdist import SdistBuilder
 from .wheel import make_wheel_in
 

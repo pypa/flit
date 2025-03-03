@@ -2,13 +2,20 @@ import email.parser
 import email.policy
 from io import StringIO
 from pathlib import Path
-import pytest
 from unittest import TestCase
+
+import pytest
 
 from flit_core import config
 from flit_core.common import (
-    Module, get_info_from_module, InvalidVersion, NoVersionError, check_version,
-    normalize_file_permissions, Metadata, make_metadata,
+    InvalidVersion,
+    Metadata,
+    Module,
+    NoVersionError,
+    check_version,
+    get_info_from_module,
+    make_metadata,
+    normalize_file_permissions,
 )
 
 samples_dir = Path(__file__).parent / 'samples'

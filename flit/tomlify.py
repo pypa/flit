@@ -1,14 +1,14 @@
 """Convert a flit.ini file to pyproject.toml
 """
 import argparse
-from collections import OrderedDict
 import configparser
 import os
+from collections import OrderedDict
 from pathlib import Path
+
 import tomli_w
 
 from .config import metadata_list_fields
-
 
 TEMPLATE = """\
 [build-system]

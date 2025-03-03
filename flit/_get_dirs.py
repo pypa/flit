@@ -4,6 +4,7 @@ import os
 import sys
 import sysconfig
 
+
 def get_dirs(user=True):
     """Get the 'scripts' and 'purelib' directories we'll install into.
 

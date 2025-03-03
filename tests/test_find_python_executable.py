@@ -1,8 +1,8 @@
-from os.path import isabs, basename, dirname
 import os
 import re
 import sys
 import venv
+from os.path import basename, dirname, isabs
 
 import pytest
 

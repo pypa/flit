@@ -1,23 +1,23 @@
 """Install packages locally for development
 """
+import csv
+import json
 import logging
 import os
 import os.path as osp
-import csv
-import json
 import pathlib
 import random
 import shutil
 import site
 import sys
+import sysconfig
 import tempfile
 from subprocess import check_call, check_output
-import sysconfig
 
 from flit_core import common
-from .config import read_flit_config
-from .wheel import WheelBuilder
+
 from ._get_dirs import get_dirs
+from .config import read_flit_config
 
 log = logging.getLogger(__name__)
 

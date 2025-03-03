@@ -1,7 +1,7 @@
 import string
+import warnings
 from types import MappingProxyType
 from typing import Any, BinaryIO, Dict, FrozenSet, Iterable, NamedTuple, Optional, Tuple
-import warnings
 
 from ._re import (
     RE_DATETIME,

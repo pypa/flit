@@ -3,16 +3,20 @@ import os
 import pathlib
 import sys
 import tempfile
-from unittest import TestCase, SkipTest, skipIf
+from unittest import SkipTest, TestCase, skipIf
 from unittest.mock import patch
 
 import pytest
 from testpath import (
-    assert_isfile, assert_isdir, assert_islink, assert_not_path_exists, MockCommand
+    MockCommand,
+    assert_isdir,
+    assert_isfile,
+    assert_islink,
+    assert_not_path_exists,
 )
 
 from flit import install
-from flit.install import Installer, _requires_dist_to_pip_requirement, DependencyError
+from flit.install import DependencyError, Installer, _requires_dist_to_pip_requirement
 
 tests_dir = pathlib.Path(__file__).parent
 samples_dir = tests_dir / 'samples'

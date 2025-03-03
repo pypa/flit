@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from . import hg
-from . import git
+from . import git, hg
+
 
 def identify_vcs(directory: Path):
     directory = directory.resolve()

@@ -1,18 +1,17 @@
+import io
+import os
+import pathlib
 from contextlib import contextmanager
 from tempfile import NamedTemporaryFile
-import os
-import io
-import pathlib
-import sys
+from unittest.mock import patch
 
 import pytest
 import responses
 from testpath import modified_env
-from unittest.mock import patch
 
 from flit import upload
 from flit.build import ALL_FORMATS
-from flit.upload import get_repository, RepoDetails
+from flit.upload import RepoDetails, get_repository
 
 samples_dir = pathlib.Path(__file__).parent / 'samples'
 

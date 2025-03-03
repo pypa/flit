@@ -1,10 +1,12 @@
-from datetime import date
 import json
 import os
-from pathlib import Path
 import re
 import sys
+from datetime import date
+from pathlib import Path
+
 import tomli_w
+
 
 def get_data_dir():
     """Get the directory path for flit user data files.

@@ -1,12 +1,13 @@
-from pathlib import Path
-import pytest
 import shutil
 import sys
+from pathlib import Path
 from tempfile import TemporaryDirectory
-from testpath import assert_isdir, MockCommand
 
-from flit_core import common
+import pytest
+from testpath import MockCommand, assert_isdir
+
 from flit import build
+from flit_core import common
 
 samples_dir = Path(__file__).parent / 'samples'
 

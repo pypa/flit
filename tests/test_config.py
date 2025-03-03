@@ -1,7 +1,8 @@
 from pathlib import Path
+
 import pytest
 
-from flit.config import read_flit_config, ConfigError
+from flit.config import ConfigError, read_flit_config
 
 samples_dir = Path(__file__).parent / 'samples'
 

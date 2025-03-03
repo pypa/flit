@@ -7,8 +7,8 @@
 import argparse
 import logging
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 my_dir = Path(__file__).parent
 os.chdir(str(my_dir))
