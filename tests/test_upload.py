@@ -3,7 +3,6 @@ from tempfile import NamedTemporaryFile
 import os
 import io
 import pathlib
-import sys
 
 import pytest
 import responses
