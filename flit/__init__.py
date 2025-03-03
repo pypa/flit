@@ -9,6 +9,7 @@ import sys
 from typing import Optional
 
 from flit_core import common
+
 from .config import ConfigError
 from .log import enable_colourful_output
 

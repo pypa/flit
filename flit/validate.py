@@ -4,10 +4,11 @@ import errno
 import io
 import logging
 import os
-from pathlib import Path
 import re
-import requests
 import sys
+from pathlib import Path
+
+import requests
 
 from .vendorized.readme.rst import render
 

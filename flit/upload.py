@@ -8,15 +8,17 @@ import getpass
 import hashlib
 import logging
 import os
-from pathlib import Path
 import re
-import requests
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
 
-from flit_core.common import make_metadata, Metadata, Module
+import requests
+
+from flit_core.common import Metadata, Module, make_metadata
+
 from .config import read_flit_config
 
 log = logging.getLogger(__name__)
@@ -162,7 +164,8 @@ def write_pypirc(repo, file="~/.pypirc"):
 
 def get_password(repo: RepoDetails):
     try:
-        import keyring, keyring.errors
+        import keyring
+        import keyring.errors
     except ImportError:  # pragma: no cover
         log.warning("Install keyring to store tokens/passwords securely")
         keyring = None
@@ -202,7 +205,8 @@ def find_token(repo: RepoDetails, project_name: str):
         candidate_keys.append(f"pypi_token:user:{repo.username}")
 
     try:
-        import keyring, keyring.errors
+        import keyring
+        import keyring.errors
     except ImportError:  # pragma: no cover
         pass
     else:

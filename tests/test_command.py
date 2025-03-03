@@ -1,5 +1,6 @@
-from subprocess import Popen, PIPE, STDOUT
 import sys
+from subprocess import PIPE, STDOUT, Popen
+
 
 def test_flit_help():
     p = Popen([sys.executable, '-m', 'flit', '--help'], stdout=PIPE, stderr=STDOUT)

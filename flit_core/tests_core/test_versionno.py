@@ -3,6 +3,7 @@ import pytest
 from flit_core.common import InvalidVersion
 from flit_core.versionno import normalise_version
 
+
 def test_normalise_version():
     nv = normalise_version
     assert nv('4.3.1') == '4.3.1'

@@ -1,14 +1,15 @@
 import ast
-from os.path import join as pjoin
-from pathlib import Path
-import pytest
-from shutil import which, copy, copytree
 import sys
 import tarfile
+from os.path import join as pjoin
+from pathlib import Path
+from shutil import copytree, which
 from tempfile import TemporaryDirectory
-from testpath import assert_isfile, MockCommand
 
-from flit import sdist, common
+import pytest
+from testpath import MockCommand, assert_isfile
+
+from flit import common, sdist
 
 samples_dir = Path(__file__).parent / 'samples'
 

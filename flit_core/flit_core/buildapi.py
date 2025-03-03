@@ -1,17 +1,20 @@
 """PEP-517 compliant buildsystem API"""
-import logging
 import io
+import logging
 import os
 import os.path as osp
 from pathlib import Path
 
 from .common import (
-    Module, make_metadata, write_entry_points, dist_info_name,
+    Module,
+    dist_info_name,
     get_docstring_and_version_via_ast,
+    make_metadata,
+    write_entry_points,
 )
 from .config import read_flit_config
-from .wheel import make_wheel_in, _write_wheel_file
 from .sdist import SdistBuilder
+from .wheel import _write_wheel_file, make_wheel_in
 
 log = logging.getLogger(__name__)
 

@@ -1,7 +1,5 @@
 import argparse
-from base64 import urlsafe_b64encode
 import contextlib
-from datetime import datetime, timezone
 import hashlib
 import io
 import logging
@@ -9,12 +7,15 @@ import os
 import os.path as osp
 import stat
 import tempfile
+import zipfile
+from base64 import urlsafe_b64encode
+from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Optional
-import zipfile
 
 from flit_core import __version__
+
 from . import common
 
 log = logging.getLogger(__name__)

@@ -1,6 +1,6 @@
+import re
 from datetime import date, datetime, time, timedelta, timezone, tzinfo
 from functools import lru_cache
-import re
 from typing import Any, Optional, Union
 
 from ._types import ParseFloat

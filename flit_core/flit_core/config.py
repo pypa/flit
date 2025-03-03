@@ -1,12 +1,11 @@
 import difflib
-from email.headerregistry import Address
 import errno
 import logging
 import os
 import os.path as osp
-from os.path import isabs
-from pathlib import Path
 import re
+from email.headerregistry import Address
+from pathlib import Path
 
 try:
     import tomllib

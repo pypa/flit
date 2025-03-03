@@ -1,10 +1,11 @@
-from contextlib import contextmanager
 import os
 import os.path as osp
 import tarfile
-from testpath import assert_isfile, assert_isdir
-from testpath.tempdir import TemporaryDirectory
 import zipfile
+from contextlib import contextmanager
+
+from testpath import assert_isdir, assert_isfile
+from testpath.tempdir import TemporaryDirectory
 
 from flit_core import buildapi
 

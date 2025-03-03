@@ -2,9 +2,10 @@ import builtins
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from testpath import assert_isfile
 from unittest.mock import patch
+
 import pytest
+from testpath import assert_isfile
 
 try:
     import tomllib

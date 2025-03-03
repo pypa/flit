@@ -1,14 +1,14 @@
-from collections import defaultdict
-from copy import copy
-from glob import glob
-from gzip import GzipFile
 import io
 import logging
 import os
 import os.path as osp
+import tarfile
+from collections import defaultdict
+from copy import copy
+from glob import glob
+from gzip import GzipFile
 from pathlib import Path
 from posixpath import join as pjoin
-import tarfile
 
 from . import common
 

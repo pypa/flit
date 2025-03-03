@@ -3,7 +3,7 @@ from zipfile import ZipFile
 
 from testpath import assert_isfile
 
-from flit_core.wheel import make_wheel_in, main
+from flit_core.wheel import main, make_wheel_in
 
 samples_dir = Path(__file__).parent / 'samples'
 

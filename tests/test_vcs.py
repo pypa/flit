@@ -1,9 +1,10 @@
-from contextlib import contextmanager
 import os
+from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from flit import vcs
+
 
 @contextmanager
 def cwd(path):

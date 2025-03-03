@@ -1,0 +1,19 @@
+target-version = "py38"  # Pin Ruff to Python 3.8
+output-format = "full"
+
+extend-exclude = [
+    "doc/*",
+    "flit/vendorized/*",
+    "flit_core/flit_core/vendor/*",
+]
+
+[lint]
+select = [
+    "F401",  # `{name}` imported but unused
+    "I",     # isort
+]
+
+[lint.per-file-ignores]
+"flit_core/tests_core/samples/*" = [
+    "F401",  # names may be unused in test samples
+]

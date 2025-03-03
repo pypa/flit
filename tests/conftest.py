@@ -1,6 +1,7 @@
 from pathlib import Path
-import pytest
 from shutil import copytree
+
+import pytest
 
 samples_dir = Path(__file__).parent / 'samples'
 

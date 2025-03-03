@@ -1,7 +1,8 @@
-from io import BytesIO
 import os.path as osp
-from pathlib import Path
 import tarfile
+from io import BytesIO
+from pathlib import Path
+
 from testpath import assert_isfile
 
 from flit_core import sdist

@@ -1,15 +1,15 @@
-from collections import defaultdict
 import io
 import logging
 import os
+import tarfile
+from collections import defaultdict
 from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
-import tarfile
 
-from flit_core.sdist import SdistBuilder as SdistBuilderCore
-from flit_core.common import Module, VCSError
 from flit.vcs import identify_vcs
+from flit_core.common import Module, VCSError
+from flit_core.sdist import SdistBuilder as SdistBuilderCore
 
 log = logging.getLogger(__name__)
 

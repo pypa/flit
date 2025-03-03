@@ -1,12 +1,14 @@
 """Tests of flit_core building itself"""
 import os
 import os.path as osp
-import pytest
 import tarfile
-from testpath import assert_isdir, assert_isfile
 import zipfile
 
+import pytest
+from testpath import assert_isdir, assert_isfile
+
 from flit_core import buildapi
+
 
 @pytest.fixture()
 def cwd_project():

@@ -17,6 +17,7 @@ import sysconfig
 from pathlib import Path
 from zipfile import ZipFile
 
+
 def extract_wheel(whl_path, dest):
     print("Installing to", dest)
     with ZipFile(whl_path) as zf:
