@@ -224,7 +224,6 @@ class TerminalIniter(IniterBase):
                 f.write(tomli_w.dumps({'readme': readme}))
             if license != 'skip':
                 f.write(tomli_w.dumps({'license': license_names_to_spdx[license]}))
-                f.write(f"license-files = {json.dumps(['LICENSE'])}\n")
             f.write('dynamic = ["version", "description"]\n')
             if home_page:
                 f.write("\n" + tomli_w.dumps({
