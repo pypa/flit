@@ -4,7 +4,6 @@ import errno
 import logging
 import os
 import os.path as osp
-from os.path import isabs
 from pathlib import Path
 import re
 

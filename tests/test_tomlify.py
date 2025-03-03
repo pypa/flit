@@ -1,10 +1,8 @@
-import os
 from pathlib import Path
 try:
     import tomllib
 except ImportError:
     import tomli as tomllib
-from shutil import copy
 from testpath import assert_isfile
 
 from flit import tomlify
