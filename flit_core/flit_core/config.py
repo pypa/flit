@@ -850,7 +850,7 @@ def normalise_compound_license_expr(s: str) -> str:
                 parts.append(f' {part} ')
             elif part.lower() in {'and', 'or', 'with'}:
                 # provide a sensible error message for non-uppercase operators
-                reason = f"operators must be uppercase, not '{s}'"
+                reason = f"operators must be uppercase, not '{part}'"
                 raise ConfigError(invalid_msg.format(s=s, reason=reason))
             elif part == '(':
                 if parts and parts[-1] not in {' AND ', ' OR ', '('}:
