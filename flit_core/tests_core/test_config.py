@@ -328,6 +328,24 @@ def test_license_expr_error(invalid_expr: str):
 
 
 @pytest.mark.parametrize('invalid_expr', [
+    "",
+    " ",
+    "\t",
+    "\r",
+    "\n",
+    "\f",
+    " \t \n \r \f ",
+])
+def test_license_expr_error_empty(invalid_expr: str):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x',
+        'license': invalid_expr,
+    }
+    with pytest.raises(config.ConfigError, match="must not be empty"):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+
+
+@pytest.mark.parametrize('invalid_expr', [
     "mit or mit",
     "or",
     "and",

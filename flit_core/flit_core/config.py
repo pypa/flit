@@ -833,7 +833,7 @@ def normalise_compound_license_expr(s: str) -> str:
     Spec: https://spdx.github.io/spdx-spec/v2.2.2/SPDX-license-expressions/
     """
     invalid_msg = "'{s}' is not a valid SPDX license expression: {reason}"
-    if s == '':
+    if not s or s.isspace():
         raise ConfigError(f"The SPDX license expression must not be empty")
 
     stack = 0
