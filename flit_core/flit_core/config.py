@@ -868,6 +868,9 @@ def normalise_compound_license_expr(s: str) -> str:
                     raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 parts.append(part)
             else:
+                if parts and parts[-1] not in {' AND ', ' OR ', '('}:
+                    reason = "a license ID must follow a license expression operator or '('"
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 simple_expr = normalise_simple_license_expr(part)
                 parts.append(simple_expr)
 
