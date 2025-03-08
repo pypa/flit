@@ -832,8 +832,9 @@ def normalise_compound_license_expr(s: str) -> str:
 
     Spec: https://spdx.github.io/spdx-spec/v2.2.2/SPDX-license-expressions/
     """
+    invalid_msg = "'{s}' is not a valid SPDX license expression: {reason}"
     if s == '':
-        raise ConfigError(f"'' is not a recognised SPDX license ID")
+        raise ConfigError(f"The SPDX license expression must not be empty")
 
     stack = 0
     parts = []
@@ -844,31 +845,38 @@ def normalise_compound_license_expr(s: str) -> str:
                 raise ConfigError(f"The SPDX 'WITH' operator is not yet supported!")
             elif part in {'and', 'or', 'with'}:
                 # provide a sensible error message for lowercase operators
-                raise ConfigError(
-                    f"SPDX licence expression operators must be uppercase (saw {s!r})"
-                )
+                reason = f"operators must be uppercase, not '{s}'"
+                raise ConfigError(invalid_msg.format(s=s, reason=reason))
             elif part in {'AND', 'OR'}:
                 if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
-                    raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
+                    reason = f"'{part}' must follow a license ID"
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 parts.append(f' {part} ')
             elif part == '(':
                 if parts and parts[-1] not in {' AND ', ' OR ', '('}:
-                    raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
+                    reason = "'(' must follow a license expression operator or another '('"
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 stack += 1
                 parts.append(part)
             elif part == ')':
                 if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
-                    raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
+                    reason = "')' must follow a license ID"
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 stack -= 1
                 if stack < 0:
-                    raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
+                    reason = 'unbalanced brackets'
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 parts.append(part)
             else:
                 simple_expr = normalise_simple_license_expr(part)
                 parts.append(simple_expr)
 
-        if stack != 0 or parts[-1] in {' AND ', ' OR ', ' WITH '}:
-            raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
+        if stack != 0:
+            reason = 'unbalanced brackets'
+            raise ConfigError(invalid_msg.format(s=s, reason=reason))
+        if parts[-1] in {' AND ', ' OR ', ' WITH '}:
+            reason = f"'{parts[-1].strip()}' is missing a second operand"
+            raise ConfigError(invalid_msg.format(s=s, reason=reason))
     except ConfigError:
         if os.environ.get('FLIT_ALLOW_INVALID'):
             log.warning(f"Invalid license ID {s!r} allowed by FLIT_ALLOW_INVALID")

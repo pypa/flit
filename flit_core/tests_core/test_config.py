@@ -244,15 +244,41 @@ def test_license_expr(value, license_expression):
     assert 'license' not in info.metadata
     assert info.metadata['license_expression'] == license_expression
 
+@pytest.mark.parametrize('invalid_expr', [
+    "LicenseRef-foo_bar",
+    "LicenseRef-foo~bar",
+    "LicenseRef-foo:bar",
+    "LicenseRef-foo[bar]",
+    "LicenseRef-foo-bar+",
+])
+def test_license_expr_error_licenseref(invalid_expr: str):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x',
+        'license': invalid_expr,
+    }
+    with pytest.raises(config.ConfigError, match="can only contain"):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+
 
 @pytest.mark.parametrize('invalid_expr', [
     # Not a real licence
     "BSD-33-Clause",
     "MIT OR BSD-33-Clause",
     "MIT OR (MIT AND BSD-33-Clause)",
+])
+def test_license_expr_error_not_recognised(invalid_expr: str):
+    proj = {
+        'name': 'module1', 'version': '1.0', 'description': 'x',
+        'license': invalid_expr,
+    }
+    with pytest.raises(config.ConfigError, match="recognised"):
+        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
+
+
+@pytest.mark.parametrize('invalid_expr', [
     # No operator
-    "MIT BSD-33-Clause",
-    "MIT OR (BSD-33-Clause MIT)",
+    "MIT MIT",
+    "MIT OR (MIT MIT)",
     # Only operator
     "AND",
     "OR",
@@ -285,7 +311,7 @@ def test_license_expr_error(invalid_expr: str):
         'name': 'module1', 'version': '1.0', 'description': 'x',
         'license': invalid_expr,
     }
-    with pytest.raises(config.ConfigError, match="recognised"):
+    with pytest.raises(config.ConfigError, match="is not a valid"):
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
 
@@ -303,22 +329,6 @@ def test_license_expr_error_lowercase(invalid_expr: str):
         'license': invalid_expr,
     }
     with pytest.raises(config.ConfigError, match="must be uppercase"):
-        config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
-
-
-@pytest.mark.parametrize('invalid_expr', [
-    "LicenseRef-foo_bar",
-    "LicenseRef-foo~bar",
-    "LicenseRef-foo:bar",
-    "LicenseRef-foo[bar]",
-    "LicenseRef-foo-bar+",
-])
-def test_license_expr_error_licenseref(invalid_expr: str):
-    proj = {
-        'name': 'module1', 'version': '1.0', 'description': 'x',
-        'license': invalid_expr,
-    }
-    with pytest.raises(config.ConfigError, match="can only contain"):
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
 
