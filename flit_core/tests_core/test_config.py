@@ -309,6 +309,14 @@ def test_license_expr_error_not_recognised(invalid_expr: str):
     ") AND MIT",
     "MIT OR (",
     "MIT OR (MIT))",
+    # Only brackets
+    "()",
+    "()()",
+    "()(())",
+    "(  )",
+    "  (  )",
+    "(  )  ",
+    "  (  )  ",
 ])
 def test_license_expr_error(invalid_expr: str):
     proj = {
