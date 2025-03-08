@@ -290,6 +290,10 @@ def test_license_expr_error_not_recognised(invalid_expr: str):
     "MIT AND AND MIT",
     "MIT OR OR OR MIT",
     "MIT AND OR MIT",
+    # Mixed case operator
+    "MIT aND MIT",
+    "MIT oR MIT",
+    "MIT AND MIT oR MIT",
     # Missing operand
     "MIT AND",
     "AND MIT",
@@ -335,6 +339,8 @@ def test_license_expr_error_lowercase(invalid_expr: str):
 @pytest.mark.parametrize('invalid_expr', [
     "WITH",
     "with",
+    "WiTh",
+    "wiTH",
     "MIT WITH MIT-Exception",
     "(MIT WITH MIT-Exception)",
     "MIT OR MIT WITH MIT-Exception",

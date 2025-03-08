@@ -840,18 +840,18 @@ def normalise_compound_license_expr(s: str) -> str:
     parts = []
     try:
         for part in filter(None, re.split(r' +|([()])', s)):
-            if part in {'WITH', 'with'}:
+            if part.upper() == 'WITH':
                 # provide a sensible error message for the WITH operator
                 raise ConfigError(f"The SPDX 'WITH' operator is not yet supported!")
-            elif part in {'and', 'or', 'with'}:
-                # provide a sensible error message for lowercase operators
-                reason = f"operators must be uppercase, not '{s}'"
-                raise ConfigError(invalid_msg.format(s=s, reason=reason))
             elif part in {'AND', 'OR'}:
                 if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
                     reason = f"'{part}' must follow a license ID"
                     raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 parts.append(f' {part} ')
+            elif part.lower() in {'and', 'or', 'with'}:
+                # provide a sensible error message for non-uppercase operators
+                reason = f"operators must be uppercase, not '{s}'"
+                raise ConfigError(invalid_msg.format(s=s, reason=reason))
             elif part == '(':
                 if parts and parts[-1] not in {' AND ', ' OR ', '('}:
                     reason = "'(' must follow a license expression operator or another '('"
