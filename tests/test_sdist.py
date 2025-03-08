@@ -2,7 +2,7 @@ import ast
 from os.path import join as pjoin
 from pathlib import Path
 import pytest
-from shutil import which, copy, copytree
+from shutil import which, copytree
 import sys
 import tarfile
 from tempfile import TemporaryDirectory

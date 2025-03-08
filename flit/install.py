@@ -16,7 +16,6 @@ import sysconfig
 
 from flit_core import common
 from .config import read_flit_config
-from .wheel import WheelBuilder
 from ._get_dirs import get_dirs
 
 log = logging.getLogger(__name__)
