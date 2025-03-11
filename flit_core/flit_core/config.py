@@ -845,7 +845,7 @@ def normalise_compound_license_expr(s: str) -> str:
                 raise ConfigError(f"The SPDX 'WITH' operator is not yet supported!")
             elif part in {'AND', 'OR'}:
                 if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
-                    reason = f"'{part}' must follow a license ID"
+                    reason = f"a license ID is missing before '{part}'"
                     raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 parts.append(f' {part} ')
             elif part.lower() in {'and', 'or', 'with'}:
@@ -860,7 +860,7 @@ def normalise_compound_license_expr(s: str) -> str:
                 parts.append(part)
             elif part == ')':
                 if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
-                    reason = "')' must follow a license ID"
+                    reason = f"a license ID is missing before '{part}'"
                     raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 stack -= 1
                 if stack < 0:
@@ -878,7 +878,8 @@ def normalise_compound_license_expr(s: str) -> str:
             reason = 'unbalanced brackets'
             raise ConfigError(invalid_msg.format(s=s, reason=reason))
         if parts[-1] in {' AND ', ' OR ', ' WITH '}:
-            reason = f"'{parts[-1].strip()}' is missing a second operand"
+            last_part = parts[-1].strip()
+            reason = f"a license ID or expression should follow '{last_part}'"
             raise ConfigError(invalid_msg.format(s=s, reason=reason))
     except ConfigError:
         if os.environ.get('FLIT_ALLOW_INVALID'):
