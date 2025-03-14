@@ -17,6 +17,7 @@ except ImportError:
     except ImportError:
         import tomli as tomllib
 
+from ._spdx_data import licenses
 from .common import normalise_core_metadata_name
 from .versionno import normalise_version
 
@@ -586,7 +587,8 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
     if 'license' in proj:
         _check_types(proj, 'license', (str, dict))
         if isinstance(proj['license'], str):
-            md_dict['license_expression'] = normalize_license_expr(proj['license'])
+            licence_expr = proj['license']
+            md_dict['license_expression'] = normalise_compound_license_expr(licence_expr)
         else:
             license_tbl = proj['license']
             unrec_keys = set(license_tbl.keys()) - {'text', 'file'}
@@ -821,34 +823,97 @@ def isabs_ish(path):
     return os.path.isabs(path) or path.startswith(('/', '\\'))
 
 
-def normalize_license_expr(s: str):
-    """Validate & normalise an SPDX license expression
+def normalise_compound_license_expr(s: str) -> str:
+    """Validate and normalise a compund SPDX license expression.
 
-    For now this only handles simple expressions (referring to 1 license)
+    Per the specification, licence expression operators (AND, OR and WITH)
+    are matched case-sensitively. The WITH operator is not currently supported.
+
+    Spec: https://spdx.github.io/spdx-spec/v2.2.2/SPDX-license-expressions/
     """
-    from ._spdx_data import licenses
+    invalid_msg = "'{s}' is not a valid SPDX license expression: {reason}"
+    if not s or s.isspace():
+        raise ConfigError(f"The SPDX license expression must not be empty")
+
+    stack = 0
+    parts = []
+    try:
+        for part in filter(None, re.split(r' +|([()])', s)):
+            if part.upper() == 'WITH':
+                # provide a sensible error message for the WITH operator
+                raise ConfigError(f"The SPDX 'WITH' operator is not yet supported!")
+            elif part in {'AND', 'OR'}:
+                if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
+                    reason = f"a license ID is missing before '{part}'"
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
+                parts.append(f' {part} ')
+            elif part.lower() in {'and', 'or', 'with'}:
+                # provide a sensible error message for non-uppercase operators
+                reason = f"operators must be uppercase, not '{part}'"
+                raise ConfigError(invalid_msg.format(s=s, reason=reason))
+            elif part == '(':
+                if parts and parts[-1] not in {' AND ', ' OR ', '('}:
+                    reason = f"'(' must follow either AND, OR, or '('"
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
+                stack += 1
+                parts.append(part)
+            elif part == ')':
+                if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
+                    reason = f"a license ID is missing before '{part}'"
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
+                stack -= 1
+                if stack < 0:
+                    reason = 'unbalanced brackets'
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
+                parts.append(part)
+            else:
+                if parts and parts[-1] not in {' AND ', ' OR ', '('}:
+                    reason = f"a license ID must follow either AND, OR, or '('"
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
+                simple_expr = normalise_simple_license_expr(part)
+                parts.append(simple_expr)
+
+        if stack != 0:
+            reason = 'unbalanced brackets'
+            raise ConfigError(invalid_msg.format(s=s, reason=reason))
+        if parts[-1] in {' AND ', ' OR ', ' WITH '}:
+            last_part = parts[-1].strip()
+            reason = f"a license ID or expression should follow '{last_part}'"
+            raise ConfigError(invalid_msg.format(s=s, reason=reason))
+    except ConfigError:
+        if os.environ.get('FLIT_ALLOW_INVALID'):
+            log.warning(f"Invalid license ID {s!r} allowed by FLIT_ALLOW_INVALID")
+            return s
+        raise
+
+    return ''.join(parts)
+
+
+def normalise_simple_license_expr(s: str) -> str:
+    """Normalise a simple SPDX license expression.
+
+    https://spdx.github.io/spdx-spec/v2.2.2/SPDX-license-expressions/#d3-simple-license-expressions
+    """
     ls = s.lower()
     if ls.startswith('licenseref-'):
-        ref = s.partition('-')[2]
-        if re.match(r'([a-zA-Z0-9\-.])+$', ref):
+        ref = s[11:]
+        if re.fullmatch(r'[a-zA-Z0-9\-.]+', ref):
             # Normalise case of LicenseRef, leave the rest alone
-            return "LicenseRef-" + ref
+            return f"LicenseRef-{ref}"
         raise ConfigError(
             "LicenseRef- license expression can only contain ASCII letters "
             "& digits, - and ."
         )
 
-    or_later = s.endswith('+')
+    or_later = ls.endswith('+')
     if or_later:
         ls = ls[:-1]
 
     try:
-        info = licenses[ls]
+        normalised_id = licenses[ls]['id']
     except KeyError:
-        if os.environ.get('FLIT_ALLOW_INVALID'):
-            log.warning("Invalid license ID {!r} allowed by FLIT_ALLOW_INVALID"
-                        .format(s))
-            return s
         raise ConfigError(f"{s!r} is not a recognised SPDX license ID")
 
-    return info['id'] + ('+' if or_later else '')
+    if or_later:
+        return f'{normalised_id}+'
+    return normalised_id
