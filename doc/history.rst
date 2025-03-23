@@ -1,6 +1,15 @@
 Release history
 ===============
 
+Version 3.12
+------------
+
+- Support for license expressions using the AND and OR operators (:ghpull:`731`).
+- Recognise ``__version__: str = "0.1"`` annotated assignments when finding the
+  version number (:ghpull:`728`).
+- Clear error message when referring to a license file in a parent directory,
+  which is not supported (:ghpull:`725`).
+
 Version 3.11
 ------------
 
