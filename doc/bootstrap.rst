@@ -26,9 +26,12 @@ included in the sdist (or by unzipping it to the correct directory)::
     # Install somewhere else:
     python bootstrap_install.py --installdir /path/to/site-packages dist/flit_core-*.whl
 
-As of version 3.6, flit_core bundles the ``tomli`` TOML parser, to avoid a
-dependency cycle. If you need to unbundle it, you will need to special-case
-installing flit_core and/or tomli to get around that cycle.
+In Python 3.11 and newer, ``flit_core`` uses the standard library :mod:`tomllib`
+module, meaning that ``flit_core`` has no third-party dependencies.
+For older versions of Python, ``flit_core`` as of version 3.6 bundles the
+``tomli`` TOML parser to avoid a dependency cycle. If you need to unbundle it,
+you must use a Python version that includes :mod:`!tomllib`, or special-case
+installing ``flit_core`` and/or ``tomli`` to get around that cycle.
 
 After ``flit_core``, I recommend that you get `installer
 <https://pypi.org/project/installer/>`_ set up. You can use
