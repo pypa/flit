@@ -94,9 +94,7 @@ class Module:
         """
         def _include(path):
             name = os.path.basename(path)
-            if (name == '__pycache__') or name.endswith('.pyc'):
-                return False
-            return True
+            return name != '__pycache__' and not name.endswith('.pyc')
 
         if self.is_package:
             # Ensure we sort all files and directories so the order is stable
