@@ -204,8 +204,7 @@ def flatten_entrypoints(ep):
         d1 = {}
         for k, v in d.items():
             if isinstance(v, dict):
-                for flattened in _flatten(v, prefix+'.'+k):
-                    yield flattened
+                yield from _flatten(v, f'{prefix}.{k}')
             else:
                 d1[k] = v
 
