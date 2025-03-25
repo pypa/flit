@@ -3,7 +3,7 @@ from base64 import urlsafe_b64encode
 import contextlib
 from datetime import datetime, timezone
 import hashlib
-import io
+from io import StringIO
 import logging
 import os
 import os.path as osp
@@ -139,7 +139,7 @@ class WheelBuilder:
 
     @contextlib.contextmanager
     def _write_to_zip(self, rel_path, mode=0o644):
-        sio = io.StringIO()
+        sio = StringIO()
         yield sio
 
         log.debug("Writing data to %s in zip file", rel_path)
@@ -218,7 +218,7 @@ def make_wheel_in(ini_path, wheel_directory, editable=False):
     # a temporary_file, and rename it afterwards.
     (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
     try:
-        with io.open(fd, 'w+b') as fp:
+        with open(fd, 'w+b') as fp:
             wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build(editable)
 
