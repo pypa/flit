@@ -51,35 +51,9 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: codecov
 
-  test-py37:
-    runs-on: "ubuntu-22.04"
-    strategy:
-      matrix:
-        python-version: [ "3.7", ]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install tox tox-gh-actions codecov
-
-      - name: Run tests
-        run: tox
-
-      - name: Codecov upload
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: codecov
-
   packages:
     runs-on: ubuntu-latest
-    needs: [test, test-py37]
+    needs: [test]
     permissions:
       id-token: write  # OIDC for uploading to PyPI
 

@@ -147,10 +147,7 @@ def get_docstring_and_version_via_ast(target):
             node = ast.parse(f.read())
         for child in node.body:
             if is_version_str_assignment(child):
-                if sys.version_info >= (3, 8):
-                    version = child.value.value
-                else:
-                    version = child.value.s
+                version = child.value.value
                 break
     return ast.get_docstring(node), version
 
@@ -159,8 +156,7 @@ def is_version_str_assignment(node):
     """Check if *node* is a simple string assignment to __version__"""
     if not isinstance(node, (ast.Assign, ast.AnnAssign)):
         return False
-    constant_type = ast.Constant if sys.version_info >= (3, 8) else ast.Str
-    if not isinstance(node.value, constant_type):
+    if not isinstance(node.value, ast.Constant):
         return False
     targets = (node.target,) if isinstance(node, ast.AnnAssign) else node.targets
     for target in targets:
