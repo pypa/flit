@@ -252,7 +252,7 @@ def _check_glob_patterns(pats, clude):
     return normed
 
 
-class LoadedConfig(object):
+class LoadedConfig:
     def __init__(self):
         self.module = None
         self.metadata = {}

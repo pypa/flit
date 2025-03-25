@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 from .versionno import normalise_version
 
-class Module(object):
+class Module:
     """This represents the module/package that we are going to distribute
     """
     in_namespace_package = False
@@ -326,7 +326,7 @@ def normalize_file_permissions(st_mode):
         new_mode |= 0o111  # Executable: 644 -> 755
     return new_mode
 
-class Metadata(object):
+class Metadata:
 
     summary = None
     home_page = None
