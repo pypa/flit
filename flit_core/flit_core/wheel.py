@@ -19,7 +19,7 @@ from . import common
 
 log = logging.getLogger(__name__)
 
-wheel_file_template = u"""\
+wheel_file_template = """\
 Wheel-Version: 1.0
 Generator: flit {version}
 Root-Is-Purelib: true
@@ -28,8 +28,8 @@ Root-Is-Purelib: true
 def _write_wheel_file(f, supports_py2=False):
     f.write(wheel_file_template)
     if supports_py2:
-        f.write(u"Tag: py2-none-any\n")
-    f.write(u"Tag: py3-none-any\n")
+        f.write("Tag: py2-none-any\n")
+    f.write("Tag: py3-none-any\n")
 
 
 def _set_zinfo_mode(zinfo, mode):
@@ -197,7 +197,7 @@ class WheelBuilder:
         # Write a record of the files in the wheel
         with self._write_to_zip(self.dist_info + '/RECORD') as f:
             for path, hash, size in self.records:
-                f.write(u'{},sha256={},{}\n'.format(path, hash, size))
+                f.write('{},sha256={},{}\n'.format(path, hash, size))
             # RECORD itself is recorded with no hash or size
             f.write(self.dist_info + '/RECORD,,\n')
 
