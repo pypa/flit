@@ -1,3 +1,4 @@
+from __future__ import annotations
 import argparse
 from base64 import urlsafe_b64encode
 import contextlib
@@ -11,7 +12,6 @@ import stat
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Optional
 import zipfile
 
 from flit_core import __version__
@@ -37,7 +37,7 @@ def _set_zinfo_mode(zinfo, mode):
     zinfo.external_attr = mode << 16
 
 
-def zip_timestamp_from_env() -> Optional[tuple]:
+def zip_timestamp_from_env() -> tuple[int, int, int, int, int, int] | None:
     """Prepare a timestamp from $SOURCE_DATE_EPOCH, if set"""
     try:
         # If SOURCE_DATE_EPOCH is set (e.g. by Debian), it's used for
