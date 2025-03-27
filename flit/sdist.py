@@ -202,37 +202,37 @@ class SdistBuilder(SdistBuilderCore):
         before, extra = [], []
         if self.module.is_package:
             packages, package_data = auto_packages(self.module)
-            before.append("packages = \\\n%s\n" % pformat(sorted(packages)))
-            before.append("package_data = \\\n%s\n" % pformat(package_data))
+            before.append(f"packages = \\\n{pformat(sorted(packages))}\n")
+            before.append(f"package_data = \\\n{pformat(package_data)}\n")
             extra.append("packages=packages,")
             extra.append("package_data=package_data,")
         else:
-            extra.append("py_modules={!r},".format([self.module.name]))
+            extra.append(f"py_modules={[self.module.name]!r},")
             if self.module.in_namespace_package:
                 packages = list(namespace_packages(self.module))
-                before.append("packages = \\\n%s\n" % pformat(packages))
+                before.append(f"packages = \\\n{pformat(packages)}\n")
                 extra.append("packages=packages,")
 
         if self.module.prefix:
             package_dir = pformat({'': self.module.prefix})
-            before.append("package_dir = \\\n%s\n" % package_dir)
+            before.append(f"package_dir = \\\n{package_dir}\n")
             extra.append("package_dir=package_dir,")
 
         install_reqs, extra_reqs = convert_requires(self.reqs_by_extra)
         if install_reqs:
-            before.append("install_requires = \\\n%s\n" % pformat(install_reqs))
+            before.append(f"install_requires = \\\n{pformat(install_reqs)}\n")
             extra.append("install_requires=install_requires,")
         if extra_reqs:
-            before.append("extras_require = \\\n%s\n" % pformat(extra_reqs))
+            before.append(f"extras_require = \\\n{pformat(extra_reqs)}\n")
             extra.append("extras_require=extras_require,")
 
         entrypoints = self.prep_entry_points()
         if entrypoints:
-            before.append("entry_points = \\\n%s\n" % pformat(entrypoints))
+            before.append(f"entry_points = \\\n{pformat(entrypoints)}\n")
             extra.append("entry_points=entry_points,")
 
         if self.metadata.requires_python:
-            extra.append('python_requires=%r,' % self.metadata.requires_python)
+            extra.append(f'python_requires={self.metadata.requires_python!r},')
 
         return SETUP.format(
             before='\n'.join(before),

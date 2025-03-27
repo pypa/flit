@@ -60,8 +60,8 @@ def convert(path):
                 continue
 
             if '.' in groupname:
-                groupname = '"{}"'.format(groupname)
-            f.write('\n[tool.flit.entrypoints.{}]\n'.format(groupname))
+                groupname = f'"{groupname}"'
+            f.write(f'\n[tool.flit.entrypoints.{groupname}]\n')
             f.write(tomli_w.dumps(OrderedDict(group)))
             written_entrypoints = True
 

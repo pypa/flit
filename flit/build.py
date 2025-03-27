@@ -31,7 +31,7 @@ def main(ini_file: Path, formats=None, gen_setup_py=True, use_vcs=True):
     if not formats:
         formats = ALL_FORMATS
     elif not formats.issubset(ALL_FORMATS):
-        raise ValueError("Unknown package formats: {}".format(formats - ALL_FORMATS))
+        raise ValueError(f"Unknown package formats: {formats - ALL_FORMATS}")
 
     sdist_info = wheel_info = None
     dist_dir = ini_file.parent / 'dist'
@@ -55,6 +55,6 @@ def main(ini_file: Path, formats=None, gen_setup_py=True, use_vcs=True):
         elif 'wheel' in formats:
             wheel_info = make_wheel_in(ini_file, dist_dir)
     except ConfigError as e:
-        sys.exit('Config error: {}'.format(e))
+        sys.exit(f'Config error: {e}')
 
     return SimpleNamespace(wheel=wheel_info, sdist=sdist_info)

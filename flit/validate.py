@@ -84,7 +84,7 @@ def _download_and_cache_classifiers():
 def _verify_classifiers(classifiers, valid_classifiers):
     """Check classifiers against a set of known classifiers"""
     invalid = classifiers - valid_classifiers
-    return ["Unrecognised classifier: {!r}".format(c)
+    return [f"Unrecognised classifier: {c!r}"
             for c in sorted(invalid)]
 
 
@@ -152,8 +152,7 @@ def validate_entrypoints(entrypoints):
                 valid = _is_identifier_attr(v)
 
             if not valid:
-                problems.append('Invalid entry point in group {}: '
-                                '{} = {}'.format(groupname, k, v))
+                problems.append(f'Invalid entry point in group {groupname}: {k} = {v}')
     return problems
 
 # Distribution name, not quite the same as a Python identifier
@@ -171,7 +170,7 @@ def validate_name(metadata):
     name = metadata.get('name', None)
     if name is None or NAME.match(name):
         return []
-    return ['Invalid name: {!r}'.format(name)]
+    return [f'Invalid name: {name!r}']
 
 
 def _valid_version_specifier(s):
@@ -184,7 +183,7 @@ def validate_requires_python(metadata):
     spec = metadata.get('requires_python', None)
     if spec is None or _valid_version_specifier(spec):
         return []
-    return ['Invalid requires-python: {!r}'.format(spec)]
+    return [f'Invalid requires-python: {spec!r}']
 
 MARKER_VARS = {
     'python_version', 'python_full_version', 'os_name', 'sys_platform',
@@ -200,15 +199,15 @@ def validate_environment_marker(em):
         # TODO: validate parentheses properly. They're allowed by PEP 508.
         parts = MARKER_OP.split(c.strip('()'))
         if len(parts) != 3:
-            problems.append("Invalid expression in environment marker: {!r}".format(c))
+            problems.append(f"Invalid expression in environment marker: {c!r}")
             continue
         l, op, r = parts
         for var in (l.strip(), r.strip()):
             if var[:1] in {'"', "'"}:
                 if len(var) < 2 or var[-1:] != var[:1]:
-                    problems.append("Invalid string in environment marker: {}".format(var))
+                    problems.append(f"Invalid string in environment marker: {var}")
             elif var not in MARKER_VARS:
-                problems.append("Invalid variable name in environment marker: {!r}".format(var))
+                problems.append(f"Invalid variable name in environment marker: {var!r}")
     return problems
 
 def validate_requires_dist(metadata):
@@ -216,13 +215,13 @@ def validate_requires_dist(metadata):
     for req in metadata.get('requires_dist', []):
         m = REQUIREMENT.match(req)
         if not m:
-            probs.append("Could not parse requirement: {!r}".format(req))
+            probs.append(f"Could not parse requirement: {req!r}")
             continue
 
         extras, version, envmark = m.group('extras', 'version', 'envmark')
         if not (extras is None or all(NAME.match(e.strip())
                                       for e in extras[1:-1].split(','))):
-            probs.append("Invalid extras in requirement: {!r}".format(req))
+            probs.append(f"Invalid extras in requirement: {req!r}")
         if version is not None:
             if version.startswith('(') and version.endswith(')'):
                 version = version[1:-1]
@@ -230,8 +229,7 @@ def validate_requires_dist(metadata):
                 pass  # url specifier  TODO: validate URL
             elif not _valid_version_specifier(version):
                 print((extras, version, envmark))
-                probs.append("Invalid version specifier {!r} in requirement {!r}"
-                             .format(version, req))
+                probs.append(f"Invalid version specifier {version!r} in requirement {req!r}")
         if envmark is not None:
             probs.extend(validate_environment_marker(envmark[1:]))
     return probs
@@ -241,8 +239,7 @@ def validate_url(url):
         return []
     probs = []
     if not url.startswith(('http://', 'https://')):
-        probs.append("URL {!r} doesn't start with https:// or http://"
-                     .format(url))
+        probs.append(f"URL {url!r} doesn't start with https:// or http://")
     elif not url.split('//', 1)[1]:
         probs.append("URL missing address")
     return probs
@@ -253,10 +250,9 @@ def validate_project_urls(metadata):
         name, url = prurl.split(',', 1)
         url = url.lstrip()
         if not name:
-            probs.append("No name for project URL {!r}".format(url))
+            probs.append(f"No name for project URL {url!r}")
         elif len(name) > 32:
-            probs.append("Project URL name {!r} longer than 32 characters"
-                         .format(name))
+            probs.append(f"Project URL name {name!r} longer than 32 characters")
         probs.extend(validate_url(url))
 
     return probs
