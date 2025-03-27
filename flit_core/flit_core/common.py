@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 from .versionno import normalise_version
 
-class Module(object):
+class Module:
     """This represents the module/package that we are going to distribute
     """
     in_namespace_package = False
@@ -94,9 +94,7 @@ class Module(object):
         """
         def _include(path):
             name = os.path.basename(path)
-            if (name == '__pycache__') or name.endswith('.pyc'):
-                return False
-            return True
+            return name != '__pycache__' and not name.endswith('.pyc')
 
         if self.is_package:
             # Ensure we sort all files and directories so the order is stable
@@ -149,10 +147,7 @@ def get_docstring_and_version_via_ast(target):
             node = ast.parse(f.read())
         for child in node.body:
             if is_version_str_assignment(child):
-                if sys.version_info >= (3, 8):
-                    version = child.value.value
-                else:
-                    version = child.value.s
+                version = child.value.value
                 break
     return ast.get_docstring(node), version
 
@@ -161,8 +156,7 @@ def is_version_str_assignment(node):
     """Check if *node* is a simple string assignment to __version__"""
     if not isinstance(node, (ast.Assign, ast.AnnAssign)):
         return False
-    constant_type = ast.Constant if sys.version_info >= (3, 8) else ast.Str
-    if not isinstance(node.value, constant_type):
+    if not isinstance(node.value, ast.Constant):
         return False
     targets = (node.target,) if isinstance(node, ast.AnnAssign) else node.targets
     for target in targets:
@@ -301,12 +295,12 @@ def write_entry_points(d, fp):
     Sorts on keys to ensure results are reproducible.
     """
     for group_name in sorted(d):
-        fp.write(u'[{}]\n'.format(group_name))
+        fp.write('[{}]\n'.format(group_name))
         group = d[group_name]
         for name in sorted(group):
             val = group[name]
-            fp.write(u'{}={}\n'.format(name, val))
-        fp.write(u'\n')
+            fp.write('{}={}\n'.format(name, val))
+        fp.write('\n')
 
 def hash_file(path, algorithm='sha256'):
     with open(path, 'rb') as f:
@@ -326,7 +320,7 @@ def normalize_file_permissions(st_mode):
         new_mode |= 0o111  # Executable: 644 -> 755
     return new_mode
 
-class Metadata(object):
+class Metadata:
 
     summary = None
     home_page = None
@@ -410,7 +404,7 @@ class Metadata(object):
 
         for field in fields:
             value = getattr(self, self._normalise_field_name(field))
-            fp.write(u"{}: {}\n".format(field, value))
+            fp.write("{}: {}\n".format(field, value))
 
         for field in optional_fields:
             value = getattr(self, self._normalise_field_name(field))
@@ -420,35 +414,35 @@ class Metadata(object):
                 # License (& Description, but we put that in the body)
                 # Indent following lines with 8 spaces:
                 value = '\n        '.join(value.splitlines())
-                fp.write(u"{}: {}\n".format(field, value))
+                fp.write("{}: {}\n".format(field, value))
 
 
         license_expr = getattr(self, self._normalise_field_name("License-Expression"))
         license = getattr(self, self._normalise_field_name("License"))
         if license_expr:
-            fp.write(u'License-Expression: {}\n'.format(license_expr))
+            fp.write('License-Expression: {}\n'.format(license_expr))
         elif license:  # Deprecated, superseded by License-Expression
-            fp.write(u'License: {}\n'.format(license))
+            fp.write('License: {}\n'.format(license))
 
         for clsfr in self.classifiers:
-            fp.write(u'Classifier: {}\n'.format(clsfr))
+            fp.write('Classifier: {}\n'.format(clsfr))
 
         for file in self.license_files:
-            fp.write(u'License-File: {}\n'.format(file))
+            fp.write('License-File: {}\n'.format(file))
 
         for req in self.requires_dist:
             normalised_req = self._normalise_requires_dist(req)
-            fp.write(u'Requires-Dist: {}\n'.format(normalised_req))
+            fp.write('Requires-Dist: {}\n'.format(normalised_req))
 
         for url in self.project_urls:
-            fp.write(u'Project-URL: {}\n'.format(url))
+            fp.write('Project-URL: {}\n'.format(url))
 
         for extra in self.provides_extra:
             normalised_extra = normalise_core_metadata_name(extra)
-            fp.write(u'Provides-Extra: {}\n'.format(normalised_extra))
+            fp.write('Provides-Extra: {}\n'.format(normalised_extra))
 
         if self.description is not None:
-            fp.write(u'\n' + self.description + u'\n')
+            fp.write('\n' + self.description + '\n')
 
     @property
     def supports_py2(self):

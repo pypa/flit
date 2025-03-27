@@ -204,8 +204,7 @@ def flatten_entrypoints(ep):
         d1 = {}
         for k, v in d.items():
             if isinstance(v, dict):
-                for flattened in _flatten(v, prefix+'.'+k):
-                    yield flattened
+                yield from _flatten(v, f'{prefix}.{k}')
             else:
                 d1[k] = v
 
@@ -252,7 +251,7 @@ def _check_glob_patterns(pats, clude):
     return normed
 
 
-class LoadedConfig(object):
+class LoadedConfig:
     def __init__(self):
         self.module = None
         self.metadata = {}
@@ -286,7 +285,7 @@ def description_from_file(rel_path: str, proj_dir: Path, guess_mimetype=True):
     try:
         with desc_path.open('r', encoding='utf-8') as f:
             raw_desc = f.read()
-    except IOError as e:
+    except OSError as e:
         if e.errno == errno.ENOENT:
             raise ConfigError(
                 "Description file {} does not exist".format(desc_path)

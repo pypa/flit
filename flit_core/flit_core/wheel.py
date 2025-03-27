@@ -1,9 +1,10 @@
+from __future__ import annotations
 import argparse
 from base64 import urlsafe_b64encode
 import contextlib
 from datetime import datetime, timezone
 import hashlib
-import io
+from io import StringIO
 import logging
 import os
 import os.path as osp
@@ -11,7 +12,6 @@ import stat
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Optional
 import zipfile
 
 from flit_core import __version__
@@ -19,7 +19,7 @@ from . import common
 
 log = logging.getLogger(__name__)
 
-wheel_file_template = u"""\
+wheel_file_template = """\
 Wheel-Version: 1.0
 Generator: flit {version}
 Root-Is-Purelib: true
@@ -28,8 +28,8 @@ Root-Is-Purelib: true
 def _write_wheel_file(f, supports_py2=False):
     f.write(wheel_file_template)
     if supports_py2:
-        f.write(u"Tag: py2-none-any\n")
-    f.write(u"Tag: py3-none-any\n")
+        f.write("Tag: py2-none-any\n")
+    f.write("Tag: py3-none-any\n")
 
 
 def _set_zinfo_mode(zinfo, mode):
@@ -37,7 +37,7 @@ def _set_zinfo_mode(zinfo, mode):
     zinfo.external_attr = mode << 16
 
 
-def zip_timestamp_from_env() -> Optional[tuple]:
+def zip_timestamp_from_env() -> tuple[int, int, int, int, int, int] | None:
     """Prepare a timestamp from $SOURCE_DATE_EPOCH, if set"""
     try:
         # If SOURCE_DATE_EPOCH is set (e.g. by Debian), it's used for
@@ -139,7 +139,7 @@ class WheelBuilder:
 
     @contextlib.contextmanager
     def _write_to_zip(self, rel_path, mode=0o644):
-        sio = io.StringIO()
+        sio = StringIO()
         yield sio
 
         log.debug("Writing data to %s in zip file", rel_path)
@@ -197,7 +197,7 @@ class WheelBuilder:
         # Write a record of the files in the wheel
         with self._write_to_zip(self.dist_info + '/RECORD') as f:
             for path, hash, size in self.records:
-                f.write(u'{},sha256={},{}\n'.format(path, hash, size))
+                f.write('{},sha256={},{}\n'.format(path, hash, size))
             # RECORD itself is recorded with no hash or size
             f.write(self.dist_info + '/RECORD,,\n')
 
@@ -218,7 +218,7 @@ def make_wheel_in(ini_path, wheel_directory, editable=False):
     # a temporary_file, and rename it afterwards.
     (fd, temp_path) = tempfile.mkstemp(suffix='.whl', dir=str(wheel_directory))
     try:
-        with io.open(fd, 'w+b') as fp:
+        with open(fd, 'w+b') as fp:
             wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build(editable)
 
