@@ -35,7 +35,7 @@ included in the sdist (or by unzipping it to the correct directory)::
    the standard library :mod:`tomllib` module.
 
    The ``tomli`` library is only used on Python 3.10 and older, meaning that
-   if you use Python 3.11 or newer you can safely unbundle ``tomli``.
+   if you use Python 3.11 or newer you can simply remove the bundled ``tomli``.
    Otherwise, you must special-case installing ``flit_core`` and/or ``tomli``
    to resolve the dependency cycle between the two packages.
 
