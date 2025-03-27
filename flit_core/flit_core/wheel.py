@@ -19,11 +19,11 @@ from . import common
 
 log = logging.getLogger(__name__)
 
-wheel_file_template = """\
+wheel_file_template = f"""\
 Wheel-Version: 1.0
-Generator: flit {version}
+Generator: flit {__version__}
 Root-Is-Purelib: true
-""".format(version=__version__)
+"""
 
 def _write_wheel_file(f, supports_py2=False):
     f.write(wheel_file_template)
@@ -98,7 +98,7 @@ class WheelBuilder:
     def wheel_filename(self):
         dist_name = common.normalize_dist_name(self.metadata.name, self.metadata.version)
         tag = ('py2.' if self.metadata.supports_py2 else '') + 'py3-none-any'
-        return '{}-{}.whl'.format(dist_name, tag)
+        return f'{dist_name}-{tag}.whl'
 
     def _add_file(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)
@@ -169,37 +169,35 @@ class WheelBuilder:
             f.write(str(self.module.source_dir.resolve()))
 
     def add_data_directory(self):
-        dir_in_whl = '{}.data/data/'.format(
-            common.normalize_dist_name(self.metadata.name, self.metadata.version)
-        )
+        dist_name = common.normalize_dist_name(self.metadata.name, self.metadata.version)
         for full_path in common.walk_data_dir(self.data_directory):
             rel_path = os.path.relpath(full_path, self.data_directory)
-            self._add_file(full_path, dir_in_whl + rel_path)
+            self._add_file(full_path, f'{dist_name}.data/data/{rel_path}')
 
     def write_metadata(self):
         log.info('Writing metadata files')
 
         if self.entrypoints:
-            with self._write_to_zip(self.dist_info + '/entry_points.txt') as f:
+            with self._write_to_zip(f'{self.dist_info}/entry_points.txt') as f:
                 common.write_entry_points(self.entrypoints, f)
 
         for file in self.metadata.license_files:
-            self._add_file(self.directory / file, '%s/licenses/%s' % (self.dist_info, file))
+            self._add_file(self.directory / file, f'{self.dist_info}/licenses/{file}')
 
-        with self._write_to_zip(self.dist_info + '/WHEEL') as f:
+        with self._write_to_zip(f'{self.dist_info}/WHEEL') as f:
             _write_wheel_file(f, supports_py2=self.metadata.supports_py2)
 
-        with self._write_to_zip(self.dist_info + '/METADATA') as f:
+        with self._write_to_zip(f'{self.dist_info}/METADATA') as f:
             self.metadata.write_metadata_file(f)
 
     def write_record(self):
         log.info('Writing the record of files')
         # Write a record of the files in the wheel
-        with self._write_to_zip(self.dist_info + '/RECORD') as f:
+        with self._write_to_zip(f'{self.dist_info}/RECORD') as f:
             for path, hash, size in self.records:
-                f.write('{},sha256={},{}\n'.format(path, hash, size))
+                f.write(f'{path},sha256={hash},{size}\n')
             # RECORD itself is recorded with no hash or size
-            f.write(self.dist_info + '/RECORD,,\n')
+            f.write(f'{self.dist_info}/RECORD,,\n')
 
     def build(self, editable=False):
         try:
