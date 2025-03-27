@@ -42,7 +42,7 @@ def find_python_executable(python: Optional[str] = None) -> str:
     # see https://github.com/pypa/flit/pull/300 and https://bugs.python.org/issue38905
     resolved_python = shutil.which(python)
     if resolved_python is None:
-        raise PythonNotFoundError("Unable to resolve Python executable {!r}".format(python))
+        raise PythonNotFoundError(f"Unable to resolve Python executable {python!r}")
     try:
         return subprocess.check_output(
             [resolved_python, "-c", "import sys; print(sys.executable)"],
@@ -50,9 +50,8 @@ def find_python_executable(python: Optional[str] = None) -> str:
         ).strip()
     except Exception as e:
         raise PythonNotFoundError(
-            "{} occurred trying to find the absolute filepath of Python executable {!r} ({!r})".format(
-                e.__class__.__name__, python, resolved_python
-            )
+            f"{e.__class__.__name__} occurred trying to find the absolute filepath "
+            f"of Python executable {python!r} ({resolved_python!r})"
         ) from e
 
 
@@ -175,7 +174,7 @@ def main(argv=None):
                  "'python3 -m flit.tomlify' to convert it to pyproject.toml")
 
     if args.subcmd not in {'init'} and not args.ini_file.is_file():
-        sys.exit('Config file {} does not exist'.format(args.ini_file))
+        sys.exit(f'Config file {args.ini_file} does not exist')
 
     enable_colourful_output(logging.DEBUG if args.debug else logging.INFO)
 

@@ -78,20 +78,19 @@ def normalise_version(orig_version):
     m = VERSION_PERMISSIVE.match(version)
     if not m:
         if os.environ.get('FLIT_ALLOW_INVALID'):
-            log.warning("Invalid version number {!r} allowed by FLIT_ALLOW_INVALID"
-                        .format(orig_version))
+            log.warning("Invalid version number %r allowed by FLIT_ALLOW_INVALID",
+                        orig_version)
             return version
         else:
             from .common import InvalidVersion
-            raise InvalidVersion("Version number {!r} does not match PEP 440 rules"
-                                 .format(orig_version))
+            raise InvalidVersion(f"Version number {orig_version!r} does not match PEP 440 rules")
 
     components = []
     add = components.append
 
     epoch, release = m.group('epoch', 'release')
     if epoch is not None:
-        add(str(int(epoch)) + '!')
+        add(f'{int(epoch)}!')
     add('.'.join(str(int(rp)) for rp in release.split('.')))
 
     pre_l, pre_n = m.group('pre_l', 'pre_n')
@@ -121,6 +120,6 @@ def normalise_version(orig_version):
 
     version = ''.join(components)
     if version != orig_version:
-        log.warning("Version number normalised: {!r} -> {!r} (see PEP 440)"
-                    .format(orig_version, version))
+        log.warning("Version number normalised: %r -> %r (see PEP 440)",
+                    orig_version, version)
     return version

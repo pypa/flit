@@ -158,7 +158,7 @@ def write_pypirc(repo, file="~/.pypirc"):
 
     with open(file, 'w', encoding='utf-8') as f:
         f.write("[pypi]\n"
-                "username = %s\n" % repo.username)
+                f"username = {repo.username}\n")
 
 def get_password(repo: RepoDetails):
     try:

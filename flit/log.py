@@ -88,8 +88,7 @@ class LogFormatter(logging.Formatter):
 
     def formatMessage(self, record):
         l = len(record.message)
-        right_text = '{initial}-{name}'.format(initial=record.levelname[0],
-                                               name=record.name)
+        right_text = f'{record.levelname[0]}-{record.name}'
         if l + len(right_text) < self.termwidth:
             space = ' ' * (self.termwidth - (l + len(right_text)))
         else:

@@ -103,7 +103,7 @@ class SdistBuilder:
         res = defaultdict(list)
         for groupname, group in self.entrypoints.items():
             for name, ep in sorted(group.items()):
-                res[groupname].append('{} = {}'.format(name, ep))
+                res[groupname].append(f'{name} = {ep}')
 
         return dict(res)
 
@@ -161,7 +161,7 @@ class SdistBuilder:
 
     def build(self, target_dir, gen_setup_py=True):
         os.makedirs(str(target_dir), exist_ok=True)
-        target = target_dir / '{}.tar.gz'.format(self.dir_name)
+        target = target_dir / f'{self.dir_name}.tar.gz'
         source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
         mtime = int(source_date_epoch) if source_date_epoch else None
         # For the gzip timestamp, default to 2016-1-1 00:00 (UTC)
