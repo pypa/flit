@@ -1,7 +1,6 @@
 [build-system]
-requires = ["flit-core==3.12.0"]
+requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
-backend-path = ['c:/Users/Trim21/proj/flit/flit_core']
 
 [project]
 name = "wcwidth-stubs"
