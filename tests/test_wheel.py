@@ -176,7 +176,7 @@ def test_stub_wheel_builder():
     with tempfile.TemporaryDirectory() as td:
         target = Path(td, 'sample.whl')
         with target.open('wb') as f:
-            wb = WheelBuilder.from_ini_path(samples_dir / 'wcwidth-stubs' / 'pyproject.toml', f)
+            wb = WheelBuilder.from_ini_path(samples_dir / 'sample-stubs' / 'pyproject.toml', f)
             wb.build()
 
         assert zipfile.is_zipfile(str(target))

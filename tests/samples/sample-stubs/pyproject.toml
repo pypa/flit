@@ -1,0 +1,23 @@
+[build-system]
+requires = ["flit-core==3.12.0"]
+build-backend = "flit_core.buildapi"
+backend-path = ['c:/Users/Trim21/proj/flit/flit_core']
+
+[project]
+name = "wcwidth-stubs"
+version = "0.2.13.1"
+description = "typing stubs for wcwidth"
+requires-python = ">=3.6"
+authors = [
+  { name = "trim21", email = "trim21.me@gmail.com" },
+]
+dependencies = [
+  'wcwidth==0.2.13',
+]
+license = { text = "MIT" }
+
+[project.urls]
+repository = 'https://github.com/trim21/wcwidth-stubs'
+
+[tool.flit.module]
+name = "wcwidth-stubs"
