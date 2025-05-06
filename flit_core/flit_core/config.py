@@ -512,7 +512,8 @@ def _check_list_of_str(d, field_name):
 
 def normalize_pkg_name(name: str) -> str:
     if name.endswith('-stubs'):
-        return name.removesuffix('-stubs').replace('-','_') + '-stubs'
+        # TODO: use `str.removesuffix` after we drop py3.8
+        return name[:-6].replace('-','_') + '-stubs'
     return name.replace('-','_')
 
 
