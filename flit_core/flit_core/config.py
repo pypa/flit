@@ -510,7 +510,7 @@ def _check_list_of_str(d, field_name):
             "{} field should be a list of strings".format(field_name)
         )
 
-def normalize_pkg_name(name:str)->str:
+def normalize_pkg_name(name: str) -> str:
     if name.endswith('-stubs'):
         return name.removesuffix('-stubs').replace('-','_') + '-stubs'
     return name.replace('-','_')
