@@ -73,7 +73,7 @@ class SdistBuilder:
     """
     def __init__(self, module, metadata, cfgdir, reqs_by_extra, entrypoints,
                  extra_files, data_directory, include_patterns=(), exclude_patterns=()):
-        self.module = module
+        self.module: common.Module = module
         self.metadata = metadata
         self.cfgdir = cfgdir
         self.reqs_by_extra = reqs_by_extra
