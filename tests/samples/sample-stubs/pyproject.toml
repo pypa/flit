@@ -17,6 +17,3 @@ license = { text = "MIT" }
 
 [project.urls]
 repository = 'https://github.com/trim21/wcwidth-stubs'
-
-[tool.flit.module]
-name = "wcwidth-stubs"
