@@ -24,7 +24,6 @@ def get_requires_for_build_wheel(config_settings=None):
     # by parsing the module (_via_ast), we don't need any extra
     # dependencies. If not, we'll need to try importing it, so report any
     # runtime dependencies as build dependencies.
-
     docstring = None
     version = None
     want_summary = 'description' in info.dynamic_metadata
