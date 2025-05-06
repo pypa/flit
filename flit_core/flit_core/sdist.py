@@ -146,7 +146,7 @@ class SdistBuilder:
         )
 
         missing_crucial = crucial_files - files
-        if missing_crucial and not self.module.name.endswith('-stubs'):
+        if missing_crucial and not self.module.is_stub_pkg:
             raise Exception("Crucial files were excluded from the sdist: {}"
                             .format(", ".join(missing_crucial)))
 

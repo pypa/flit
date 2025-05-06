@@ -18,8 +18,11 @@ class Module:
     in_namespace_package = False
     namespace_package_name = None
 
-    def __init__(self, name, directory=Path()):
+    is_stub_pkg: bool
+
+    def __init__(self, name: str, directory=Path()):
         self.name = name
+        self.is_stub_pkg = name.endswith('-stub')
 
         # It must exist either as a .py file or a directory, but not both
         name_as_path = name.replace('.', os.sep)
