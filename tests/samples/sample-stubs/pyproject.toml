@@ -14,6 +14,3 @@ dependencies = [
   'wcwidth==0.2.13',
 ]
 license = { text = "MIT" }
-
-[project.urls]
-repository = 'https://github.com/trim21/wcwidth-stubs'
