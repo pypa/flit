@@ -8,7 +8,7 @@ version = "0.2.13.1"
 description = "typing stubs for wcwidth"
 requires-python = ">=3.6"
 authors = [
-  { name = "trim21", email = "trim21.me@gmail.com" },
+  { name = "john doe", email = "john@example.com" },
 ]
 dependencies = [
   'wcwidth==0.2.13',
