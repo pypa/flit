@@ -18,8 +18,6 @@ class Module:
     in_namespace_package = False
     namespace_package_name = None
 
-    is_stub_pkg: bool
-
     def __init__(self, name: str, directory=Path()):
         self.name = name
         self.is_stub_pkg = name.endswith('-stub')
