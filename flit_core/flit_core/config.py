@@ -140,7 +140,7 @@ def prep_toml_config(d, path):
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
         raise ConfigError('Unexpected tables in pyproject.toml: ' + ', '.join(
-            '[tool.flit.{}]'.format(s) for s in unknown_sections
+            f'[tool.flit.{s}]' for s in unknown_sections
         ))
 
     if 'sdist' in dtool:
@@ -220,7 +220,7 @@ def flatten_entrypoints(ep):
 def _check_glob_patterns(pats, clude):
     """Check and normalise glob patterns for sdist include/exclude"""
     if not isinstance(pats, list):
-        raise ConfigError("sdist {} patterns must be a list".format(clude))
+        raise ConfigError(f"sdist {clude} patterns must be a list")
 
     # Windows filenames can't contain these (nor * or ?, but they are part of
     # glob patterns) - https://stackoverflow.com/a/31976060/434217
@@ -231,8 +231,8 @@ def _check_glob_patterns(pats, clude):
     for p in pats:
         if bad_chars.search(p):
             raise ConfigError(
-                '{} pattern {!r} contains bad characters (<>:\"\\ or control characters)'
-                .format(clude, p)
+                f'{clude} pattern {p!r} contains bad characters (<>:\"\\ or control characters)'
+                
             )
 
         normp = osp.normpath(p)
@@ -243,8 +243,8 @@ def _check_glob_patterns(pats, clude):
             )
         if normp.startswith('..' + os.sep):
             raise ConfigError(
-                '{} pattern {!r} points out of the directory containing pyproject.toml'
-                .format(clude, p)
+                f'{clude} pattern {p!r} points out of the directory containing pyproject.toml'
+                
             )
         normed.append(normp)
 
@@ -288,7 +288,7 @@ def description_from_file(rel_path: str, proj_dir: Path, guess_mimetype=True):
     except OSError as e:
         if e.errno == errno.ENOENT:
             raise ConfigError(
-                "Description file {} does not exist".format(desc_path)
+                f"Description file {desc_path} does not exist"
             )
         raise
 
@@ -323,7 +323,7 @@ def _prep_metadata(md_sect, path):
 
     res.module = md_sect.get('module')
     if not all([m.isidentifier() for m in res.module.split(".")]):
-        raise ConfigError("Module name %r is not a valid identifier" % res.module)
+        raise ConfigError(f"Module name {res.module!r} is not a valid identifier")
 
     md_dict = res.metadata
 
@@ -338,7 +338,7 @@ def _prep_metadata(md_sect, path):
     if 'urls' in md_sect:
         project_urls = md_dict['project_urls'] = []
         for label, url in sorted(md_sect.pop('urls').items()):
-            project_urls.append("{}, {}".format(label, url))
+            project_urls.append(f"{label}, {url}")
 
     for key, value in md_sect.items():
         if key in {'description-file', 'module'}:
@@ -346,34 +346,29 @@ def _prep_metadata(md_sect, path):
         if key not in metadata_allowed_fields:
             closest = difflib.get_close_matches(key, metadata_allowed_fields,
                                                 n=1, cutoff=0.7)
-            msg = "Unrecognised metadata key: {!r}".format(key)
+            msg = f"Unrecognised metadata key: {key!r}"
             if closest:
-                msg += " (did you mean {!r}?)".format(closest[0])
+                msg += f" (did you mean {closest[0]!r}?)"
             raise ConfigError(msg)
 
         k2 = key.replace('-', '_')
         md_dict[k2] = value
         if key in metadata_list_fields:
             if not isinstance(value, list):
-                raise ConfigError('Expected a list for {} field, found {!r}'
-                                    .format(key, value))
+                raise ConfigError(f'Expected a list for {key} field, found {value!r}')
             if not all(isinstance(a, str) for a in value):
-                raise ConfigError('Expected a list of strings for {} field'
-                                    .format(key))
+                raise ConfigError(f'Expected a list of strings for {key} field')
         elif key == 'requires-extra':
             if not isinstance(value, dict):
-                raise ConfigError('Expected a dict for requires-extra field, found {!r}'
-                                    .format(value))
+                raise ConfigError(f'Expected a dict for requires-extra field, found {value!r}')
             if not all(isinstance(e, list) for e in value.values()):
                 raise ConfigError('Expected a dict of lists for requires-extra field')
             for e, reqs in value.items():
                 if not all(isinstance(a, str) for a in reqs):
-                    raise ConfigError('Expected a string list for requires-extra. (extra {})'
-                                        .format(e))
+                    raise ConfigError(f'Expected a string list for requires-extra. (extra {e})')
         else:
             if not isinstance(value, str):
-                raise ConfigError('Expected a string for {} field, found {!r}'
-                                    .format(key, value))
+                raise ConfigError(f'Expected a string for {key} field, found {value!r}')
 
     # What we call requires in the ini file is technically requires_dist in
     # the metadata.
@@ -446,9 +441,9 @@ def _expand_requires_extra(re):
         for req in reqs:
             if ';' in req:
                 name, envmark = req.split(';', 1)
-                yield '{} ; extra == "{}" and ({})'.format(name, extra, envmark)
+                yield f'{name} ; extra == "{extra}" and ({envmark})'
             else:
-                yield '{} ; extra == "{}"'.format(req, extra)
+                yield f'{req} ; extra == "{extra}"'
 
 
 def _license_files_from_globs(project_dir: Path, globs, warn_no_files = True):
@@ -456,13 +451,13 @@ def _license_files_from_globs(project_dir: Path, globs, warn_no_files = True):
     for pattern in globs:
         if isabs_ish(pattern):
             raise ConfigError(
-                "Invalid glob pattern for [project.license-files]: '{}'. "
-                "Pattern must not start with '/'.".format(pattern)
+                f"Invalid glob pattern for [project.license-files]: '{pattern}'. "
+                "Pattern must not start with '/'."
             )
         if ".." in pattern:
             raise ConfigError(
-                "Invalid glob pattern for [project.license-files]: '{}'. "
-                "Pattern must not contain '..'".format(pattern)
+                f"Invalid glob pattern for [project.license-files]: '{pattern}'. "
+                "Pattern must not contain '..'"
             )
         if license_files_allowed_chars.match(pattern) is None:
             raise ConfigError(
@@ -478,12 +473,12 @@ def _license_files_from_globs(project_dir: Path, globs, warn_no_files = True):
             ]
         except ValueError as ex:
             raise ConfigError(
-                "Invalid glob pattern for [project.license-files]: '{}'. {}".format(pattern, ex.args[0])
+                f"Invalid glob pattern for [project.license-files]: '{pattern}'. {ex.args[0]}"
             )
 
         if not files and warn_no_files:
             raise ConfigError(
-                "No files found for [project.license-files]: '{}' pattern".format(pattern)
+                f"No files found for [project.license-files]: '{pattern}' pattern"
             )
         license_files.update(files)
     return license_files
@@ -491,7 +486,7 @@ def _license_files_from_globs(project_dir: Path, globs, warn_no_files = True):
 def _check_type(d, field_name, cls):
     if not isinstance(d[field_name], cls):
         raise ConfigError(
-            "{} field should be {}, not {}".format(field_name, cls, type(d[field_name]))
+            f"{field_name} field should be {cls}, not {type(d[field_name])}"
         )
 
 def _check_types(d, field_name, cls_list) -> None:
@@ -507,7 +502,7 @@ def _check_list_of_str(d, field_name):
         isinstance(e, str) for e in d[field_name]
     ):
         raise ConfigError(
-            "{} field should be a list of strings".format(field_name)
+            f"{field_name} field should be a list of strings"
         )
 
 def read_pep621_metadata(proj, path) -> LoadedConfig:
@@ -542,14 +537,14 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
             unrec_keys = set(readme.keys()) - {'text', 'file', 'content-type'}
             if unrec_keys:
                 raise ConfigError(
-                    "Unrecognised keys in [project.readme]: {}".format(unrec_keys)
+                    f"Unrecognised keys in [project.readme]: {unrec_keys}"
                 )
             if 'content-type' in readme:
                 mimetype = readme['content-type']
                 mtype_base = mimetype.split(';')[0].strip()  # e.g. text/x-rst
                 if mtype_base not in readme_ext_to_content_type.values():
                     raise ConfigError(
-                        "Unrecognised readme content-type: {!r}".format(mtype_base)
+                        f"Unrecognised readme content-type: {mtype_base!r}"
                     )
                 # TODO: validate content-type parameters (charset, md variant)?
             else:
@@ -593,7 +588,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
             unrec_keys = set(license_tbl.keys()) - {'text', 'file'}
             if unrec_keys:
                 raise ConfigError(
-                    "Unrecognised keys in [project.license]: {}".format(unrec_keys)
+                    f"Unrecognised keys in [project.license]: {unrec_keys}"
                 )
 
             # The 'License' field in packaging metadata is a brief description of
@@ -665,7 +660,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
                     continue
                 raise ConfigError(
                     "License classifiers are deprecated in favor of the license expression. "
-                    "Remove the '{}' classifier".format(cl)
+                    f"Remove the '{cl}' classifier"
                 )
         md_dict['classifiers'] = proj['classifiers']
 
@@ -673,7 +668,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         _check_type(proj, 'urls', dict)
         project_urls = md_dict['project_urls'] = []
         for label, url in sorted(proj['urls'].items()):
-            project_urls.append("{}, {}".format(label, url))
+            project_urls.append(f"{label}, {url}")
 
     if 'entry-points' in proj:
         _check_type(proj, 'entry-points', dict)
@@ -726,7 +721,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         for e, reqs in optdeps.items():
             if not all(isinstance(a, str) for a in reqs):
                 raise ConfigError(
-                    'Expected a string list for optional-dependencies ({})'.format(e)
+                    f'Expected a string list for optional-dependencies ({e})'
                 )
             if not name_is_valid(e):
                 raise ConfigError(
@@ -791,11 +786,11 @@ def pep621_people(people, group_name='author') -> dict:
     names, emails = [], []
     for person in people:
         if not isinstance(person, dict):
-            raise ConfigError("{} info must be list of dicts".format(group_name))
+            raise ConfigError(f"{group_name} info must be list of dicts")
         unrec_keys = set(person.keys()) - {'name', 'email'}
         if unrec_keys:
             raise ConfigError(
-                "Unrecognised keys in {} info: {}".format(group_name, unrec_keys)
+                f"Unrecognised keys in {group_name} info: {unrec_keys}"
             )
         if 'email' in person:
             email = person['email']
@@ -832,7 +827,7 @@ def normalise_compound_license_expr(s: str) -> str:
     """
     invalid_msg = "'{s}' is not a valid SPDX license expression: {reason}"
     if not s or s.isspace():
-        raise ConfigError(f"The SPDX license expression must not be empty")
+        raise ConfigError("The SPDX license expression must not be empty")
 
     stack = 0
     parts = []
@@ -840,7 +835,7 @@ def normalise_compound_license_expr(s: str) -> str:
         for part in filter(None, re.split(r' +|([()])', s)):
             if part.upper() == 'WITH':
                 # provide a sensible error message for the WITH operator
-                raise ConfigError(f"The SPDX 'WITH' operator is not yet supported!")
+                raise ConfigError("The SPDX 'WITH' operator is not yet supported!")
             elif part in {'AND', 'OR'}:
                 if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
                     reason = f"a license ID is missing before '{part}'"
@@ -852,7 +847,7 @@ def normalise_compound_license_expr(s: str) -> str:
                 raise ConfigError(invalid_msg.format(s=s, reason=reason))
             elif part == '(':
                 if parts and parts[-1] not in {' AND ', ' OR ', '('}:
-                    reason = f"'(' must follow either AND, OR, or '('"
+                    reason = "'(' must follow either AND, OR, or '('"
                     raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 stack += 1
                 parts.append(part)
@@ -867,7 +862,7 @@ def normalise_compound_license_expr(s: str) -> str:
                 parts.append(part)
             else:
                 if parts and parts[-1] not in {' AND ', ' OR ', '('}:
-                    reason = f"a license ID must follow either AND, OR, or '('"
+                    reason = "a license ID must follow either AND, OR, or '('"
                     raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 simple_expr = normalise_simple_license_expr(part)
                 parts.append(simple_expr)
@@ -881,7 +876,7 @@ def normalise_compound_license_expr(s: str) -> str:
             raise ConfigError(invalid_msg.format(s=s, reason=reason))
     except ConfigError:
         if os.environ.get('FLIT_ALLOW_INVALID'):
-            log.warning(f"Invalid license ID {s!r} allowed by FLIT_ALLOW_INVALID")
+            log.warning("Invalid license ID %r allowed by FLIT_ALLOW_INVALID", s)
             return s
         raise
 

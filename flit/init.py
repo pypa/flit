@@ -107,7 +107,7 @@ class IniterBase:
     def update_defaults(self, author, author_email, module, home_page, license):
         new_defaults = {'author': author, 'author_email': author_email,
                         'license': license}
-        name_chunk_pat = r'\b{}\b'.format(re.escape(module))
+        name_chunk_pat = rf'\b{re.escape(module)}\b'
         if re.search(name_chunk_pat, home_page):
             new_defaults['home_page_template'] = \
                 re.sub(name_chunk_pat, '{modulename}', home_page, flags=re.I)
@@ -136,7 +136,7 @@ class IniterBase:
 class TerminalIniter(IniterBase):
     def prompt_text(self, prompt, default, validator, retry_msg="Try again."):
         if default is not None:
-            p = "{} [{}]: ".format(prompt, default)
+            p = f"{prompt} [{default}]: "
         else:
             p = prompt + ': '
         while True:
@@ -153,14 +153,14 @@ class TerminalIniter(IniterBase):
 
         print(prompt)
         for i, (key, text) in enumerate(options, start=1):
-            print("{}. {}".format(i, text))
+            print(f"{i}. {text}")
             if key == default:
                 default_ix = i
 
         while True:
             p = "Enter 1-" + str(len(options))
             if default_ix is not None:
-                p += ' [{}]'.format(default_ix)
+                p += f' [{default_ix}]'
             response = input(p+': ')
             if (default_ix is not None) and response == '':
                 return default
