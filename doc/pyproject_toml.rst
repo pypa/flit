@@ -414,8 +414,8 @@ file, the readme & license files given in the metadata, and the :ref:`external
 data folder <pyproject_toml_external_data>` if you specified that.
 
 If you want more control over the content of the sdist, you can give lists of
-paths or glob patterns as ``include`` and ``exclude`` in the ``sdist`` section
-of ``pyproject.toml``. For example:
+paths or glob patterns as ``include`` and ``exclude`` in the ``tool.flit.sdist``
+section of ``pyproject.toml``. For example:
 
 .. code-block:: toml
 
@@ -439,6 +439,11 @@ These paths:
 
 Exclusions have priority over inclusions. Bytecode is excluded by default and cannot
 be included.
+
+Note that in the common case where a tool builds a sdist and then builds the wheel
+*from* that sdist, the ``exclude`` pattern can indirectly affect the content of the
+final wheel (by omitting content from the sdist that would otherwise have been
+included in the wheel).
 
 Including files committed in git/hg
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
