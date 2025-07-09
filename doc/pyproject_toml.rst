@@ -399,19 +399,23 @@ They are in the same format as the newer ``[project.entry-points]`` tables
 
 .. _pyproject_toml_sdist:
 
-Sdist section
--------------
+Contents of distribution files
+------------------------------
 
 .. versionadded:: 2.0
 
-With no configuration, Flit can make an sdist with everything it needs
-to build and install your module: the package contents (including non-Python
-data files, but not ``.pyc`` bytecode files), your ``pyproject.toml`` file,
-the readme & license files given in the metadata, and the :ref:`external data
-folder <pyproject_toml_external_data>` if you specified that.
+When building a wheel, Flit includes the package contents (including non-Python
+data files, but not ``.pyc`` bytecode files) along with the normal wheel
+metadata.
 
-If you want more control, you can give lists of paths or glob patterns as
-``include`` and ``exclude`` in this section. For example:
+When building an sdist, in addition to the package contents Flit includes
+everything it needs to build and install your module: your ``pyproject.toml``
+file, the readme & license files given in the metadata, and the :ref:`external
+data folder <pyproject_toml_external_data>` if you specified that.
+
+If you want more control over the content of the sdist, you can give lists of
+paths or glob patterns as ``include`` and ``exclude`` in the ``sdist`` section
+of ``pyproject.toml``. For example:
 
 .. code-block:: toml
 
