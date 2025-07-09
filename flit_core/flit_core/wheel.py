@@ -2,6 +2,7 @@ from __future__ import annotations
 import argparse
 from base64 import urlsafe_b64encode
 import contextlib
+import csv
 from datetime import datetime, timezone
 import hashlib
 from io import StringIO
@@ -194,10 +195,11 @@ class WheelBuilder:
         log.info('Writing the record of files')
         # Write a record of the files in the wheel
         with self._write_to_zip(f'{self.dist_info}/RECORD') as f:
+            writer = csv.writer(f)
             for path, hash, size in self.records:
-                f.write(f'{path},sha256={hash},{size}\n')
+                writer.writerow((path, f'sha256={hash}', size))
             # RECORD itself is recorded with no hash or size
-            f.write(f'{self.dist_info}/RECORD,,\n')
+            writer.writerow((f'{self.dist_info}/RECORD', '', ''))
 
     def build(self, editable=False):
         try:
