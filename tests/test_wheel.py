@@ -1,4 +1,6 @@
 import configparser
+import csv
+import io
 import os
 import stat
 from pathlib import Path
@@ -224,3 +226,18 @@ def test_wheel_module_local_version(copy_sample):
     with unpack(whl_file) as unpacked:
         assert_isfile(Path(unpacked, 'modulewithlocalversion.py'))
         assert_isdir(Path(unpacked, 'modulewithlocalversion-0.1.dev0+test.dist-info'))
+
+def test_record_csv_escaping(copy_sample):
+    td = copy_sample('package1')
+
+    (td / 'package1/a,b,c.bin').write_bytes(b'')
+
+    info = make_wheel_in(td / 'pyproject.toml', td)
+
+    with zipfile.ZipFile(info.file) as zf:
+        with zf.open('package1-0.1.dist-info/RECORD') as record_file:
+            with io.TextIOWrapper(record_file, newline='') as record_text_file:
+                reader = csv.reader(record_text_file)
+                row = next(r for r in reader if r[0] == 'package1/a,b,c.bin')
+                assert row[1] == 'sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU'
+                assert row[2] == '0'
