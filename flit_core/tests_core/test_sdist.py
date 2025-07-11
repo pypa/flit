@@ -68,3 +68,17 @@ def test_pep625(tmp_path):
     path = builder.build(tmp_path)
     assert path == tmp_path / 'my_python_module-0.0.1.tar.gz'
     assert_isfile(path)
+
+def test_license_inside_src(tmp_path):
+    builder = sdist.SdistBuilder.from_ini_path(
+        samples_dir / 'license_in_src' / 'pyproject.toml'
+    )
+    path = builder.build(tmp_path)
+
+    with tarfile.open(path, 'r|*') as tar:
+        lic_count = sum(
+            1 for member in iter(tar.next, None)
+            if member.name == 'license_in_src-0/license_in_src/lic.txt'
+        )
+
+    assert lic_count == 1
