@@ -1,12 +1,14 @@
 [build-system]
-requires = ["flit"]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module = "module1"
-author = "Sir Robin"
-author-email = "robin@camelot.uk"
-home-page = "http://github.com/sirrobin/module1"
-requires = [
+[project]
+name = "module1"
+authors = [
+    {name = "Sir Robin", email = "robin@camelot.uk"}
+]
+dependencies = [
     "requests",
     "pathlib2; python_version == '2.7'",
 ]
+dynamic = ["version", "description"]

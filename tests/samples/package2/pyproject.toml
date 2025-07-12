@@ -1,12 +1,17 @@
 [build-system]
-requires = ["flit_core >=2,<4"]
+requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module = "package2"
-author = "Sir Robin"
-author-email = "robin@camelot.uk"
-home-page = "http://github.com/sirrobin/package2"
+[project]
+name = "package2"
+authors = [
+    {name = "Sir Robin", email = "robin@camelot.uk"}
+]
+dynamic = ["version", "description"]
 
-[scripts]
+[project.urls]
+home = "http://github.com/sirrobin/package2"
+
+
+[project.scripts]
 pkg_script = "package2:main"

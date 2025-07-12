@@ -2,8 +2,9 @@
 requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module = "modulewithlocalversion"
-author = "Sir Robin"
-author-email = "robin@camelot.uk"
-home-page = "http://github.com/sirrobin/modulewithlocalversion"
+[project]
+name = "modulewithlocalversion"
+authors = [
+    {name = "Sir Robin", email = "robin@camelot.uk"}
+]
+dynamic = ["version", "description"]

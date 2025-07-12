@@ -1,12 +1,13 @@
 [build-system]
 requires = ["flit"]
 
-[tool.flit.metadata]
-module = "module1"
-author = "Sir Robin"
-author-email = "robin@camelot.uk"
-home-page = "http://github.com/sirrobin/module1"
-description-file = "EG_README.rst"
+[project]
+name = "module1"
+authors = [
+    {name = "Sir Robin", email = "robin@camelot.uk"}
+]
+readme = "EG_README.rst"
+dynamic = ["version", "description"]
 
-[tool.flit.metadata.urls]
+[project.urls]
 Documentation = "https://example.com/module1"
