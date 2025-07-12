@@ -12,12 +12,10 @@ samples_dir = Path(__file__).parent / 'samples'
 def test_load_toml():
     inf = config.read_flit_config(samples_dir / 'module1-pkg.toml')
     assert inf.module == 'module1'
-    assert inf.metadata['home_page'] == 'http://github.com/sirrobin/module1'
 
 def test_load_toml_ns():
     inf = config.read_flit_config(samples_dir / 'ns1-pkg' / 'pyproject.toml')
     assert inf.module == 'ns1.pkg'
-    assert inf.metadata['home_page'] == 'http://github.com/sirrobin/module1'
 
 def test_load_normalization():
     inf = config.read_flit_config(samples_dir / 'normalization' / 'pyproject.toml')
@@ -100,14 +98,16 @@ def test_requires_extra_env_marker():
     assert info.metadata['requires_dist'][0].startswith('pathlib2 ;')
 
 @pytest.mark.parametrize(('erroneous', 'match'), [
-    ({'requires-extra': None}, r'Expected a dict for requires-extra field'),
-    ({'requires-extra': dict(dev=None)}, r'Expected a dict of lists for requires-extra field'),
-    ({'requires-extra': dict(dev=[1])}, r'Expected a string list for requires-extra'),
+    ({'optional-dependencies': None}, r'optional-dependencies.*dict'),
+    ({'optional-dependencies': dict(dev=None)}, r'Expected a dict of lists in optional-dependencies'),
+    ({'optional-dependencies': dict(dev=[1])}, r'Expected a string list for optional-dependencies'),
 ])
 def test_faulty_requires_extra(erroneous, match):
-    metadata = {'module': 'mymod', 'author': '', 'author-email': ''}
+    toml_cfg = {
+        'project': {'name': 'xyz', "version": "0.1", "description": "", **erroneous},
+    }
     with pytest.raises(config.ConfigError, match=match):
-        config._prep_metadata(dict(metadata, **erroneous), None)
+        config.prep_toml_config(toml_cfg, samples_dir)
 
 @pytest.mark.parametrize(('path', 'err_match'), [
     ('../bar', 'out of the directory'),
@@ -116,13 +116,13 @@ def test_faulty_requires_extra(erroneous, match):
     ('foo:bar', 'bad character'),
 ])
 def test_bad_include_paths(path, err_match):
-    toml_cfg = {'tool': {'flit': {
-        'metadata': {'module': 'xyz', 'author': 'nobody'},
-        'sdist': {'include': [path]}
-    }}}
+    toml_cfg = {
+        'project': {'name': 'xyz', "version": "0.1", "description": ""},
+        'tool': {'flit': {'sdist': {'include': [path]}}},
+    }
 
     with pytest.raises(config.ConfigError, match=err_match):
-        config.prep_toml_config(toml_cfg, None)
+        config.prep_toml_config(toml_cfg, samples_dir)
 
 @pytest.mark.parametrize(('proj_bad', 'err_match'), [
     ({'version': 1}, r'\bstr\b'),
@@ -367,12 +367,6 @@ def test_license_expr_error_unsupported_with(invalid_expr: str):
     }
     with pytest.raises(config.ConfigError, match="not yet supported"):
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
-
-
-def test_license_file_defaults_with_old_metadata():
-    metadata = {'module': 'mymod', 'author': ''}
-    info = config._prep_metadata(metadata, samples_dir / 'pep621_license_files' / 'pyproject.toml')
-    assert info.metadata['license_files'] == ["LICENSE"]
 
 
 @pytest.mark.parametrize(('proj_license_files', 'files'), [
