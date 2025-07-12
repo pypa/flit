@@ -97,46 +97,29 @@ def prep_toml_config(d, path):
     """
     dtool = d.get('tool', {}).get('flit', {})
 
-    if 'project' in d:
-        # Metadata in [project] table (PEP 621)
-        if 'metadata' in dtool:
-            raise ConfigError(
-                "Use [project] table for metadata or [tool.flit.metadata], not both."
-            )
-        if ('scripts' in dtool) or ('entrypoints' in dtool):
-            raise ConfigError(
-                "Don't mix [project] metadata with [tool.flit.scripts] or "
-                "[tool.flit.entrypoints]. Use [project.scripts],"
-                "[project.gui-scripts] or [project.entry-points] as replacements."
-            )
-        loaded_cfg = read_pep621_metadata(d['project'], path)
-
-        module_tbl = dtool.get('module', {})
-        if 'name' in module_tbl:
-            loaded_cfg.module = module_tbl['name']
-    elif 'metadata' in dtool:
-        # Metadata in [tool.flit.metadata] (pre PEP 621 format)
-        if 'module' in dtool:
-            raise ConfigError(
-                "Use [tool.flit.module] table with new-style [project] metadata, "
-                "not [tool.flit.metadata]"
-            )
-        loaded_cfg = _prep_metadata(dtool['metadata'], path)
-        loaded_cfg.dynamic_metadata = ['version', 'description']
-
-        if 'entrypoints' in dtool:
-            loaded_cfg.entrypoints = flatten_entrypoints(dtool['entrypoints'])
-
-        if 'scripts' in dtool:
-            loaded_cfg.add_scripts(dict(dtool['scripts']))
-    else:
+    if 'metadata' in dtool:
         raise ConfigError(
-            "Neither [project] nor [tool.flit.metadata] found in pyproject.toml"
+            "The [tool.flit.metadata] table is no longer supported. "
+            "Switch to the standard [project] table or require flit_core<4 "
+            "to build this package."
+        )
+    if ('scripts' in dtool) or ('entrypoints' in dtool):
+        raise ConfigError(
+            "The [tool.flit.scripts] and [tool.flit.entrypoints] tables are no "
+            "longer supported. Use [project.scripts], [project.gui-scripts] or"
+            "[project.entry-points] as replacements."
         )
 
-    unknown_sections = set(dtool) - {
-        'metadata', 'module', 'scripts', 'entrypoints', 'sdist', 'external-data'
-    }
+    if 'project' not in d:
+        raise ConfigError("No [project] table found in pyproject.toml")
+
+    loaded_cfg = read_pep621_metadata(d['project'], path)
+
+    module_tbl = dtool.get('module', {})
+    if 'name' in module_tbl:
+        loaded_cfg.module = module_tbl['name']
+
+    unknown_sections = set(dtool) - {'module', 'sdist', 'external-data'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
     if unknown_sections:
         raise ConfigError('Unexpected tables in pyproject.toml: ' + ', '.join(
@@ -183,38 +166,6 @@ def prep_toml_config(d, path):
             raise ConfigError(f"{toml_key} must refer to a directory")
 
     return loaded_cfg
-
-def flatten_entrypoints(ep):
-    """Flatten nested entrypoints dicts.
-
-    Entry points group names can include dots. But dots in TOML make nested
-    dictionaries:
-
-    [entrypoints.a.b]    # {'entrypoints': {'a': {'b': {}}}}
-
-    The proper way to avoid this is:
-
-    [entrypoints."a.b"]  # {'entrypoints': {'a.b': {}}}
-
-    But since there isn't a need for arbitrarily nested mappings in entrypoints,
-    flit allows you to use the former. This flattens the nested dictionaries
-    from loading pyproject.toml.
-    """
-    def _flatten(d, prefix):
-        d1 = {}
-        for k, v in d.items():
-            if isinstance(v, dict):
-                yield from _flatten(v, f'{prefix}.{k}')
-            else:
-                d1[k] = v
-
-        if d1:
-            yield prefix, d1
-
-    res = {}
-    for k, v in ep.items():
-        res.update(_flatten(v, k))
-    return res
 
 
 def _check_glob_patterns(pats, clude):
@@ -304,134 +255,6 @@ def description_from_file(rel_path: str, proj_dir: Path, guess_mimetype=True):
 
     return raw_desc, mimetype
 
-
-def _prep_metadata(md_sect, path):
-    """Process & verify the metadata from a config file
-
-    - Pull out the module name we're packaging.
-    - Read description-file and check that it's valid rst
-    - Convert dashes in key names to underscores
-      (e.g. home-page in config -> home_page in metadata)
-    """
-    if not set(md_sect).issuperset(metadata_required_fields):
-        missing = metadata_required_fields - set(md_sect)
-        raise ConfigError("Required fields missing: " + '\n'.join(missing))
-
-    res = LoadedConfig()
-
-    res.module = md_sect.get('module')
-    if not all(m.isidentifier() for m in res.module.split(".")):
-        raise ConfigError(f"Module name {res.module!r} is not a valid identifier")
-
-    md_dict = res.metadata
-
-    # Description file
-    if 'description-file' in md_sect:
-        desc_path = md_sect.get('description-file')
-        res.referenced_files.append(desc_path)
-        desc_content, mimetype = description_from_file(desc_path, path.parent)
-        md_dict['description'] =  desc_content
-        md_dict['description_content_type'] = mimetype
-
-    if 'urls' in md_sect:
-        project_urls = md_dict['project_urls'] = []
-        for label, url in sorted(md_sect.pop('urls').items()):
-            project_urls.append(f"{label}, {url}")
-
-    for key, value in md_sect.items():
-        if key in {'description-file', 'module'}:
-            continue
-        if key not in metadata_allowed_fields:
-            closest = difflib.get_close_matches(key, metadata_allowed_fields,
-                                                n=1, cutoff=0.7)
-            msg = f"Unrecognised metadata key: {key!r}"
-            if closest:
-                msg += f" (did you mean {closest[0]!r}?)"
-            raise ConfigError(msg)
-
-        k2 = key.replace('-', '_')
-        md_dict[k2] = value
-        if key in metadata_list_fields:
-            if not isinstance(value, list):
-                raise ConfigError(f'Expected a list for {key} field, found {value!r}')
-            if not all(isinstance(a, str) for a in value):
-                raise ConfigError(f'Expected a list of strings for {key} field')
-        elif key == 'requires-extra':
-            if not isinstance(value, dict):
-                raise ConfigError(f'Expected a dict for requires-extra field, found {value!r}')
-            if not all(isinstance(e, list) for e in value.values()):
-                raise ConfigError('Expected a dict of lists for requires-extra field')
-            for e, reqs in value.items():
-                if not all(isinstance(a, str) for a in reqs):
-                    raise ConfigError(f'Expected a string list for requires-extra. (extra {e})')
-        elif not isinstance(value, str):
-            raise ConfigError(f'Expected a string for {key} field, found {value!r}')
-
-    # What we call requires in the ini file is technically requires_dist in
-    # the metadata.
-    if 'requires' in md_dict:
-        md_dict['requires_dist'] = md_dict.pop('requires')
-
-    # And what we call dist-name is name in the metadata
-    if 'dist_name' in md_dict:
-        md_dict['name'] = md_dict.pop('dist_name')
-
-    # Move dev-requires into requires-extra
-    reqs_noextra = md_dict.pop('requires_dist', [])
-
-    reqs_extra = md_dict.pop('requires_extra', {})
-    extra_names_by_normed = {}
-    for e, reqs in reqs_extra.items():
-        if not all(isinstance(a, str) for a in reqs):
-            raise ConfigError(
-                f'Expected a string list for requires-extra group {e}'
-            )
-        if not name_is_valid(e):
-            raise ConfigError(
-                f'requires-extra group name {e!r} is not valid'
-            )
-        enorm = normalise_core_metadata_name(e)
-        extra_names_by_normed.setdefault(enorm, set()).add(e)
-        res.reqs_by_extra[enorm] = reqs
-
-    clashing_extra_names = [
-        g for g in extra_names_by_normed.values() if len(g) > 1
-    ]
-    if clashing_extra_names:
-        fmted = ['/'.join(sorted(g)) for g in clashing_extra_names]
-        raise ConfigError(
-            f"requires-extra group names clash: {'; '.join(fmted)}"
-        )
-
-    dev_requires = md_dict.pop('dev_requires', None)
-    if dev_requires is not None:
-        if 'dev' in res.reqs_by_extra:
-            raise ConfigError(
-                'dev-requires occurs together with its replacement requires-extra.dev.')
-        else:
-            log.warning(
-                '"dev-requires = ..." is obsolete. Use "requires-extra = {"dev" = ...}" instead.')
-            res.reqs_by_extra['dev'] = dev_requires
-
-    # Add requires-extra requirements into requires_dist
-    md_dict['requires_dist'] = \
-        reqs_noextra + list(_expand_requires_extra(res.reqs_by_extra))
-
-    md_dict['provides_extra'] = sorted(res.reqs_by_extra.keys())
-
-    # For internal use, record the main requirements as a '.none' extra.
-    res.reqs_by_extra['.none'] = reqs_noextra
-
-    if path:
-        license_files = sorted(
-            _license_files_from_globs(
-                path.parent, default_license_files_globs, warn_no_files=False
-            )
-        )
-        res.referenced_files.extend(license_files)
-        md_dict['license_files'] = license_files
-
-    return res
 
 def _expand_requires_extra(re):
     for extra, reqs in sorted(re.items()):
