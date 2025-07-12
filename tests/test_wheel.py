@@ -173,6 +173,17 @@ def test_wheel_builder():
         assert zipfile.is_zipfile(str(target))
         assert wb.wheel_filename == 'package1-0.1-py2.py3-none-any.whl'
 
+def test_stub_wheel_builder():
+    # Slightly lower level interface
+    with tempfile.TemporaryDirectory() as td:
+        target = Path(td, 'sample.whl')
+        with target.open('wb') as f:
+            wb = WheelBuilder.from_ini_path(samples_dir / 'sample-stubs' / 'pyproject.toml', f)
+            wb.build()
+
+        assert zipfile.is_zipfile(str(target))
+        assert wb.wheel_filename == 'wcwidth_stubs-0.2.13.1-py3-none-any.whl'
+
 @skipIf(os.name == 'nt', 'Windows does not preserve necessary permissions')
 def test_permissions_normed(copy_sample):
     td = copy_sample('module1_toml')
