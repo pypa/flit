@@ -1,17 +1,18 @@
 [build-system]
-requires = ["flit_core >=2,<4"]
+requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module = "module1"
-author = "Sir Robin"
-author-email = "robin@camelot.uk"
-home-page = "http://github.com/sirrobin/module1"
-description-file = "README.rst"
-requires = [
+[project]
+name = "module1"
+authors = [
+    {name = "Sir Robin", email = "robin@camelot.uk"}
+]
+readme = "README.rst"
+dependencies = [
     "requests >= 2.18",
     "docutils",
 ]
+dynamic = ["version", "description"]
 
-[tool.flit.entrypoints.flit_test_example]
+[project.entry-points.flit_test_example]
 foo = "module1:main"

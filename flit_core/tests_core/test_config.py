@@ -8,9 +8,6 @@ from flit_core import config
 
 samples_dir = Path(__file__).parent / 'samples'
 
-def test_flatten_entrypoints():
-    r = config.flatten_entrypoints({'a': {'b': {'c': 'd'}, 'e': {'f': {'g': 'h'}}, 'i': 'j'}})
-    assert r == {'a': {'i': 'j'}, 'a.b': {'c': 'd'}, 'a.e.f': {'g': 'h'}}
 
 def test_load_toml():
     inf = config.read_flit_config(samples_dir / 'module1-pkg.toml')
@@ -97,15 +94,6 @@ def test_extras_newstyle():
         'requests ; extra == "cus-tom"',
     }
     assert set(info.metadata['provides_extra']) == {'test', 'cus-tom'}
-
-def test_extras_dev_conflict():
-    with pytest.raises(config.ConfigError, match=r'dev-requires'):
-        config.read_flit_config(samples_dir / 'extras-dev-conflict.toml')
-
-def test_extras_dev_warning(caplog):
-    info = config.read_flit_config(samples_dir / 'requires-dev.toml')
-    assert '"dev-requires = ..." is obsolete' in caplog.text
-    assert set(info.metadata['requires_dist']) == {'apackage ; extra == "dev"'}
 
 def test_requires_extra_env_marker():
     info = config.read_flit_config(samples_dir / 'requires-extra-envmark.toml')

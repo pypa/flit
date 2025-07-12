@@ -2,12 +2,13 @@
 requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module = "package1"
-author = "Sir Robin"
-author-email = "robin@camelot.uk"
-description-file = "my-description.rst"
-home-page = "http://github.com/sirrobin/package1"
+[project]
+name = "package1"
+authors = [
+    {name = "Sir Robin", email = "robin@camelot.uk"}
+]
+readme = "my-description.rst"
+dynamic = ["version", "description"]
 classifiers = [
     "License :: OSI Approved :: BSD License",
     "Intended Audience :: Pacman",
