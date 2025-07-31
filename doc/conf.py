@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Flit documentation build configuration file, created by
 # sphinx-quickstart on Sun Mar 15 19:16:41 2015.
 #
