@@ -259,14 +259,14 @@ def check_version(version):
     return version
 
 
-script_template = """\
+script_template = r"""\
 #!{interpreter}
 # -*- coding: utf-8 -*-
 import re
 import sys
 from {module} import {import_name}
 if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\\.pyw|\\.exe)?$', '', sys.argv[0])
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
     sys.exit({func}())
 """
 
