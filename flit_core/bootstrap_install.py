@@ -27,7 +27,7 @@ if __name__ == "__main__":
     parser.add_argument(
         'wheel',
         type=Path,
-        help=f'flit_core wheel to install (.whl file)',
+        help='flit_core wheel to install (.whl file)',
     )
     purelib = Path(sysconfig.get_path('purelib')).resolve()
     parser.add_argument(
