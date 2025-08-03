@@ -77,7 +77,7 @@ def _test_writable_dir_win(path):
     # This should never be reached
     msg = ('Unexpected condition testing for writable directory {!r}. '
            'Please open an issue on flit to debug why this occurred.') # pragma: no cover
-    raise EnvironmentError(msg.format(path))  # pragma: no cover
+    raise OSError(msg.format(path))  # pragma: no cover
 
 class RootInstallError(Exception):
     def __str__(self):

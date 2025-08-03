@@ -107,7 +107,7 @@ def get_repository(pypirc_path="~/.pypirc", name=None, project_name=None):
     if name is not None:
         repo = repos_cfg[name]
         if 'FLIT_INDEX_URL' in os.environ:
-            raise EnvironmentError(
+            raise OSError(
                 "Use either FLIT_INDEX_URL or --repository, not both"
             )
     elif 'FLIT_INDEX_URL' in os.environ:
