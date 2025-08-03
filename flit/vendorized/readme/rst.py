@@ -12,43 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Copied from https://github.com/pypa/readme_renderer
-# Commit 5b455a9c5bafc1732dafad9619bcbfa8e15432c9
-
-from __future__ import absolute_import, division, print_function
-
 import io
-import os.path
+from typing import Any, Dict, IO, Optional, Union
 
 from docutils.core import publish_parts
-from docutils.writers.html4css1 import HTMLTranslator, Writer
+from docutils.nodes import colspec, image
+from docutils.writers.html5_polyglot import HTMLTranslator, Writer
 from docutils.utils import SystemMessage
 
 from .clean import clean
 
 
-class ReadMeHTMLTranslator(HTMLTranslator):
+class ReadMeHTMLTranslator(HTMLTranslator):  # type: ignore[misc] # docutils is incomplete, returns `Any` python/typeshed#7256 # noqa E501
 
-    def depart_image(self, node):
-        uri = node["uri"]
-        ext = os.path.splitext(uri)[1].lower()
-        # we need to swap RST's use of `object` with `img` tags
-        # see http://git.io/5me3dA
-        if ext == ".svg":
-            # preserve essential attributes
-            atts = {}
-            for attribute, value in node.attributes.items():
-                # we have no time for empty values
-                if value:
-                    if attribute == "uri":
-                        atts["src"] = value
-                    else:
-                        atts[attribute] = value
+    # Overrides base class not to output `<object>` tag for SVG images.
+    object_image_types: Dict[str, str] = {}
 
-            # toss off `object` tag
-            self.body.pop()
-            # add on `img` with attributes
-            self.body.append(self.starttag(node, "img", **atts))
+    def emptytag(
+        self,
+        node: Union[colspec, image],
+        tagname: str,
+        suffix: str = "\n",
+        **attributes: Any
+    ) -> Any:
+        """Override this to add back the width/height attributes."""
+        if tagname == "img":
+            if "width" in node:
+                attributes["width"] = node["width"]
+            if "height" in node:
+                attributes["height"] = node["height"]
+
+        return super().emptytag(
+            node, tagname, suffix, **attributes
+        )
 
 
 SETTINGS = {
@@ -80,7 +76,8 @@ SETTINGS = {
 
     # Output math blocks as LaTeX that can be interpreted by MathJax for
     # a prettier display of Math formulas.
-    "math_output": "MathJax",
+    # Pass a dummy path to supress docutils warning and emit HTML.
+    "math_output": "MathJax /dummy.js",
 
     # Disable raw html as enabling it is a security risk, we do not want
     # people to be able to include any old HTML in the final output.
@@ -96,14 +93,21 @@ SETTINGS = {
     # Strip all comments from the rendered output.
     "strip_comments": True,
 
-    # PATCH FOR FLIT ----------------------------------
-    # Disable syntax highlighting so we don't need Pygments installed.
-    "syntax_highlight": "none",
-    # -------------------------------------------------
+    # Use the short form of syntax highlighting so that the generated
+    # Pygments CSS can be used to style the output.
+    "syntax_highlight": "short",
+
+    # Maximum width (in characters) for one-column field names.
+    # 0 means "no limit"
+    "field_name_limit": 0,
 }
 
 
-def render(raw, stream=None):
+def render(
+    raw: str,
+    stream: Optional[IO[str]] = None,
+    **kwargs: Any
+) -> Optional[str]:
     if stream is None:
         # Use a io.StringIO as the warning stream to prevent warnings from
         # being printed to sys.stderr.
@@ -120,9 +124,12 @@ def render(raw, stream=None):
     except SystemMessage:
         rendered = None
     else:
-        rendered = parts.get("fragment")
+        rendered = parts.get("docinfo", "") + parts.get("fragment", "")
 
     if rendered:
         return clean(rendered)
     else:
+        # If the warnings stream is empty, docutils had none, so add ours.
+        if not stream.tell():
+            stream.write("No content rendered from RST source.")
         return None
