@@ -174,10 +174,7 @@ def validate_name(metadata):
 
 
 def _valid_version_specifier(s):
-    for clause in s.split(','):
-        if not VERSION_SPEC.match(clause.strip()):
-            return False
-    return True
+    return all(VERSION_SPEC.match(clause.strip()) for clause in s.split(','))
 
 def validate_requires_python(metadata):
     spec = metadata.get('requires_python', None)
