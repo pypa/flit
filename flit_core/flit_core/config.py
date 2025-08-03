@@ -232,7 +232,6 @@ def _check_glob_patterns(pats, clude):
         if bad_chars.search(p):
             raise ConfigError(
                 f'{clude} pattern {p!r} contains bad characters (<>:\"\\ or control characters)'
-                
             )
 
         normp = osp.normpath(p)
@@ -244,7 +243,6 @@ def _check_glob_patterns(pats, clude):
         if normp.startswith('..' + os.sep):
             raise ConfigError(
                 f'{clude} pattern {p!r} points out of the directory containing pyproject.toml'
-                
             )
         normed.append(normp)
 
