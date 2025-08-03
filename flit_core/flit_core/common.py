@@ -52,9 +52,9 @@ class Module:
             existing.add(src_py_file)
 
         if len(existing) > 1:
+            existing_str = ", ".join(map(str, sorted(existing)))
             raise ValueError(
-                "Multiple files or folders could be module {}: {}"
-                .format(name, ", ".join([str(p) for p in sorted(existing)]))
+                f"Multiple files or folders could be module {name}: {existing_str}"
             )
         elif not existing:
             raise ValueError(f"No file/folder found for module {name}")

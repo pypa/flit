@@ -38,7 +38,7 @@ class InstallTests(TestCase):
         direct_url_file = (
             self.tmpdir
             / 'site-packages'
-            / '{}-{}.dist-info'.format(package, version)
+            / f'{package}-{version}.dist-info'
             / 'direct_url.json'
         )
         assert_isfile(direct_url_file)
@@ -331,11 +331,11 @@ def test_install_requires_extra(deps, extras, installed):
 
         cmd = MockCommand('mock_python')
         get_reqs = (
-            "#!{python}\n"
+            f"#!{sys.executable}\n"
             "import sys\n"
-            "with open({recording_file!r}, 'wb') as w, open(sys.argv[-1], 'rb') as r:\n"
+            f"with open({cmd.recording_file!r}, 'wb') as w, open(sys.argv[-1], 'rb') as r:\n"
             "    w.write(r.read())"
-        ).format(python=sys.executable, recording_file=cmd.recording_file)
+        )
         cmd.content = get_reqs
 
         with cmd as mock_py:
