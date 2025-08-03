@@ -93,9 +93,10 @@ SETTINGS = {
     # Strip all comments from the rendered output.
     "strip_comments": True,
 
-    # Use the short form of syntax highlighting so that the generated
-    # Pygments CSS can be used to style the output.
-    "syntax_highlight": "short",
+    # PATCH FOR FLIT ----------------------------------
+    # Disable syntax highlighting so we don't need Pygments installed.
+    "syntax_highlight": "none",
+    # -------------------------------------------------
 
     # Maximum width (in characters) for one-column field names.
     # 0 means "no limit"
