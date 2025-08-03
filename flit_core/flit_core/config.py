@@ -322,7 +322,7 @@ def _prep_metadata(md_sect, path):
     res = LoadedConfig()
 
     res.module = md_sect.get('module')
-    if not all([m.isidentifier() for m in res.module.split(".")]):
+    if not all(m.isidentifier() for m in res.module.split(".")):
         raise ConfigError(f"Module name {res.module!r} is not a valid identifier")
 
     md_dict = res.metadata
