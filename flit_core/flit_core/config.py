@@ -366,9 +366,8 @@ def _prep_metadata(md_sect, path):
             for e, reqs in value.items():
                 if not all(isinstance(a, str) for a in reqs):
                     raise ConfigError(f'Expected a string list for requires-extra. (extra {e})')
-        else:
-            if not isinstance(value, str):
-                raise ConfigError(f'Expected a string for {key} field, found {value!r}')
+        elif not isinstance(value, str):
+            raise ConfigError(f'Expected a string for {key} field, found {value!r}')
 
     # What we call requires in the ini file is technically requires_dist in
     # the metadata.
