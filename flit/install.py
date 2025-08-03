@@ -88,7 +88,7 @@ class DependencyError(Exception):
     def __str__(self):
         return 'To install dependencies for extras, you cannot set deps=none.'
 
-class Installer(object):
+class Installer:
     def __init__(self, directory, ini_info, user=None, python=sys.executable,
                  symlink=False, deps='all', extras=(), pth=False):
         self.directory = directory
