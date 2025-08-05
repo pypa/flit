@@ -158,7 +158,7 @@ def test_validate_classifiers_private(monkeypatch):
     Issue about officially documenting the trick:
         https://github.com/pypa/packaging.python.org/issues/643
     """
-    monkeypatch.setattr(fv, "_read_classifiers_cached", lambda: set())
+    monkeypatch.setattr(fv, "_read_classifiers_cached", set)
 
     actual = fv.validate_classifiers({'invalid'})
     assert actual == ["Unrecognised classifier: 'invalid'"]
