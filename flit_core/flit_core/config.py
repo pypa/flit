@@ -488,10 +488,9 @@ def _check_type(d, field_name, cls):
 
 def _check_types(d, field_name, cls_list) -> None:
     if not isinstance(d[field_name], cls_list):
+        cls_str = ' or '.join(map(str, cls_list))
         raise ConfigError(
-            "{} field should be {}, not {}".format(
-                field_name, ' or '.join(map(str, cls_list)), type(d[field_name])
-            )
+            f"{field_name} field should be {cls_str}, not {type(d[field_name])}"
         )
 
 def _check_list_of_str(d, field_name):
