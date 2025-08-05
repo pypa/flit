@@ -101,7 +101,7 @@ license
   ``text`` key (the license text).
 license-files
   A list of glob patterns for license files to include.
-  Defaults to ``['COPYING*', 'LICEN[CS]E*']``.
+  Defaults to ``['COPYING*', 'LICEN[CS]E*', 'NOTICE*', 'AUTHORS*']``.
 authors
   A list of tables with ``name`` and ``email`` keys (both optional) describing
   the authors of the project.
