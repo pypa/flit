@@ -502,6 +502,13 @@ def _check_list_of_str(d, field_name):
             f"{field_name} field should be a list of strings"
         )
 
+def normalize_pkg_name(name: str) -> str:
+    if name.endswith('-stubs'):
+        # TODO: use `str.removesuffix` after we drop py3.8
+        return name[:-6].replace('-','_') + '-stubs'
+    return name.replace('-','_')
+
+
 def read_pep621_metadata(proj, path) -> LoadedConfig:
     lc = LoadedConfig()
     md_dict = lc.metadata
@@ -512,7 +519,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
     if not name_is_valid(proj['name']):
         raise ConfigError(f"name {proj['name']} is not valid")
     md_dict['name'] = proj['name']
-    lc.module = md_dict['name'].replace('-', '_')
+    lc.module = normalize_pkg_name(md_dict['name'])
 
     unexpected_keys = proj.keys() - pep621_allowed_fields
     if unexpected_keys:

@@ -150,3 +150,11 @@ def test_make_setup_py_ns_pkg_mod():
     setup = builder.make_setup_py()
     ns = get_setup_assigns(setup)
     assert ns['packages'] == ['ns1']
+
+def test_make_stubs_pkg():
+    builder = sdist.SdistBuilder.from_ini_path(samples_dir / 'sample-stubs' / 'pyproject.toml')
+    with TemporaryDirectory() as td:
+        td = Path(td)
+        builder.build(td)
+        sdist_file = td / 'wcwidth_stubs-0.2.13.1.tar.gz'
+        assert_isfile(sdist_file)
