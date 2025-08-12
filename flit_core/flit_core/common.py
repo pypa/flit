@@ -441,6 +441,9 @@ class Metadata:
             normalised_extra = normalise_core_metadata_name(extra)
             fp.write(f'Provides-Extra: {normalised_extra}\n')
 
+        for ext in self.requires_external:
+            fp.write(u'Requires-External: {}\n'.format(ext))
+
         if self.description is not None:
             fp.write(f'\n{self.description}\n')
 
