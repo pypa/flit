@@ -30,7 +30,8 @@ class ConfigError(ValueError):
 metadata_list_fields = {
     'classifiers',
     'requires',
-    'dev-requires'
+    'dev-requires',
+    'requires-external',
 }
 
 metadata_allowed_fields = {
@@ -418,6 +419,9 @@ def _prep_metadata(md_sect, path):
         reqs_noextra + list(_expand_requires_extra(res.reqs_by_extra))
 
     md_dict['provides_extra'] = sorted(res.reqs_by_extra.keys())
+
+    if 'requires-external' in md_dict:
+        md_dict['requires_external'] = md_dict.pop('requires-external')
 
     # For internal use, record the main requirements as a '.none' extra.
     res.reqs_by_extra['.none'] = reqs_noextra
