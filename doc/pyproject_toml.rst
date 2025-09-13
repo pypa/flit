@@ -29,6 +29,7 @@ Version constraints:
 
 - For now, all packages should specify ``<5``, so they won't be impacted by
   changes in the next major version.
+- ``import-names`` and ``import-namespaces`` require ``flit_core >=4``.
 - ``license-files`` and license expressions in the ``license`` field require
   ``flit_core >=3.11``.
 - :ref:`pyproject_toml_project` requires ``flit_core >=3.2``.
@@ -113,6 +114,15 @@ classifiers
   A list of `Trove classifiers <https://pypi.python.org/pypi?%3Aaction=list_classifiers>`_.
   Add ``Private :: Do Not Upload`` into the list to prevent a private package
   from being uploaded to PyPI by accident.
+import-names
+  A list containing the importable module name in this package. You don't
+  normally need to supply this manually, but you can specify it with a
+  ``; private`` suffix to record that the module is not intended for public use.
+  This does not stop anyone importing it.
+import-namespaces
+  A list of import names in this package which are namespace packages. Like
+  ``import-names``, Flit will supply this metadata automatically if you use
+  namespace packages.
 dependencies & optional-dependencies
   See :ref:`pyproject_project_dependencies`.
 urls
