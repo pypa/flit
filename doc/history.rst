@@ -383,7 +383,7 @@ Version 1.0
   (``.rst``, ``.md`` or ``.txt``). Previously, only reStructuredText was
   officially supported.
 - Multiple links (e.g. documentation, bug tracker) can now be specified in a
-  new :ref:`[tool.flit.metadata.urls] section <pyproject_toml_urls>` of
+  new ``[tool.flit.metadata.urls]`` section of
   ``pyproject.toml``.
 - Dependencies are now correctly installed to the target Python when you use
   the ``--symlink`` or ``--pth-file`` options.
