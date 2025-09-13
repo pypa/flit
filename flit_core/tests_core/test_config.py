@@ -390,6 +390,19 @@ def test_pep621_license_files(proj_license_files, files):
     assert info.metadata['license_files'] == files
 
 
+@pytest.mark.parametrize(('proj_extra', 'err_match'), [
+    ({"import-names": ["foo-bar"]}, "not a valid"),
+    ({"import-names": ["foobar; public"]}, "private"),
+    ({"import-names": ["module2"]}, "not match"),
+    ({"import-namespaces": ["namespace1"]}, "not match"),
+])
+def test_import_names_errors(proj_extra, err_match):
+    d = {'project': {'name': 'module1', 'version': '1.0', 'description': 'x'}}
+    d['project'].update(proj_extra)
+    with pytest.raises(config.ConfigError, match=err_match):
+        config.prep_toml_config(d, samples_dir)
+
+
 def test_old_style_metadata():
     with pytest.raises(config.ConfigError, match=re.escape("[tool.flit.metadata]")):
         config.read_flit_config(samples_dir / 'module1-old-metadata.toml')

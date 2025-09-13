@@ -109,14 +109,33 @@ def prep_toml_config(d, path):
     if 'name' in module_tbl:
         loaded_cfg.module = module_tbl['name']
 
-    if 'import-names' not in d['project']:
+    if 'import-names' in d['project']:
+        import_names_from_config = [
+            s.split(';')[0] for s in loaded_cfg.metadata['import_name']
+        ]
+        if import_names_from_config != [loaded_cfg.module]:
+            raise ConfigError(
+                f"Specified import-names {import_names_from_config} do not match "
+                f"the module present ({loaded_cfg.module})"
+            )
+    else:
         loaded_cfg.metadata['import_name'] = [loaded_cfg.module]
 
-    if 'import-nameespaces' not in d['project']:
-        namespace_parts = loaded_cfg.module.split('.')[:-1]
-        loaded_cfg.metadata['import_namespace'] = [
-            '.'.join(namespace_parts[:i]) for i in range(1, len(namespace_parts) + 1)
+    namespace_parts = loaded_cfg.module.split('.')[:-1]
+    nspkgs_from_mod_name = [
+        '.'.join(namespace_parts[:i]) for i in range(1, len(namespace_parts) + 1)
+    ]
+    if 'import-namespaces' in d['project']:
+        nspkgs_from_config = [
+            s.split(';')[0] for s in loaded_cfg.metadata['import_namespace']
         ]
+        if set(nspkgs_from_config) != set(nspkgs_from_mod_name):
+            raise ConfigError(
+                f"Specified import-namespaces {nspkgs_from_config} do not match "
+                f"the namespace packages present ({nspkgs_from_mod_name})"
+            )
+    else:
+        loaded_cfg.metadata['import_namespace'] = nspkgs_from_mod_name
 
     unknown_sections = set(dtool) - {'module', 'sdist', 'external-data'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
@@ -328,6 +347,25 @@ def normalize_pkg_name(name: str) -> str:
         # TODO: use `str.removesuffix` after we drop py3.8
         return name[:-6].replace('-','_') + '-stubs'
     return name.replace('-','_')
+
+
+def normalize_import_name(name: str) -> str:
+    if ';' in name:
+        name, annotation = name.split(';', 1)
+        name = name.rstrip()
+        annotation = annotation.lstrip()
+        if annotation != 'private':
+            raise ConfigError(
+                f"{annotation!r} for import name {name!r} is not allowed "
+                "(the only valid annotation is 'private')"
+            )
+    else:
+        annotation = None
+
+    if not all(p.isidentifier() for p in name.split('.')):
+        raise ConfigError(f"{name!r} is not a valid import name")
+
+    return f"{name}; {annotation}" if annotation else name
 
 
 def read_pep621_metadata(proj, path) -> LoadedConfig:
@@ -578,11 +616,15 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
 
     if 'import-names' in proj:  # PEP 794
         _check_list_of_str(proj, 'import-names')
-        md_dict['import_name'] = proj['import-names']
+        md_dict['import_name'] = [
+            normalize_import_name(s) for s in proj['import-names']
+        ]
 
     if 'import-namespaces' in proj:
         _check_list_of_str(proj, 'import-namespaces')
-        md_dict['import_namespace'] = proj['import-namespaces']
+        md_dict['import_namespace'] = [
+            normalize_import_name(s) for s in proj['import-namespaces']
+        ]
 
     if 'dynamic' in proj:
         _check_list_of_str(proj, 'dynamic')
