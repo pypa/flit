@@ -31,9 +31,9 @@ Version constraints:
   changes in the next major version.
 - ``license-files`` and license expressions in the ``license`` field require
   ``flit_core >=3.11``.
-- :ref:`pyproject_toml_project` requires ``flit_core >=3.2``
-- The older ``[tool.flit.metadata]`` metadata table requires ``flit_core >=2,<4``
-- The very old :doc:`flit.ini file <flit_ini>` requires ``flit_core <3``.
+- :ref:`pyproject_toml_project` requires ``flit_core >=3.2``.
+- The older ``[tool.flit.metadata]`` metadata table requires ``flit_core >=2,<4``.
+- The very old ``flit.ini`` file requires ``flit_core <3``.
 - TOML features new in version 1.0 require ``flit_core >=3.4``.
 - ``flit_core`` 3.3 is the last version supporting Python 3.4 & 3.5. Packages
   supporting these Python versions can only use `TOML v0.5
