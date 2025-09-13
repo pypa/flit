@@ -236,7 +236,7 @@ class TerminalIniter(IniterBase):
 
 TEMPLATE = """\
 [build-system]
-requires = ["flit_core >=3.11,<4"]
+requires = ["flit_core >=3.11,<5"]
 build-backend = "flit_core.buildapi"
 
 [project]
