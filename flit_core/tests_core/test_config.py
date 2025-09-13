@@ -54,7 +54,7 @@ def test_misspelled_key():
     with pytest.raises(config.ConfigError) as e_info:
         config.read_flit_config(samples_dir / 'misspelled-key.toml')
 
-    assert 'description-file' in str(e_info.value)
+    assert 'reedme' in str(e_info.value)
 
 def test_description_file():
     info = config.read_flit_config(samples_dir / 'package1.toml')

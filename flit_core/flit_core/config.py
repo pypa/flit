@@ -345,7 +345,9 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
 
     unexpected_keys = proj.keys() - pep621_allowed_fields
     if unexpected_keys:
-        log.warning("Unexpected names under [project]: %s", ', '.join(unexpected_keys))
+        raise ConfigError(
+            "Unrecognised key(s) in [project] table: " + ', '.join(unexpected_keys)
+        )
 
     if 'version' in proj:
         _check_type(proj, 'version', str)
