@@ -12,7 +12,7 @@ import pytest
 from testpath import assert_isfile, assert_isdir, assert_not_path_exists
 
 from flit.wheel import WheelBuilder, make_wheel_in
-from flit.config import EntryPointsConflict
+from flit.config import ConfigError
 
 samples_dir = Path(__file__).parent / 'samples'
 
@@ -159,7 +159,7 @@ def test_entry_points(copy_sample):
 
 def test_entry_points_conflict(copy_sample):
     td = copy_sample('entrypoints_conflict')
-    with pytest.raises(EntryPointsConflict):
+    with pytest.raises(ConfigError):
         make_wheel_in(td / 'pyproject.toml', td)
 
 def test_wheel_builder():

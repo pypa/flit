@@ -1,12 +1,13 @@
 [build-system]
-requires = ["flit"]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module = "no_docstring"
-author = "Sir Robin"
-author-email = "robin@camelot.uk"
-home-page = "http://github.com/sirrobin/no_docstring"
-description-file = "EG_README.rst"
+[project]
+name = "no_docstring"
+authors = [
+    {name = "Sir Robin", email = "robin@camelot.uk"}
+]
+dynamic = ["version", "description"]
 
-[tool.flit.metadata.urls]
+[project.urls]
 Documentation = "https://example.com/no_docstring"
