@@ -386,3 +386,8 @@ def test_pep621_license_files(proj_license_files, files):
     proj.update(proj_license_files)
     info = config.read_pep621_metadata(proj, samples_dir / 'pep621_license_files' / 'pyproject.toml')
     assert info.metadata['license_files'] == files
+
+
+def test_old_style_metadata():
+    with pytest.raises(config.ConfigError, match=re.escape("[tool.flit.metadata]")):
+        config.read_flit_config(samples_dir / 'module1-old-metadata.toml')
