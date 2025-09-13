@@ -16,6 +16,8 @@ def test_load_toml():
 def test_load_toml_ns():
     inf = config.read_flit_config(samples_dir / 'ns1-pkg' / 'pyproject.toml')
     assert inf.module == 'ns1.pkg'
+    assert inf.metadata['import_name'] == ['ns1.pkg']
+    assert inf.metadata['import_namespace'] == ['ns1']
 
 def test_load_normalization():
     inf = config.read_flit_config(samples_dir / 'normalization' / 'pyproject.toml')

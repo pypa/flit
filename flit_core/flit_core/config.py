@@ -33,26 +33,6 @@ metadata_list_fields = {
     'dev-requires'
 }
 
-metadata_allowed_fields = {
-    'module',
-    'author',
-    'author-email',
-    'maintainer',
-    'maintainer-email',
-    'home-page',
-    'license',
-    'keywords',
-    'requires-python',
-    'dist-name',
-    'description-file',
-    'requires-extra',
-} | metadata_list_fields
-
-metadata_required_fields = {
-    'module',
-    'author',
-}
-
 pep621_allowed_fields = {
     'name',
     'version',
@@ -72,7 +52,17 @@ pep621_allowed_fields = {
     'dependencies',
     'optional-dependencies',
     'dynamic',
+    'import-names',  # PEP 794
+    'import-namespaces'
 }
+
+allowed_dynamic_fields = {
+    'version',
+    'description',
+    'import-names',
+    'import-namespaces'
+}
+
 
 default_license_files_globs = ['COPYING*', 'LICEN[CS]E*', 'NOTICE*', 'AUTHORS*']
 license_files_allowed_chars = re.compile(r'^[\w\-\.\/\*\?\[\]]+$')
@@ -118,6 +108,15 @@ def prep_toml_config(d, path):
     module_tbl = dtool.get('module', {})
     if 'name' in module_tbl:
         loaded_cfg.module = module_tbl['name']
+
+    if 'import-names' not in d['project']:
+        loaded_cfg.metadata['import_name'] = [loaded_cfg.module]
+
+    if 'import-nameespaces' not in d['project']:
+        namespace_parts = loaded_cfg.module.split('.')[:-1]
+        loaded_cfg.metadata['import_namespace'] = [
+            '.'.join(namespace_parts[:i]) for i in range(1, len(namespace_parts) + 1)
+        ]
 
     unknown_sections = set(dtool) - {'module', 'sdist', 'external-data'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
@@ -577,13 +576,23 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
     if reqs_noextra:
         lc.reqs_by_extra['.none'] = reqs_noextra
 
+    if 'import-names' in proj:  # PEP 794
+        _check_list_of_str(proj, 'import-names')
+        md_dict['import_name'] = proj['import-names']
+
+    if 'import-namespaces' in proj:
+        _check_list_of_str(proj, 'import-namespaces')
+        md_dict['import_namespace'] = proj['import-namespaces']
+
     if 'dynamic' in proj:
         _check_list_of_str(proj, 'dynamic')
         dynamic = set(proj['dynamic'])
-        unrec_dynamic = dynamic - {'version', 'description'}
+        unrec_dynamic = dynamic - allowed_dynamic_fields
         if unrec_dynamic:
             raise ConfigError(
-                "flit only supports dynamic metadata for 'version' & 'description'"
+                "flit only supports dynamic metadata for:" + ', '.join(
+                    sorted(allowed_dynamic_fields)
+                )
             )
         if dynamic.intersection(proj):
             raise ConfigError(
