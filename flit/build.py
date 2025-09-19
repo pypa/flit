@@ -21,7 +21,9 @@ ALL_FORMATS = {'wheel', 'sdist'}
 def unpacked_tarball(path):
     tf = tarfile.open(str(path))
     with TemporaryDirectory() as tmpdir:
-        tf.extractall(tmpdir)
+        # Py >=3.12: restrict advanced tar features which sdists shouldn't use
+        kw = {'filter': 'data'} if hasattr(tarfile, 'data_filter') else {}
+        tf.extractall(tmpdir, **kw)
         files = os.listdir(tmpdir)
         assert len(files) == 1, files
         yield os.path.join(tmpdir, files[0])
