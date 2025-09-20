@@ -103,8 +103,7 @@ def add_shared_build_options(parser: argparse.ArgumentParser):
         help=("Choose which files to include in the sdist using git or hg. "
               "This is a convenient way to include all checked-in files, like "
               "tests and doc source files, in your sdist, but requires that git "
-              "or hg is available on the command line. This is currently the "
-              "default, but it will change in a future version. "
+              "or hg is available on the command line."
              )
     )
 
@@ -112,7 +111,7 @@ def add_shared_build_options(parser: argparse.ArgumentParser):
         help=("Select the files to include in the sdist without using git or hg. "
               "This should include all essential files to install and use your "
               "package; see the documentation for precisely what is included. "
-              "This will become the default in a future version."
+              "This is the default for Flit version 4 and above."
              )
     )
 
@@ -190,14 +189,11 @@ def main(argv=None):
             return False
         return args.setup_py
 
-    def sdist_use_vcs():
-        return not args.no_use_vcs
-
     if args.subcmd == 'build':
         from .build import main
         try:
             main(args.ini_file, formats=set(args.format or []),
-                 gen_setup_py=gen_setup_py(), use_vcs=sdist_use_vcs())
+                 gen_setup_py=gen_setup_py(), use_vcs=args.use_vcs)
         except(common.NoDocstringError, common.VCSError, common.NoVersionError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'publish':
@@ -206,7 +202,7 @@ def main(argv=None):
         repository = args.repository or args.deprecated_repository
         from .upload import main
         main(args.ini_file, repository, args.pypirc, formats=set(args.format or []),
-                gen_setup_py=gen_setup_py(), use_vcs=sdist_use_vcs())
+                gen_setup_py=gen_setup_py(), use_vcs=args.use_vcs)
 
     elif args.subcmd == 'install':
         from .install import Installer
