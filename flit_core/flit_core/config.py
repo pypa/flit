@@ -33,26 +33,6 @@ metadata_list_fields = {
     'dev-requires'
 }
 
-metadata_allowed_fields = {
-    'module',
-    'author',
-    'author-email',
-    'maintainer',
-    'maintainer-email',
-    'home-page',
-    'license',
-    'keywords',
-    'requires-python',
-    'dist-name',
-    'description-file',
-    'requires-extra',
-} | metadata_list_fields
-
-metadata_required_fields = {
-    'module',
-    'author',
-}
-
 pep621_allowed_fields = {
     'name',
     'version',
@@ -72,7 +52,17 @@ pep621_allowed_fields = {
     'dependencies',
     'optional-dependencies',
     'dynamic',
+    'import-names',  # PEP 794
+    'import-namespaces'
 }
+
+allowed_dynamic_fields = {
+    'version',
+    'description',
+    'import-names',
+    'import-namespaces'
+}
+
 
 default_license_files_globs = ['COPYING*', 'LICEN[CS]E*', 'NOTICE*', 'AUTHORS*']
 license_files_allowed_chars = re.compile(r'^[\w\-\.\/\*\?\[\]]+$')
@@ -118,6 +108,34 @@ def prep_toml_config(d, path):
     module_tbl = dtool.get('module', {})
     if 'name' in module_tbl:
         loaded_cfg.module = module_tbl['name']
+
+    if 'import-names' in d['project']:
+        import_names_from_config = [
+            s.split(';')[0] for s in loaded_cfg.metadata['import_name']
+        ]
+        if import_names_from_config != [loaded_cfg.module]:
+            raise ConfigError(
+                f"Specified import-names {import_names_from_config} do not match "
+                f"the module present ({loaded_cfg.module})"
+            )
+    else:
+        loaded_cfg.metadata['import_name'] = [loaded_cfg.module]
+
+    namespace_parts = loaded_cfg.module.split('.')[:-1]
+    nspkgs_from_mod_name = [
+        '.'.join(namespace_parts[:i]) for i in range(1, len(namespace_parts) + 1)
+    ]
+    if 'import-namespaces' in d['project']:
+        nspkgs_from_config = [
+            s.split(';')[0] for s in loaded_cfg.metadata['import_namespace']
+        ]
+        if set(nspkgs_from_config) != set(nspkgs_from_mod_name):
+            raise ConfigError(
+                f"Specified import-namespaces {nspkgs_from_config} do not match "
+                f"the namespace packages present ({nspkgs_from_mod_name})"
+            )
+    else:
+        loaded_cfg.metadata['import_namespace'] = nspkgs_from_mod_name
 
     unknown_sections = set(dtool) - {'module', 'sdist', 'external-data'}
     unknown_sections = [s for s in unknown_sections if not s.lower().startswith('x-')]
@@ -329,6 +347,25 @@ def normalize_pkg_name(name: str) -> str:
         # TODO: use `str.removesuffix` after we drop py3.8
         return name[:-6].replace('-','_') + '-stubs'
     return name.replace('-','_')
+
+
+def normalize_import_name(name: str) -> str:
+    if ';' in name:
+        name, annotation = name.split(';', 1)
+        name = name.rstrip()
+        annotation = annotation.lstrip()
+        if annotation != 'private':
+            raise ConfigError(
+                f"{annotation!r} for import name {name!r} is not allowed "
+                "(the only valid annotation is 'private')"
+            )
+    else:
+        annotation = None
+
+    if not all(p.isidentifier() for p in name.split('.')):
+        raise ConfigError(f"{name!r} is not a valid import name")
+
+    return f"{name}; {annotation}" if annotation else name
 
 
 def read_pep621_metadata(proj, path) -> LoadedConfig:
@@ -577,13 +614,27 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
     if reqs_noextra:
         lc.reqs_by_extra['.none'] = reqs_noextra
 
+    if 'import-names' in proj:  # PEP 794
+        _check_list_of_str(proj, 'import-names')
+        md_dict['import_name'] = [
+            normalize_import_name(s) for s in proj['import-names']
+        ]
+
+    if 'import-namespaces' in proj:
+        _check_list_of_str(proj, 'import-namespaces')
+        md_dict['import_namespace'] = [
+            normalize_import_name(s) for s in proj['import-namespaces']
+        ]
+
     if 'dynamic' in proj:
         _check_list_of_str(proj, 'dynamic')
         dynamic = set(proj['dynamic'])
-        unrec_dynamic = dynamic - {'version', 'description'}
+        unrec_dynamic = dynamic - allowed_dynamic_fields
         if unrec_dynamic:
             raise ConfigError(
-                "flit only supports dynamic metadata for 'version' & 'description'"
+                "flit only supports dynamic metadata for:" + ', '.join(
+                    sorted(allowed_dynamic_fields)
+                )
             )
         if dynamic.intersection(proj):
             raise ConfigError(

@@ -16,6 +16,8 @@ def test_load_toml():
 def test_load_toml_ns():
     inf = config.read_flit_config(samples_dir / 'ns1-pkg' / 'pyproject.toml')
     assert inf.module == 'ns1.pkg'
+    assert inf.metadata['import_name'] == ['ns1.pkg']
+    assert inf.metadata['import_namespace'] == ['ns1']
 
 def test_load_normalization():
     inf = config.read_flit_config(samples_dir / 'normalization' / 'pyproject.toml')
@@ -386,6 +388,19 @@ def test_pep621_license_files(proj_license_files, files):
     proj.update(proj_license_files)
     info = config.read_pep621_metadata(proj, samples_dir / 'pep621_license_files' / 'pyproject.toml')
     assert info.metadata['license_files'] == files
+
+
+@pytest.mark.parametrize(('proj_extra', 'err_match'), [
+    ({"import-names": ["foo-bar"]}, "not a valid"),
+    ({"import-names": ["foobar; public"]}, "private"),
+    ({"import-names": ["module2"]}, "not match"),
+    ({"import-namespaces": ["namespace1"]}, "not match"),
+])
+def test_import_names_errors(proj_extra, err_match):
+    d = {'project': {'name': 'module1', 'version': '1.0', 'description': 'x'}}
+    d['project'].update(proj_extra)
+    with pytest.raises(config.ConfigError, match=err_match):
+        config.prep_toml_config(d, samples_dir)
 
 
 def test_old_style_metadata():

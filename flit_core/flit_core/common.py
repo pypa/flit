@@ -350,8 +350,10 @@ class Metadata:
     provides_extra = ()
     license_files = ()
     dynamic = ()
+    import_name = ()
+    import_namespace = ()
 
-    metadata_version = "2.4"
+    metadata_version = "2.5"
 
     def __init__(self, data):
         data = data.copy()
@@ -440,6 +442,12 @@ class Metadata:
         for extra in self.provides_extra:
             normalised_extra = normalise_core_metadata_name(extra)
             fp.write(f'Provides-Extra: {normalised_extra}\n')
+
+        for name in self.import_name:
+            fp.write(f'Import-Name: {name}')
+
+        for name in self.import_namespace:
+            fp.write(f'Import-Namespace: {name}')
 
         if self.description is not None:
             fp.write(f'\n{self.description}\n')
