@@ -151,15 +151,11 @@ class SdistBuilder:
 
         return sorted(files)
 
-    def add_setup_py(self, files_to_add, target_tarfile):
-        """No-op here; overridden in flit to generate setup.py"""
-        pass
-
     @property
     def dir_name(self):
         return common.normalize_dist_name(self.metadata.name, self.metadata.version)
 
-    def build(self, target_dir, gen_setup_py=True):
+    def build(self, target_dir):
         os.makedirs(str(target_dir), exist_ok=True)
         target = target_dir / f'{self.dir_name}.tar.gz'
         source_date_epoch = os.environ.get('SOURCE_DATE_EPOCH', '')
@@ -184,9 +180,6 @@ class SdistBuilder:
                         tf.addfile(ti, f)
                 else:
                     tf.addfile(ti)  # Symlinks & ?
-
-            if gen_setup_py:
-                self.add_setup_py(files_to_add, tf)
 
             stream = io.StringIO()
             self.metadata.write_metadata_file(stream)
