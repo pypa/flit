@@ -251,6 +251,8 @@ def check_version(version):
     if not version:
         raise NoVersionError('Cannot package module without a version string. '
                              'Please define a `__version__ = "x.y.z"` in your module.')
+    if isinstance(version, tuple):
+        version = '.'.join(map(str, version))
     if not isinstance(version, str):
         raise InvalidVersion(f'__version__ must be a string, not {type(version)}.')
 
