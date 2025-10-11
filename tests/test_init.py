@@ -118,7 +118,8 @@ def test_init():
         assert_isfile(license)
         with license.open() as f:
             license_text = f.read()
-        assert license_text.startswith("The MIT License (MIT)")
+        assert license_text.startswith("Copyright (c)")
+        assert "Permission is hereby granted, free of charge" in license_text
         assert "{year}" not in license_text
         assert "Test Author" in license_text
 
