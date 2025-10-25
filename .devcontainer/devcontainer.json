@@ -1,0 +1,31 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.222.0/containers/python-3-miniconda
+{
+	"name": "Python Environment",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"editorconfig.editorconfig",
+				"github.vscode-pull-request-github",
+				"ms-azuretools.vscode-docker",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-python.flake8",
+				"ms-vsliveshare.vsliveshare",
+				"ryanluker.vscode-coverage-gutters",
+				"bungcip.better-toml",
+				"GitHub.copilot"
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"flake8.path": [
+					"/usr/local/py-utils/bin/flake8"
+				]
+			}
+		}
+	}
+}
