@@ -131,10 +131,12 @@ def _module_load_ctx():
     - Handlers on the root logger.
     """
     logging_handlers = logging.root.handlers[:]
+    os.environ["FLIT_GETTING_VERSION"] = "1"
     try:
         yield
     finally:
         logging.root.handlers = logging_handlers
+        del os.environ["FLIT_GETTING_VERSION"]
 
 def get_docstring_and_version_via_ast(target):
     """
