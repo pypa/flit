@@ -45,3 +45,26 @@ Changelog = "https://flit.pypa.io/en/stable/history.html"
 
 [project.scripts]
 flit = "flit:main"
+
+[tool.flit.sdist]  # Generated with python -m flit.sdist_rules
+include = [
+    ".bumpversion.cfg",
+    ".coveragerc",
+    ".github/",
+    ".gitignore",
+    ".pre-commit-config.yaml",
+    ".readthedocs.yml",
+    "bootstrap_dev.py",
+    "codecov.yml",
+    "doc/",
+    "flit_core/",
+    "prepare_license_list.py",
+    "SECURITY.md",
+    "tests/",
+    "tox.ini",
+]
+exclude = [
+    "doc/_build/",
+    "flit_core/.pytest_cache/",
+    "flit_core/dist/",
+]
