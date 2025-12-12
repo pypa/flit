@@ -75,7 +75,7 @@ jobs:
           # Copy flit_core packages to same location
           cp flit_core/dist/* dist/
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: packages
           path: ./dist/*
