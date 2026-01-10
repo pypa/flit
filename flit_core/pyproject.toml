@@ -12,7 +12,7 @@ description = "Distribution-building parts of Flit. See flit package for more in
 dependencies = []
 requires-python = '>=3.8'
 readme = "README.rst"
-license = "BSD-3-Clause"
+license = "BSD-3-Clause AND MIT"
 license-files = ["LICENSE*", "flit_core/vendor/**/LICENSE*"]
 classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
