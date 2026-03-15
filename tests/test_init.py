@@ -207,7 +207,7 @@ def test_find_readme_not_found():
         assert ib.find_readme() is None
 
 
-def test_init_readme_found_yes_choosen():
+def test_init_readme_found_yes_chosen():
     responses = ['test_module_name',
                  'Test Author',
                  'test_email@example.com',

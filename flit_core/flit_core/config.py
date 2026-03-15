@@ -697,7 +697,7 @@ def isabs_ish(path):
 
 
 def normalise_compound_license_expr(s: str) -> str:
-    """Validate and normalise a compund SPDX license expression.
+    """Validate and normalise a compound SPDX license expression.
 
     Per the specification, licence expression operators (AND, OR and WITH)
     are matched case-sensitively. The WITH operator is not currently supported.
