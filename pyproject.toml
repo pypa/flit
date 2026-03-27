@@ -45,3 +45,8 @@ Changelog = "https://flit.pypa.io/en/stable/history.html"
 
 [project.scripts]
 flit = "flit:main"
+
+[tool.pytest.ini_options]
+markers = [
+    "needsgit: needs git to be installed and findable through the PATH environment variable in order to run these tests",
+]

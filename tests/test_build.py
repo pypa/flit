@@ -82,3 +82,12 @@ def test_build_module_no_docstring():
             with pytest.raises(common.NoDocstringError) as exc_info:
                 build.main(pyproject)
             assert 'no_docstring.py' in str(exc_info.value)
+
+@pytest.mark.needsgit
+def test_build_unicode_filenames(tmp_project, git):
+    "does a package build if it includes a unicode filename?"
+    noel_file = tmp_project / "No\N{LATIN SMALL LETTER E WITH DIAERESIS}l"
+    noel_file.touch()
+    git("add -A :/")
+    git("commit --allow-empty --allow-empty-message --no-edit")
+    build.main(tmp_project / "pyproject.toml")
