@@ -4,3 +4,9 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+  - package-ecosystem: "pip"
+    directory: ".github/workflows/"
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: "quarterly"

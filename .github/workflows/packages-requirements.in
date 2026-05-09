@@ -1,0 +1,4 @@
+--only-binary :all:
+
+requests
+docutils
