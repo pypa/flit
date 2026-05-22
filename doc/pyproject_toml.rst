@@ -170,6 +170,10 @@ You can call these optional features anything you want, although ``test`` and
 ``doc`` are common ones. You specify them for installation in square brackets
 after the package name or directory, e.g. ``pip install '.[test]'``.
 
+These optional dependency groups are written to core metadata as
+``Provides-Extra`` and ``Requires-Dist`` entries. In older
+``[tool.flit.metadata]`` projects, this was configured with ``requires-extra``.
+
 .. _pyproject_project_urls:
 
 URLs table
