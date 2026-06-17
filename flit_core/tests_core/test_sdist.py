@@ -3,9 +3,29 @@ import os.path as osp
 from pathlib import Path
 import tarfile
 import unicodedata
+import pytest
 from testpath import assert_isfile
 
 from flit_core import sdist
+
+
+def _write_minimal_project(proj):
+    pkg = proj / 'mypkg'
+    pkg.mkdir(parents=True)
+    (pkg / '__init__.py').write_text(
+        '"""demo package."""\n__version__ = "0.0.1"\n'
+    )
+    (proj / 'pyproject.toml').write_text(
+        "[build-system]\n"
+        "requires = ['flit_core >=3.2,<4']\n"
+        "build-backend = 'flit_core.buildapi'\n\n"
+        "[project]\n"
+        "name = 'mypkg'\n"
+        "version = '0.0.1'\n"
+        "description = 'demo'\n",
+        encoding='utf-8',
+    )
+    return pkg
 
 samples_dir = Path(__file__).parent / 'samples'
 
@@ -151,3 +171,46 @@ def test_license_inside_src(tmp_path):
         )
 
     assert lic_count == 1
+
+
+@pytest.mark.parametrize('relpath, linkname, escapes', [
+    (osp.join('mypkg', 'leak'), '/etc/passwd', True),            # absolute
+    (osp.join('mypkg', 'leak'), osp.join('..', '..', 'secret'), True),  # climbs out
+    (osp.join('mypkg', 'leak'), osp.join('..', 'sibling.py'), False),   # stays in tree
+    (osp.join('mypkg', 'leak'), 'neighbour.py', False),          # same dir
+    ('leak', 'pyproject.toml', False),                           # root-level, in tree
+    ('leak', osp.join('..', 'outside'), True),                   # root-level escape
+])
+def test_symlink_target_escapes(relpath, linkname, escapes):
+    assert sdist._symlink_target_escapes(relpath, linkname) is escapes
+
+
+def test_sdist_rejects_external_symlink(tmp_path):
+    # CWE-22 tar-slip: a symlink whose target escapes the project directory must
+    # not be packed into the sdist, since on extraction it would point outside
+    # the extraction root (arbitrary file read/overwrite on the consumer).
+    outside = tmp_path / 'outside_secret.txt'
+    outside.write_text('AWS_SECRET_ACCESS_KEY=AKIA_TOP_SECRET')
+
+    proj = tmp_path / 'proj'
+    pkg = _write_minimal_project(proj)
+    (pkg / 'leak.txt').symlink_to(outside)  # escapes the project tree
+
+    builder = sdist.SdistBuilder.from_ini_path(proj / 'pyproject.toml')
+    with pytest.raises(Exception, match='outside the project directory'):
+        builder.build(tmp_path / 'dist')
+
+
+def test_sdist_allows_internal_symlink(tmp_path):
+    # A symlink that stays within the project tree is fine and must still build.
+    proj = tmp_path / 'proj'
+    pkg = _write_minimal_project(proj)
+    (pkg / 'real.txt').write_text('data')
+    (pkg / 'link.txt').symlink_to('real.txt')  # relative, same directory
+
+    builder = sdist.SdistBuilder.from_ini_path(proj / 'pyproject.toml')
+    path = builder.build(tmp_path / 'dist')
+    assert_isfile(path)
+    with tarfile.open(path) as tar:
+        names = {osp.basename(m.name) for m in tar.getmembers()}
+    assert 'link.txt' in names

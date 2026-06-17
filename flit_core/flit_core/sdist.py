@@ -33,6 +33,36 @@ def _normalize_for_match(path):
     return unicodedata.normalize('NFC', path)
 
 
+def _symlink_target_escapes(arcname_relpath: str, linkname: str) -> bool:
+    """Return whether a symlink would point outside the project / archive root.
+
+    This mirrors the containment check that :mod:`tarfile`'s ``data`` extraction
+    filter applies: an absolute target, or a relative target whose ``..``
+    components climb above the archive root, would on extraction point outside
+    the extraction directory, enabling arbitrary file read/overwrite (a tar-slip
+    / path traversal, CWE-22).
+
+    Parameters
+    ----------
+    arcname_relpath : str
+        Path of the symlink relative to the project root, i.e. its location
+        within the archive.
+    linkname : str
+        The raw symlink target, as stored on disk.
+
+    Returns
+    -------
+    bool
+        ``True`` if the link escapes the project root and must be rejected;
+        ``False`` if it stays within the tree (including ``..`` that does not
+        escape) and is safe to pack.
+    """
+    if osp.isabs(linkname):
+        return True
+    resolved = osp.normpath(osp.join(osp.dirname(arcname_relpath), linkname))
+    return resolved == os.pardir or resolved.startswith(os.pardir + os.sep)
+
+
 def clean_tarinfo(ti, mtime=None):
     """Clean metadata from a TarInfo object to make it more reproducible.
 
@@ -209,11 +239,19 @@ class SdistBuilder:
                 ti = tf.gettarinfo(path, arcname=pjoin(self.dir_name, relpath))
                 ti = clean_tarinfo(ti, mtime)
 
+                if ti.issym() and _symlink_target_escapes(relpath, ti.linkname):
+                    raise Exception(
+                        f"Refusing to build sdist: the symlink {relpath!r} points "
+                        f"outside the project directory (target: {ti.linkname!r}). "
+                        f"Such a link would escape the extraction directory when "
+                        f"the sdist is unpacked (path traversal)."
+                    )
+
                 if ti.isreg():
                     with open(path, 'rb') as f:
                         tf.addfile(ti, f)
                 else:
-                    tf.addfile(ti)  # Symlinks & ?
+                    tf.addfile(ti)  # Symlinks (kept only if within the tree)
 
             stream = io.StringIO()
             self.metadata.write_metadata_file(stream)
