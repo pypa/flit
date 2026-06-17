@@ -9,10 +9,28 @@ import os.path as osp
 from pathlib import Path
 from posixpath import join as pjoin
 import tarfile
+import unicodedata
 
 from . import common
 
 log = logging.getLogger(__name__)
+
+
+def _normalize_for_match(path):
+    """Return *path* in a canonical Unicode form for filename comparison.
+
+    File selection must be normalisation-insensitive. On macOS (APFS/HFS+) a
+    name written NFC and the same name written NFD denote a single file but are
+    byte-distinct; the include/exclude sets are keyed by ``glob()`` output while
+    the candidate names come from ``os.walk`` / the VCS listing, so without this
+    an exclude rule written in one form silently fails to match a file stored in
+    the other and the file is packed into the sdist anyway (CWE-176, CWE-697).
+
+    NFC (canonical composition) is used deliberately; NFKC must NOT be used, as
+    its compatibility folding (e.g. U+FF0F FULLWIDTH SOLIDUS -> '/') would change
+    path semantics and could make a rule match unintended files.
+    """
+    return unicodedata.normalize('NFC', path)
 
 
 def clean_tarinfo(ti, mtime=None):
@@ -50,18 +68,27 @@ class FilePatterns:
                 else:
                     self.files.add(rel)
 
+        # Unicode-normalised views used only for matching. The raw self.dirs /
+        # self.files are kept unchanged because they are also used to open the
+        # actual files on disk, which on a normalisation-sensitive filesystem
+        # (e.g. Linux ext4) must use the exact on-disk bytes.
+        self._match_files = {_normalize_for_match(f) for f in self.files}
+        self._match_dirs = {_normalize_for_match(d) for d in self.dirs}
+
     def match_file(self, rel_path):
-        if rel_path in self.files:
+        rel_path = _normalize_for_match(rel_path)
+        if rel_path in self._match_files:
             return True
 
-        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
+        return any(rel_path.startswith(d + os.sep) for d in self._match_dirs)
 
     def match_dir(self, rel_path):
-        if rel_path in self.dirs:
+        rel_path = _normalize_for_match(rel_path)
+        if rel_path in self._match_dirs:
             return True
 
         # Check if it's a subdirectory of any directory in the list
-        return any(rel_path.startswith(d + os.sep) for d in self.dirs)
+        return any(rel_path.startswith(d + os.sep) for d in self._match_dirs)
 
 
 class SdistBuilder:
@@ -144,7 +171,14 @@ class SdistBuilder:
         crucial_files = set(self.extra_files)
         if not self.module.is_stub_pkg:
             crucial_files.add(str(self.module.file.relative_to(self.cfgdir)))
-        missing_crucial = crucial_files - files
+        # Compare normalisation-insensitively (the selected names come from
+        # os.walk and may be NFD on macOS, while crucial names come from config
+        # and are typically NFC); otherwise a present crucial file could be
+        # falsely reported as missing and abort an otherwise valid build.
+        selected = {_normalize_for_match(f) for f in files}
+        missing_crucial = {
+            f for f in crucial_files if _normalize_for_match(f) not in selected
+        }
         if missing_crucial:
             raise Exception("Crucial files were excluded from the sdist: {}"
                             .format(", ".join(missing_crucial)))

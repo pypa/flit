@@ -2,6 +2,7 @@ from io import BytesIO
 import os.path as osp
 from pathlib import Path
 import tarfile
+import unicodedata
 from testpath import assert_isfile
 
 from flit_core import sdist
@@ -59,6 +60,74 @@ def test_data_dir():
     files = builder.apply_includes_excludes(builder.select_files())
 
     assert osp.join('data', 'share', 'man', 'man1', 'foo.1') in files
+
+
+def test_filepatterns_unicode_normalisation(tmp_path):
+    # CWE-176 / CWE-697: file selection must be normalisation-insensitive, so an
+    # exclude/include rule still matches the same file when it is stored on disk
+    # in a different Unicode normalisation form (as happens on macOS APFS/HFS+,
+    # where glob() yields the rule's form but os.walk yields the on-disk form).
+    nfc = unicodedata.normalize('NFC', 'café.txt')
+    nfd = unicodedata.normalize('NFD', 'café.txt')
+    assert nfc != nfd
+
+    # File on disk under one form; glob() picks it up into the raw set as-is.
+    (tmp_path / nfc).write_bytes(b'secret')
+    pats = sdist.FilePatterns([nfc], str(tmp_path))
+    assert nfc in pats.files  # raw on-disk form preserved (needed to open it)
+    # A candidate walked in the *other* form must still match.
+    assert pats.match_file(nfd) is True
+    assert pats.match_file(nfc) is True
+
+    # Same for directory patterns and the subdirectory-prefix check.
+    nfc_dir = unicodedata.normalize('NFC', 'données')
+    nfd_dir = unicodedata.normalize('NFD', 'données')
+    (tmp_path / nfc_dir).mkdir()
+    (tmp_path / nfc_dir / 'inner.txt').write_bytes(b'x')
+    dpats = sdist.FilePatterns([nfc_dir], str(tmp_path))
+    assert dpats.match_dir(nfd_dir) is True
+    assert dpats.match_file(osp.join(nfd_dir, 'inner.txt')) is True
+
+
+def test_apply_excludes_unicode_normalisation(tmp_path):
+    # Integration-level regression for the macOS APFS scenario: the exclude rule
+    # and the glob-built set are NFC, while the walk yields the file as NFD. The
+    # secret must not survive into the selected file list. (ext4 glob/walk never
+    # disagree on form, so we simulate APFS by feeding the walk result as NFD.)
+    nfc = unicodedata.normalize('NFC', 'secret_café.txt')
+    nfd = unicodedata.normalize('NFD', 'secret_café.txt')
+    assert nfc != nfd
+
+    pkg = tmp_path / 'mypkg'
+    pkg.mkdir()
+    (pkg / '__init__.py').write_text('"""demo package."""\n__version__ = "0.0.1"\n')
+    (pkg / nfc).write_text('AWS_SECRET_ACCESS_KEY=AKIA_TOP_SECRET')  # on disk NFC
+    (pkg / 'keep.txt').write_text('public\n')
+    (tmp_path / 'pyproject.toml').write_text(
+        "[build-system]\n"
+        "requires = ['flit_core >=3.2,<4']\n"
+        "build-backend = 'flit_core.buildapi'\n\n"
+        "[project]\n"
+        "name = 'mypkg'\n"
+        "version = '0.0.1'\n"
+        "description = 'demo'\n\n"
+        "[tool.flit.sdist]\n"
+        f"exclude = ['mypkg/{nfc}']\n",  # rule written NFC
+        encoding='utf-8',
+    )
+
+    builder = sdist.SdistBuilder.from_ini_path(tmp_path / 'pyproject.toml')
+    # Simulate the on-disk name being yielded by the walk in NFD form.
+    walked = [
+        osp.join('mypkg', nfd) if osp.basename(f) == nfc else f
+        for f in builder.select_files()
+    ]
+    files = builder.apply_includes_excludes(walked)
+
+    assert not any(
+        unicodedata.normalize('NFC', osp.basename(f)) == nfc for f in files
+    ), "NFD secret bypassed its NFC exclude rule"
+    assert osp.join('mypkg', 'keep.txt') in files
 
 
 def test_pep625(tmp_path):
