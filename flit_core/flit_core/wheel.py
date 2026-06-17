@@ -104,6 +104,15 @@ class WheelBuilder:
     def _add_file(self, full_path, rel_path):
         log.debug("Adding %s to zip file", full_path)
         full_path, rel_path = str(full_path), str(rel_path)
+        # Refuse to follow a symlink (or any path) that resolves outside the
+        # project directory: otherwise a crafted source tree could copy the
+        # contents of an arbitrary host file (e.g. a secret) into the wheel
+        # (CWE-22, CWE-59).
+        if not common.path_is_within_directory(full_path, self.directory):
+            raise RuntimeError(
+                f"Refusing to add {rel_path!r} to the wheel: it resolves to a "
+                f"path outside the project directory (possible symlink escape)."
+            )
         if os.sep != '/':
             # We always want to have /-separated paths in the zip file and in
             # RECORD

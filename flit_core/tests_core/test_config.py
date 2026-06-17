@@ -408,3 +408,60 @@ def test_import_names_errors(proj_extra, err_match):
 def test_old_style_metadata():
     with pytest.raises(config.ConfigError, match=re.escape("[tool.flit.metadata]")):
         config.read_flit_config(samples_dir / 'module1-old-metadata.toml')
+
+
+def _write_min_project(proj, extra=''):
+    proj.mkdir(parents=True, exist_ok=True)
+    (proj / 'mod.py').write_text('"""a module."""\n__version__ = "0.1"\n')
+    (proj / 'pyproject.toml').write_text(
+        "[build-system]\n"
+        "requires = ['flit_core >=3.2,<4']\n"
+        "build-backend = 'flit_core.buildapi'\n\n"
+        "[project]\n"
+        "name = 'mod'\n"
+        "version = '0.1'\n"
+        "description = 'x'\n"
+        + extra,
+        encoding='utf-8',
+    )
+
+
+def test_readme_path_traversal_rejected(tmp_path):
+    # CWE-22: a readme path that escapes the project directory must be refused,
+    # else its contents would be read into the published METADATA.
+    (tmp_path / 'outside.md').write_text('secret')
+    proj = tmp_path / 'proj'
+    _write_min_project(proj, extra="readme = '../outside.md'\n")
+    with pytest.raises(config.ConfigError, match='outside the project'):
+        config.read_flit_config(proj / 'pyproject.toml')
+
+
+def test_readme_symlink_escape_rejected(tmp_path):
+    (tmp_path / 'outside.md').write_text('secret')
+    proj = tmp_path / 'proj'
+    _write_min_project(proj, extra="readme = 'README.md'\n")
+    (proj / 'README.md').symlink_to(tmp_path / 'outside.md')
+    with pytest.raises(config.ConfigError, match='outside the project'):
+        config.read_flit_config(proj / 'pyproject.toml')
+
+
+def test_license_file_symlink_escape_rejected(tmp_path):
+    # A symlink named LICENSE (matched by the default license globs) pointing at
+    # a host file must not have its contents pulled into the distribution.
+    secret = tmp_path / 'secret.txt'
+    secret.write_text('SECRET')
+    proj = tmp_path / 'proj'
+    _write_min_project(proj)  # no license-files key -> default globs apply
+    (proj / 'LICENSE').symlink_to(secret)
+    with pytest.raises(config.ConfigError, match='outside the project'):
+        config.read_flit_config(proj / 'pyproject.toml')
+
+
+def test_license_in_tree_symlink_allowed(tmp_path):
+    # A symlink that stays within the project tree is fine.
+    proj = tmp_path / 'proj'
+    _write_min_project(proj)
+    (proj / 'LICENSE.real').write_text('MIT')
+    (proj / 'LICENSE').symlink_to('LICENSE.real')  # relative, in-tree
+    info = config.read_flit_config(proj / 'pyproject.toml')
+    assert 'LICENSE' in info.metadata['license_files']

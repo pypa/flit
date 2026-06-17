@@ -307,6 +307,35 @@ def hash_file(path, algorithm='sha256'):
         h = hashlib.new(algorithm, f.read())
     return h.hexdigest()
 
+
+def path_is_within_directory(path, directory):
+    """Return whether *path*, fully resolved, lies inside *directory*.
+
+    Both arguments are resolved with :func:`os.path.realpath` before comparison,
+    so a symlink whose target escapes *directory* -- or a ``..`` component that
+    climbs above it -- is detected as outside. This is used to refuse reading or
+    packaging files from outside the project directory at build time, which
+    would otherwise allow a crafted source tree to copy arbitrary host files
+    (e.g. secrets) into the published distribution (CWE-22, CWE-59).
+
+    Parameters
+    ----------
+    path : str or os.PathLike
+        The path to test.
+    directory : str or os.PathLike
+        The directory that *path* must stay within.
+
+    Returns
+    -------
+    bool
+        ``True`` if *path* resolves to *directory* itself or a descendant of it,
+        ``False`` otherwise.
+    """
+    directory = os.path.realpath(directory)
+    resolved = os.path.realpath(path)
+    return resolved == directory or resolved.startswith(directory + os.sep)
+
+
 def normalize_file_permissions(st_mode):
     """Normalize the permission bits in the st_mode field from stat to 644/755
 
