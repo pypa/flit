@@ -222,6 +222,12 @@ def make_wheel_in(ini_path, wheel_directory, editable=False):
             wb = WheelBuilder.from_ini_path(ini_path, fp)
             wb.build(editable)
 
+        # mkstemp() creates the file with mode 0600, which is too strict
+        # for a build artifact - normalize it like the files inside the
+        # wheel are normalized.
+        st_mode = os.stat(temp_path).st_mode
+        os.chmod(temp_path, common.normalize_file_permissions(st_mode))
+
         wheel_path = wheel_directory / wb.wheel_filename
         os.replace(temp_path, str(wheel_path))
     except:
