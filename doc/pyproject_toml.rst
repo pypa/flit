@@ -10,7 +10,7 @@ This file lives next to the module or package.
     table described below.
 
     If you need to build a package that used ``[tool.flit.metadata]``, you will
-    need ``flit_core <4``. Hopefully most packages specify this constraint and
+    need ``flit_core <4``. Hopefully, most packages specify this constraint and
     will automatically be built with the right version.
 
 Build system section
