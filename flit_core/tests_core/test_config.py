@@ -344,6 +344,7 @@ def test_license_expr_error_empty(invalid_expr: str):
     "MIT and MIT",
     "MIT AND MIT or MIT",
     "MIT AND (MIT or MIT)",
+    "MIT with Classpath-exception-2.0",
 ])
 def test_license_expr_error_lowercase(invalid_expr: str):
     proj = {

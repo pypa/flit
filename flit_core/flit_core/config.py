@@ -712,7 +712,7 @@ def normalise_compound_license_expr(s: str) -> str:
     parts = []
     try:
         for part in filter(None, re.split(r' +|([()])', s)):
-            if part.upper() == 'WITH':
+            if part == 'WITH':
                 if (
                     not parts
                     or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}
