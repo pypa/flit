@@ -444,10 +444,10 @@ class Metadata:
             fp.write(f'Provides-Extra: {normalised_extra}\n')
 
         for name in self.import_name:
-            fp.write(f'Import-Name: {name}')
+            fp.write(f'Import-Name: {name}\n')
 
         for name in self.import_namespace:
-            fp.write(f'Import-Namespace: {name}')
+            fp.write(f'Import-Namespace: {name}\n')
 
         if self.description is not None:
             fp.write(f'\n{self.description}\n')

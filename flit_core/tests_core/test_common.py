@@ -162,6 +162,25 @@ def test_metadata_multiline(tmp_path):
     assert [l.lstrip() for l in msg['Author'].splitlines()] == d['author'].splitlines()
     assert not msg.defects
 
+def test_metadata_import_names_before_description():
+    d = {
+        'name': 'foo',
+        'version': '1.0',
+        'import_name': ['a.b.c'],
+        'import_namespace': ['a', 'a.b'],
+        'description': 'Description body',
+    }
+    md = Metadata(d)
+    sio = StringIO()
+    md.write_metadata_file(sio)
+    sio.seek(0)
+
+    msg = email.parser.Parser(policy=email.policy.compat32).parse(sio)
+    assert msg.get_all('Import-Name') == d['import_name']
+    assert msg.get_all('Import-Namespace') == d['import_namespace']
+    assert msg.get_payload() == d['description'] + '\n'
+    assert not msg.defects
+
 @pytest.mark.parametrize(
     ("requires_dist", "expected_result"),
     [
