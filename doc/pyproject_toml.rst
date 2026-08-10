@@ -155,7 +155,8 @@ after a semicolon. For example:
 
 The ``[project.optional-dependencies]`` table contains lists of packages needed
 for every optional feature. The requirements are specified in the same format as
-for ``dependencies``. For example:
+for ``dependencies``. This table is the equivalent of ``requires-extra`` in the
+older ``[tool.flit.metadata]`` format. For example:
 
   .. code-block:: toml
 
