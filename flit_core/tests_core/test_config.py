@@ -37,6 +37,9 @@ def test_load_pep621():
         'mock;extra=="test"and(python_version<\'3.6\')',
     }
     assert inf.metadata['author_email'] == "Sir Röbin <robin@camelot.uk>"
+    assert 'author' not in inf.metadata  # Skipped in favour of author_email
+    assert inf.metadata['maintainer_email'] == "Sir Bedevere <bedevere@camelot.uk>"
+    assert inf.metadata['maintainer'] == "Sir Galahad, Sir Bedevere"
     assert inf.entrypoints['flit_test_example']['foo'] == 'module1:main'
     assert set(inf.dynamic_metadata) == {'version', 'description'}
 
