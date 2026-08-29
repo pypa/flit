@@ -255,3 +255,73 @@ def test_init_non_ascii_author_name():
         with license.open(encoding='utf-8') as f:
             license_text = f.read()
         assert "Test Authôr" in license_text
+
+
+@pytest.mark.parametrize('name', [
+    'my_package',
+    'foo',
+    'my_org.my_pkg',
+    'a.b.c',
+    '_pkg',
+    'pkg_123',
+    'a1.b2.c3',
+])
+def test_validate_module_name_valid(name):
+    ib = init.IniterBase()
+    assert ib.validate_module_name(name) is True
+
+
+@pytest.mark.parametrize('name', [
+    '',
+    '123',
+    'a..b',
+    'a.',
+    '.a',
+    'a-b',
+    'foo bar',
+    'foo/bar',
+    'foo@bar',
+    'foo.123',
+    '123.foo',
+])
+def test_validate_module_name_invalid(name):
+    ib = init.IniterBase()
+    assert ib.validate_module_name(name) is False
+
+
+def test_init_dotted_module_name():
+    responses = ['my_org.my_pkg',  # Module name
+                 'Test Author',      # Author
+                 'test@example.com',  # Author email
+                 '',  # Home page omitted
+                 '4',  # Skip license
+                ]
+    with TemporaryDirectory() as td, \
+          patch_data_dir(), \
+          faking_input(responses):
+        ti = init.TerminalIniter(td)
+        ti.initialise()
+
+        generated = Path(td) / 'pyproject.toml'
+        assert_isfile(generated)
+        with generated.open('rb') as f:
+            data = tomllib.load(f)
+        assert data['project']['name'] == 'my_org.my_pkg'
+
+
+def test_init_module_name_validator():
+    responses = ['invalid-module-name',  # fails validation
+                 'my_org.my_pkg',        # passes validation
+                 'Test Author',
+                 'test@example.com',
+                 '',
+                 '4',
+                ]
+    with TemporaryDirectory() as td, \
+          patch_data_dir(), \
+          faking_input(responses):
+        ti = init.TerminalIniter(td)
+        ti.initialise()
+        with Path(td, 'pyproject.toml').open('rb') as f:
+            data = tomllib.load(f)
+    assert data['project']['name'] == 'my_org.my_pkg'
