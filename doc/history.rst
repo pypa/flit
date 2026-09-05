@@ -1,6 +1,12 @@
 Release history
 ===============
 
+Version 4.0.3
+-------------
+
+- Fix built wheels being created with overly restrictive ``0600`` permissions
+  instead of the normal, world-readable ``0644`` (:ghpull:`806`).
+
 Version 4.0.2
 -------------
 

@@ -1,6 +1,10 @@
+import os
+import stat
+import sys
 from pathlib import Path
 from zipfile import ZipFile
 
+import pytest
 from testpath import assert_isfile
 
 from flit_core.wheel import make_wheel_in, main
@@ -53,3 +57,15 @@ def test_license_files(tmp_path):
     with ZipFile(info.file, 'r') as zf:
         assert 'module1-0.1.dist-info/licenses/LICENSE' in zf.namelist()
         assert 'module1-0.1.dist-info/licenses/module/vendor/LICENSE_VENDOR' in zf.namelist()
+
+
+@pytest.mark.skipif(sys.platform == 'win32', reason='Windows does not have Unix file permissions')
+def test_wheel_file_permissions(tmp_path):
+    # mkstemp(), which is used to create the wheel before it's renamed to
+    # its final name, creates files with mode 0600. The built wheel file
+    # itself should not be left that restrictive. Regression test for
+    # https://github.com/pypa/flit/issues/804
+    info = make_wheel_in(samples_dir / 'pep621' / 'pyproject.toml', tmp_path)
+    assert_isfile(info.file)
+    mode = stat.S_IMODE(os.stat(info.file).st_mode)
+    assert mode & 0o777 == 0o644, oct(mode)
