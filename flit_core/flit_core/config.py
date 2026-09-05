@@ -17,7 +17,7 @@ except ImportError:
     except ImportError:
         import tomli as tomllib
 
-from ._spdx_data import licenses
+from ._spdx_data import exceptions, licenses
 from .common import normalise_core_metadata_name
 from .versionno import normalise_version
 
@@ -700,7 +700,7 @@ def normalise_compound_license_expr(s: str) -> str:
     """Validate and normalise a compound SPDX license expression.
 
     Per the specification, licence expression operators (AND, OR and WITH)
-    are matched case-sensitively. The WITH operator is not currently supported.
+    are matched case-sensitively.
 
     Spec: https://spdx.github.io/spdx-spec/v2.2.2/SPDX-license-expressions/
     """
@@ -712,9 +712,15 @@ def normalise_compound_license_expr(s: str) -> str:
     parts = []
     try:
         for part in filter(None, re.split(r' +|([()])', s)):
-            if part.upper() == 'WITH':
-                # provide a sensible error message for the WITH operator
-                raise ConfigError("The SPDX 'WITH' operator is not yet supported!")
+            if part == 'WITH':
+                if (
+                    not parts
+                    or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}
+                    or parts[-1].lower() in exceptions
+                ):
+                    reason = "a license ID is missing before 'WITH'"
+                    raise ConfigError(invalid_msg.format(s=s, reason=reason))
+                parts.append(' WITH ')
             elif part in {'AND', 'OR'}:
                 if not parts or parts[-1] in {' AND ', ' OR ', ' WITH ', '('}:
                     reason = f"a license ID is missing before '{part}'"
@@ -740,10 +746,13 @@ def normalise_compound_license_expr(s: str) -> str:
                     raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 parts.append(part)
             else:
-                if parts and parts[-1] not in {' AND ', ' OR ', '('}:
+                if parts and parts[-1] not in {' AND ', ' OR ', ' WITH ', '('}:
                     reason = "a license ID must follow either AND, OR, or '('"
                     raise ConfigError(invalid_msg.format(s=s, reason=reason))
-                simple_expr = normalise_simple_license_expr(part)
+                if parts and parts[-1] == ' WITH ':
+                    simple_expr = normalise_license_exception(part)
+                else:
+                    simple_expr = normalise_simple_license_expr(part)
                 parts.append(simple_expr)
 
         if stack != 0:
@@ -790,3 +799,11 @@ def normalise_simple_license_expr(s: str) -> str:
     if or_later:
         return f'{normalised_id}+'
     return normalised_id
+
+
+def normalise_license_exception(s: str) -> str:
+    """Normalise an SPDX license exception ID."""
+    try:
+        return exceptions[s.lower()]['id']
+    except KeyError:
+        raise ConfigError(f"{s!r} is not a recognised SPDX license exception ID")
