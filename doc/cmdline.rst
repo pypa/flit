@@ -45,9 +45,6 @@ Build a wheel and an sdist (tarball) from the package.
    in an sdist, and then apply inclusions and exclusions :ref:`from pyproject.toml
    <pyproject_toml_sdist>`.
 
-   This is the default for now, but we're planning to switch to ``--no-use-vcs``
-   as the default in a future version.
-
 .. option:: --no-use-vcs
 
    Create the sdist starting with only the files inside the installed module
@@ -56,6 +53,8 @@ Build a wheel and an sdist (tarball) from the package.
    With this option, sdists from ``flit build`` are equivalent to those built
    by tools calling Flit as a backend, such as `build
    <https://pypa-build.readthedocs.io/en/stable/>`_.
+
+   This is the default for Flit version 4 and above.
 
 .. _publish_cmd:
 
