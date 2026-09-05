@@ -3,6 +3,7 @@ from os.path import join as pjoin
 from pathlib import Path
 import pytest
 from shutil import which, copytree
+from subprocess import run
 import sys
 import tarfile
 from tempfile import TemporaryDirectory
@@ -72,6 +73,22 @@ def test_get_files_list_git(copy_sample):
         'foo', pjoin('dir1', 'bar'), pjoin('dir1', 'subdir', 'qux'),
         pjoin('dir2', 'abc')
     }
+
+def test_get_files_list_with_real_git(copy_sample):
+    if not which('git'):
+        pytest.skip("requires git")
+
+    td = copy_sample('module1_toml')
+    unicode_file = td / 'café.txt'
+    unicode_file.write_text('tracked by git', encoding='utf-8')
+
+    run(['git', 'init'], cwd=td, check=True, capture_output=True)
+    run(['git', 'add', '.'], cwd=td, check=True, capture_output=True)
+
+    builder = sdist.SdistBuilder.from_ini_path(td / 'pyproject.toml')
+    files = builder.select_files()
+
+    assert unicode_file.name in files
 
 def test_get_files_list_hg(tmp_path):
     dir1 = tmp_path / 'dir1'
