@@ -39,21 +39,6 @@ Build a wheel and an sdist (tarball) from the package.
 
    Limit to building either ``wheel`` or ``sdist``.
 
-.. option:: --setup-py
-
-   Generate a ``setup.py`` file in the sdist, so it can be installed by older
-   versions of pip.
-
-.. option:: --no-setup-py
-
-   Don't generate a setup.py file in the sdist. This is the default.
-   An sdist built without this will only work with tools that support PEP 517,
-   but the wheel will still be usable by any compatible tool.
-
-   .. versionchanged:: 3.5
-
-      Generating ``setup.py`` disabled by default.
-
 .. option:: --use-vcs
 
    Use the files checked in to git or mercurial as the starting list to include
@@ -87,8 +72,6 @@ or another repository.
    Limit to publishing either ``wheel`` or ``sdist``.
    You should normally publish the two formats together.
 
-.. option:: --setup-py
-.. option:: --no-setup-py
 .. option:: --use-vcs
 .. option:: --no-use-vcs
 
