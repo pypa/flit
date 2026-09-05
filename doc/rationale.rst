@@ -20,8 +20,9 @@ What, specifically, does Flit make easy?
 
 - ``flit init`` helps you set up the information Flit needs about your
   package.
-- Subpackages are automatically included: you only need to specify the
-  top-level package.
+- Import packages in subfolders are automatically included: specify only the
+  top-level import package (for example, ``django``), and Flit includes
+  subpackages such as ``django.db`` and ``django.db.models.sql``.
 - Data files within a package directory are automatically included.
   Missing data files has been a common packaging mistake with other tools.
 - The version number is taken from your package's ``__version__`` attribute,
