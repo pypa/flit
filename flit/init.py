@@ -69,6 +69,9 @@ class IniterBase:
     def validate_homepage(self, s):
         return not s or s.startswith(('http://', 'https://'))
 
+    def validate_module_name(self, s):
+        return bool(s) and all(n.isidentifier() for n in s.split('.'))
+
     def guess_module_name(self):
         packages, modules = [], []
         for p in self.directory.iterdir():
@@ -178,7 +181,7 @@ class TerminalIniter(IniterBase):
                 return
 
         module = self.prompt_text('Module name', self.guess_module_name(),
-                                  str.isidentifier)
+                                  self.validate_module_name)
         author = self.prompt_text('Author', self.defaults.get('author'),
                                   lambda s: True)
         author_email = self.prompt_text('Author email',
