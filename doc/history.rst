@@ -56,6 +56,9 @@ change the ``flit_core <4`` constraint to ``<5``.
   you did.
 - The vendorised ``readme_renderer`` package was updated to version 44.0
   (:ghpull:`760`).
+- Sdist ``include`` and ``exclude`` patterns now match files whose names start
+  with a dot, so e.g. ``exclude = ["**/*.swp"]`` correctly excludes editor
+  swap files like ``.foo.py.swp`` (:ghissue:`746`).
 
 
 Version 3.12
