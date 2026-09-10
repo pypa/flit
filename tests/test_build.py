@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import pytest
 import shutil
@@ -12,6 +13,7 @@ samples_dir = Path(__file__).parent / 'samples'
 
 LIST_FILES_TEMPLATE = """\
 #!{python}
+# -*- coding: utf-8 -*-
 import sys
 from os.path import join
 if '--deleted' not in sys.argv:
@@ -82,3 +84,25 @@ def test_build_module_no_docstring():
             with pytest.raises(common.NoDocstringError) as exc_info:
                 build.main(pyproject)
             assert 'no_docstring.py' in str(exc_info.value)
+
+def test_build_package_with_unicode(copy_sample):
+    list_files_template = """\
+#!{python}
+import sys
+from os.path import join
+if '--deleted' not in sys.argv:
+    files = ['pyproject.toml', 'packageunicode/__init__.py']
+    if sys.platform == 'win32':
+        files.append('packageunicode/No\\xc3\\xabl.jpg')
+    else:
+        files.append('packageunicode/No\\u00ebl.jpg')
+    print('\\0'.join(files), end='\\0')
+"""
+    td = copy_sample('packageunicode')
+    (td / '.git').mkdir()  # Fake a git repo
+
+    with MockCommand('git', list_files_template.format(python=sys.executable)):
+        res = build.main(td / 'pyproject.toml', formats={'sdist'})
+
+    # Compare str path to work around pathlib/pathlib2 mismatch on Py 3.5
+    assert [str(p) for p in (td / 'dist').iterdir()] == [str(res.sdist.file)]
