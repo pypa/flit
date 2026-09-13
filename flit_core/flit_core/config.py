@@ -747,7 +747,7 @@ def normalise_compound_license_expr(s: str) -> str:
                 parts.append(part)
             else:
                 if parts and parts[-1] not in {' AND ', ' OR ', ' WITH ', '('}:
-                    reason = "a license ID must follow either AND, OR, or '('"
+                    reason = "a license or exception ID must follow AND, OR, WITH, or '('"
                     raise ConfigError(invalid_msg.format(s=s, reason=reason))
                 if parts and parts[-1] == ' WITH ':
                     simple_expr = normalise_license_exception(part)

@@ -30,6 +30,7 @@ Version constraints:
 - For now, all packages should specify ``<5``, so they won't be impacted by
   changes in the next major version.
 - ``import-names`` and ``import-namespaces`` require ``flit_core >=4``.
+- License expressions using ``WITH`` require ``flit_core >=4.1``.
 - ``license-files`` and license expressions in the ``license`` field require
   ``flit_core >=3.11``.
 - :ref:`pyproject_toml_project` requires ``flit_core >=3.2``.
