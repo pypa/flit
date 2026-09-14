@@ -80,6 +80,13 @@ class InstallTests(TestCase):
         assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
         with (self.tmpdir / 'scripts' / 'pkg_script').open() as f:
             assert f.readline().strip() == "#!" + sys.executable
+        if sys.platform == 'win32':
+            cmd_path = self.tmpdir / 'scripts' / 'pkg_script.cmd'
+            assert_isfile(cmd_path)
+            raw = cmd_path.read_bytes()
+            assert b'\r\r\n' not in raw
+            assert raw.startswith(b'@echo off\r\n')
+            assert sys.executable.encode('utf-8') in raw
         self._assert_direct_url(
             samples_dir / 'package1', 'package1', '0.1', expected_editable=False
         )
