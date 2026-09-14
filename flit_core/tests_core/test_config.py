@@ -218,6 +218,8 @@ def test_bad_pep621_readme(readme, err_match):
     ("MIT AND Apache-2.0", "MIT AND Apache-2.0"),
     ("MIT AND Apache-2.0+ OR 0BSD", "MIT AND Apache-2.0+ OR 0BSD"),
     ("MIT AND (Apache-2.0+ OR (0BSD))", "MIT AND (Apache-2.0+ OR (0BSD))"),
+    ("mit WITH classpath-exception-2.0", "MIT WITH Classpath-exception-2.0"),
+    ("MIT OR MIT WITH Classpath-exception-2.0", "MIT OR MIT WITH Classpath-exception-2.0"),
     ("MIT OR(mit)", "MIT OR (MIT)"),
     ("(mit)AND mit", "(MIT) AND MIT"),
     ("MIT OR (MIT OR ( MIT )) AND ((MIT) AND MIT) OR MIT", "MIT OR (MIT OR (MIT)) AND ((MIT) AND MIT) OR MIT"),
@@ -342,6 +344,7 @@ def test_license_expr_error_empty(invalid_expr: str):
     "MIT and MIT",
     "MIT AND MIT or MIT",
     "MIT AND (MIT or MIT)",
+    "MIT with Classpath-exception-2.0",
 ])
 def test_license_expr_error_lowercase(invalid_expr: str):
     proj = {
@@ -360,14 +363,18 @@ def test_license_expr_error_lowercase(invalid_expr: str):
     "MIT WITH MIT-Exception",
     "(MIT WITH MIT-Exception)",
     "MIT OR MIT WITH MIT-Exception",
+    "MIT WITH Classpath-exception-2.0 WITH Autoconf-exception-2.0",
     "MIT WITH MIT-Exception OR (MIT AND MIT)",
 ])
-def test_license_expr_error_unsupported_with(invalid_expr: str):
+def test_license_expr_error_with(invalid_expr: str):
     proj = {
         'name': 'module1', 'version': '1.0', 'description': 'x',
         'license': invalid_expr,
     }
-    with pytest.raises(config.ConfigError, match="not yet supported"):
+    with pytest.raises(
+        config.ConfigError,
+        match="(license ID is missing before|must be uppercase|not a recognised SPDX license exception ID)",
+    ):
         config.read_pep621_metadata(proj, samples_dir / 'pep621' / 'pyproject.toml')
 
 
