@@ -50,6 +50,8 @@ def test_include_exclude():
     assert osp.join('doc', 'test.txt') not in files
     assert osp.join('doc', 'subdir', 'test.txt') in files
     assert osp.join('doc', 'subdir', 'subsubdir', 'test.md') not in files
+    # Recursive glob patterns should also match hidden (dot) files (gh-746)
+    assert osp.join('doc', 'subdir', '.hidden.swp') not in files
 
 
 def test_data_dir():

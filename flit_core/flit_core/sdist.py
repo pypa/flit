@@ -1,6 +1,5 @@
 from collections import defaultdict
 from copy import copy
-from glob import glob
 from gzip import GzipFile
 import io
 import logging
@@ -42,10 +41,14 @@ class FilePatterns:
         self.dirs = set()
         self.files = set()
 
+        basepath = Path(basedir)
         for pattern in patterns:
-            for path in sorted(glob(osp.join(basedir, pattern), recursive=True)):
-                rel = osp.relpath(path, basedir)
-                if osp.isdir(path):
+            # Use pathlib rather than the stdlib glob module: glob's wildcards
+            # skip files starting with a dot by default, so patterns like
+            # '**/*.swp' would fail to match e.g. '.foo.py.swp' (gh-746).
+            for path in sorted(basepath.glob(pattern)):
+                rel = osp.relpath(str(path), basedir)
+                if path.is_dir():
                     self.dirs.add(rel)
                 else:
                     self.files.add(rel)
