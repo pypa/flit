@@ -135,7 +135,8 @@ entry-points
   See :ref:`pyproject_project_entrypoints`.
 dynamic
   A list of field names which aren't specified here, for which Flit should
-  find a value at build time. Only "version" and "description" are accepted.
+  find a value at build time. Only "version", "description", "import-names"
+  and "import-namespaces" are accepted.
 
 .. _pyproject_project_dependencies:
 
