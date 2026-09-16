@@ -189,7 +189,9 @@ class Installer:
                 cmd_file = script_file.with_suffix('.cmd')
                 cmd = f'@echo off\r\n"{self.python}" "%~dp0\\{name}" %*\r\n'
                 log.debug("Writing script wrapper to %s", cmd_file)
-                with cmd_file.open('w') as f:
+                # newline='' keeps the explicit CRLF; on Windows text mode would
+                # otherwise translate `\n` again and write `\r\r\n`.
+                with cmd_file.open('w', encoding='utf-8', newline='') as f:
                     f.write(cmd)
 
                 self.installed_files.append(cmd_file)
