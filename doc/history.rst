@@ -1,6 +1,15 @@
 Release history
 ===============
 
+Version 4.1
+-----------
+
+- License expressions with named exceptions, the WITH syntax, are accepted
+  (:ghpull:`809`).
+- ``flit init`` allows dotted module names, for a component of a namespace
+  package (:ghissue:`822`).
+- Fix line endings in ``.cmd`` script wrappers on Windows (:ghpull:`824`).
+
 Version 4.0.3
 -------------
 
