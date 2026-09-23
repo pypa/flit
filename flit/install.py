@@ -343,6 +343,8 @@ class Installer:
 
         scripts = self.ini_info.entrypoints.get('console_scripts', {})
         self.install_scripts(scripts, dirs['scripts'])
+        gui_scripts = self.ini_info.entrypoints.get('gui_scripts', {})
+        self.install_scripts(gui_scripts, dirs['scripts'])
 
         self.install_data_dir(dirs['data'])
 

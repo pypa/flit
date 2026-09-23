@@ -223,6 +223,15 @@ class InstallTests(TestCase):
         assert_isdir(self.tmpdir / 'site-packages' / 'package1')
         assert_isdir(self.tmpdir / 'site-packages' / 'package_dist1-0.1.dist-info')
 
+    def test_install_gui_scripts_pth(self):
+        Installer.from_ini_path(
+            samples_dir / 'entrypoints_valid' / 'pyproject.toml', pth=True
+        ).install_directly()
+        assert_isfile(self.tmpdir / 'scripts' / 'pkg_script')
+        assert_isfile(self.tmpdir / 'scripts' / 'pkg_gui')
+        with (self.tmpdir / 'scripts' / 'pkg_gui').open() as f:
+            assert f.readline().strip() == "#!" + sys.executable
+
     def test_entry_points(self):
         Installer.from_ini_path(samples_dir / 'entrypoints_valid' / 'pyproject.toml').install_directly()
         assert_isfile(self.tmpdir / 'site-packages' / 'package1-0.1.dist-info' / 'entry_points.txt')
