@@ -82,3 +82,49 @@ def test_license_inside_src(tmp_path):
         )
 
     assert lic_count == 1
+
+
+def test_recursive_glob_dotfiles(tmp_path):
+    (tmp_path / 'pkg').mkdir()
+    (tmp_path / 'pkg' / '__init__.py').write_text('"""A sample package"""\n__version__ = "0.1"\n')
+    (tmp_path / 'pkg' / 'sub').mkdir()
+    (tmp_path / 'pkg' / 'sub' / '.hidden.swp').write_text('swap')
+    (tmp_path / 'pkg' / '.root.swp').write_text('swap')
+    (tmp_path / 'pkg' / 'normal.txt').write_text('normal')
+
+    patterns = sdist.FilePatterns(['**/*.swp'], str(tmp_path))
+    assert patterns.match_file(osp.join('pkg', '.root.swp'))
+    assert patterns.match_file(osp.join('pkg', 'sub', '.hidden.swp'))
+    assert not patterns.match_file(osp.join('pkg', 'normal.txt'))
+
+
+def test_sdist_exclude_dotfiles(tmp_path):
+    pkg_dir = tmp_path / 'pkg'
+    pkg_dir.mkdir()
+    (pkg_dir / '__init__.py').write_text('"""A sample package"""\n__version__ = "0.1"\n')
+    (pkg_dir / 'sub').mkdir()
+    (pkg_dir / 'sub' / '.editor.swp').write_text('swap')
+    (pkg_dir / '.main.swp').write_text('swap')
+    (pkg_dir / 'module.py').write_text('x = 1\n')
+
+    pyproject = tmp_path / 'pyproject.toml'
+    pyproject.write_text("""
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "pkg"
+authors = [{name = "Test"}]
+dynamic = ["version", "description"]
+
+[tool.flit.sdist]
+exclude = ["**/*.swp"]
+""")
+
+    builder = sdist.SdistBuilder.from_ini_path(pyproject)
+    files = builder.apply_includes_excludes(builder.select_files())
+
+    assert osp.join('pkg', '.main.swp') not in files
+    assert osp.join('pkg', 'sub', '.editor.swp') not in files
+    assert osp.join('pkg', 'module.py') in files
