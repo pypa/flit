@@ -1,6 +1,5 @@
 from collections import defaultdict
 from copy import copy
-from glob import glob
 from gzip import GzipFile
 import io
 import logging
@@ -8,6 +7,7 @@ import os
 import os.path as osp
 from pathlib import Path
 from posixpath import join as pjoin
+import re
 import tarfile
 
 from . import common
@@ -42,8 +42,17 @@ class FilePatterns:
         self.dirs = set()
         self.files = set()
 
+        base_path = Path(basedir)
         for pattern in patterns:
-            for path in sorted(glob(osp.join(basedir, pattern), recursive=True)):
+            norm_pattern = pattern.lstrip('/\\')
+            norm_pattern = re.sub(r'(^|[/\\])\*\*([a-zA-Z0-9_.*]+)', r'\g<1>**/*\2', norm_pattern)
+            parts = []
+            for part in norm_pattern.replace('\\', '/').split('/'):
+                if '**' in part and part != '**':
+                    part = part.replace('**', '*')
+                parts.append(part)
+            norm_pattern = '/'.join(parts)
+            for path in sorted(base_path.glob(norm_pattern)):
                 rel = osp.relpath(path, basedir)
                 if osp.isdir(path):
                     self.dirs.add(rel)

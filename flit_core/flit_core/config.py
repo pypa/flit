@@ -156,7 +156,7 @@ def prep_toml_config(d, path):
         )
         exclude = [
             "**/__pycache__",
-            "**.pyc",
+            "**/*.pyc",
         ] + dtool['sdist'].get('exclude', [])
         loaded_cfg.sdist_exclude_patterns = _check_glob_patterns(
             exclude, 'exclude'
