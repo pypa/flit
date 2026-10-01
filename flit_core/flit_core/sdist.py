@@ -129,7 +129,20 @@ class SdistBuilder:
                 files.add(f_rel)
 
         for rel_d in self.includes.dirs:
-            for dirpath, dirs, dfiles in os.walk(osp.join(cfgdir_s, rel_d)):
+            # A symlinked directory inside an included directory must be walked
+            # like a real one (see #509); os.walk does not follow directory
+            # symlinks by default, which silently dropped their contents from
+            # the sdist.  followlinks=True can loop forever on a symlink cycle,
+            # so track the real paths already visited and prune repeats.
+            seen_dirs: set[str] = set()
+            for dirpath, dirs, dfiles in os.walk(
+                osp.join(cfgdir_s, rel_d), followlinks=True
+            ):
+                real = os.path.realpath(dirpath)
+                if real in seen_dirs:
+                    dirs[:] = []
+                    continue
+                seen_dirs.add(real)
                 for file in dfiles:
                     f_abs = osp.join(dirpath, file)
                     f_rel = osp.relpath(f_abs, cfgdir_s)

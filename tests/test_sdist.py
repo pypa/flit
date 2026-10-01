@@ -109,3 +109,64 @@ def test_make_stubs_pkg():
         builder.build(td)
         sdist_file = td / 'wcwidth_stubs-0.2.13.1.tar.gz'
         assert_isfile(sdist_file)
+
+
+def _make_builder(tmp_path, include):
+    """Build an SdistBuilder over tmp_path with the given sdist include list."""
+    (tmp_path / "mypkg").mkdir()
+    (tmp_path / "mypkg" / "__init__.py").write_text('__version__ = "0.1"\n')
+    (tmp_path / "EG_README.rst").write_text("readme\n")
+    (tmp_path / "pyproject.toml").write_text(
+        "[build-system]\n"
+        'requires = ["flit_core >=3.2,<4"]\n'
+        'build-backend = "flit_core.buildapi"\n\n'
+        "[project]\n"
+        'name = "mypkg"\n'
+        'version = "0.1"\n'
+        'description = "t"\n'
+        'readme = "EG_README.rst"\n\n'
+        "[tool.flit.sdist]\n"
+        f"include = {include!r}\n"
+    )
+    return sdist.SdistBuilder.from_ini_path(tmp_path / "pyproject.toml")
+
+
+# The files select_files() would report if the tree were under VCS.  Passing
+# them in directly keeps these tests independent of git/hg.
+BASE_FILES = ["pyproject.toml", "EG_README.rst", "mypkg/__init__.py"]
+
+
+def test_apply_includes_follows_dir_symlink(tmp_path):
+    """A symlinked directory inside an included dir is walked (see #509)."""
+    (tmp_path / "real_data").mkdir()
+    (tmp_path / "real_data" / "data.txt").write_text("hello")
+    (tmp_path / "docs").mkdir()
+    try:
+        (tmp_path / "docs" / "linked").symlink_to(
+            tmp_path / "real_data", target_is_directory=True
+        )
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks not supported")
+
+    builder = _make_builder(tmp_path, ["docs/"])
+    files = builder.apply_includes_excludes(list(BASE_FILES))
+    assert "docs/linked/data.txt" in files
+
+
+def test_apply_includes_dir_symlink_cycle_terminates(tmp_path):
+    """A symlink cycle must not make the sdist walk loop forever (see #509)."""
+    (tmp_path / "docs" / "sub").mkdir(parents=True)
+    (tmp_path / "docs" / "sub" / "f.txt").write_text("x")
+    try:
+        (tmp_path / "docs" / "sub" / "loop").symlink_to(
+            tmp_path / "docs", target_is_directory=True
+        )
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks not supported")
+
+    builder = _make_builder(tmp_path, ["docs/"])
+    files = builder.apply_includes_excludes(list(BASE_FILES))
+    assert "docs/sub/f.txt" in files
+    # Each real file appears once, not once per cycle iteration.
+    assert len(files) == len(set(files))
+    assert len(files) < 20, f"walk did not terminate cleanly: {sorted(files)}"
