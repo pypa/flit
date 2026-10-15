@@ -671,10 +671,18 @@ def pep621_people(people, group_name='author') -> dict:
             raise ConfigError(
                 f"Unrecognised keys in {group_name} info: {unrec_keys}"
             )
+        for key in ('name', 'email'):
+            if key in person and not isinstance(person[key], str):
+                raise ConfigError(f"{group_name} {key} must be a string")
         if 'email' in person:
             email = person['email']
             if 'name' in person:
-                email = str(Address(person['name'], addr_spec=email))
+                try:
+                    email = str(Address(person['name'], addr_spec=email))
+                except ValueError as e:
+                    raise ConfigError(
+                        f"Invalid {group_name} email address {email!r}: {e}"
+                    ) from None
             emails.append(email)
         elif 'name' in person:
             names.append(person['name'])
