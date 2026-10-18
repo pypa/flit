@@ -172,19 +172,20 @@ class Installer:
     def install_scripts(self, script_defs, scripts_dir):
         for name, ep in script_defs.items():
             module, func = common.parse_entry_point(ep)
+            interpreter = os.fspath(self.python)
             import_name = func.split('.')[0]
             script_file = pathlib.Path(scripts_dir) / name
             log.info('Writing script to %s', script_file)
             script = common.script_template.format(
-                interpreter=self.python,
+                interpreter=interpreter,
                 module=module,
                 import_name=import_name,
                 func=func
             )
-            if os.name == 'posix' and (' ' in self.python or '\t' in self.python):
+            if os.name == 'posix' and (' ' in interpreter or '\t' in interpreter):
                 # A direct shebang splits the interpreter at spaces or tabs.
                 # This shell/Python trampoline keeps the pathname and argv intact.
-                script = ("#!/bin/sh\n'''exec' " + shlex.quote(self.python)
+                script = ("#!/bin/sh\n'''exec' " + shlex.quote(interpreter)
                           + ' "$0" "$@"\n' + "' '''\n"
                           + script.partition('\n')[2])
             with script_file.open('w', encoding='utf-8') as f:

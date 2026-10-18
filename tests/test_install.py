@@ -380,7 +380,8 @@ def test_test_writable_dir_win():
 
 @pytest.mark.skipif(os.name != 'posix', reason='POSIX executable shebangs')
 @pytest.mark.parametrize('dirname', ['plain', 'with space', 'with\ttab', "space and 'quote"])
-def test_script_with_whitespace_interpreter(tmp_path, dirname):
+@pytest.mark.parametrize('path_type', [str, pathlib.Path])
+def test_script_with_whitespace_interpreter(tmp_path, dirname, path_type):
     interpreter_dir = tmp_path / dirname
     interpreter_dir.mkdir()
     interpreter = interpreter_dir / 'python'
@@ -390,7 +391,7 @@ def test_script_with_whitespace_interpreter(tmp_path, dirname):
     )
     installer = Installer.from_ini_path(
         samples_dir / 'package1' / 'pyproject.toml',
-        python=str(interpreter), user=False, deps='none',
+        python=path_type(interpreter), user=False, deps='none',
     )
     installer.install_scripts({'launcher-demo': 'launcher_demo:main'}, tmp_path)
     args = ['argument with spaces', "'quoted'", '$literal', '*']
