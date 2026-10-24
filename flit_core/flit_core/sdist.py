@@ -12,6 +12,7 @@ import tarfile
 import unicodedata
 
 from . import common
+from .config import isabs_ish
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ def _symlink_target_escapes(arcname_relpath: str, linkname: str) -> bool:
         ``False`` if it stays within the tree (including ``..`` that does not
         escape) and is safe to pack.
     """
-    if osp.isabs(linkname):
+    if isabs_ish(linkname):
         return True
     resolved = osp.normpath(osp.join(osp.dirname(arcname_relpath), linkname))
     return resolved == os.pardir or resolved.startswith(os.pardir + os.sep)
