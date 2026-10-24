@@ -14,7 +14,7 @@ import requests
 import sys
 from dataclasses import dataclass
 from typing import Optional
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 from flit_core.common import make_metadata, Metadata, Module
 from .config import read_flit_config
@@ -52,6 +52,19 @@ class RepoDetails:
         # Main PyPI (pypi.org) or TestPyPI (test.pypi.org)
         # This is used to guess the URL for the project's HTML page
         return self.url.rstrip('/').endswith('/legacy')
+
+
+def normalize_repository_url(url: str) -> str:
+    """Ensure Warehouse's ``/legacy`` upload API has a trailing slash.
+
+    ``https://test.pypi.org/legacy`` (no slash) is a different resource from
+    ``.../legacy/`` and does not accept uploads (issue #179).
+    """
+    parsed = urlparse(url)
+    path = parsed.path or ''
+    if path == '/legacy':
+        return urlunparse(parsed._replace(path=path + '/'))
+    return url
 
 
 def get_repositories(file="~/.pypirc"):
@@ -307,7 +320,8 @@ def upload_file(file:Path, metadata:Metadata, repo: RepoDetails):
 
     log.info('Uploading %s...', file)
     resp = requests.post(
-        repo.url, data=data, files=files, auth=(repo.username, repo.password),
+        normalize_repository_url(repo.url), data=data, files=files,
+        auth=(repo.username, repo.password),
     )
     try:
         resp.raise_for_status()

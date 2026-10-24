@@ -271,6 +271,43 @@ def test_publish_http_400_exits_without_traceback(copy_sample):
     )
 
 
+@responses.activate
+def test_upload_legacy_url_without_trailing_slash(copy_sample):
+    # Warehouse's /legacy upload API requires a trailing slash. Without it the
+    # request hits a different resource (404 historically, 405 today). See #179.
+    repo = RepoDetails(
+        url="https://test.pypi.org/legacy",
+        username="user",
+        password="pw",
+    )
+    responses.add(responses.POST, "https://test.pypi.org/legacy/", status=200)
+    td = copy_sample("module1_toml")
+
+    with temp_pypirc(pypirc1) as pypirc, patch(
+        "flit.upload.get_repository", return_value=repo
+    ):
+        upload.main(td / "pyproject.toml", repo_name="pypi", pypirc_path=pypirc)
+
+    assert len(responses.calls) == 2
+    for call in responses.calls:
+        assert call.request.url == "https://test.pypi.org/legacy/"
+
+
+def test_normalize_repository_url():
+    assert (
+        upload.normalize_repository_url("https://test.pypi.org/legacy")
+        == "https://test.pypi.org/legacy/"
+    )
+    assert (
+        upload.normalize_repository_url("https://upload.pypi.org/legacy")
+        == "https://upload.pypi.org/legacy/"
+    )
+    already = "https://upload.pypi.org/legacy/"
+    assert upload.normalize_repository_url(already) == already
+    other = "https://pypi.example.com"
+    assert upload.normalize_repository_url(other) == other
+    with_query = "https://test.pypi.org/legacy?foo=1"
+    assert upload.normalize_repository_url(with_query) == "https://test.pypi.org/legacy/?foo=1"
 
 
 def test_upload_invalid_pypirc_file(copy_sample):
