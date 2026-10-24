@@ -194,7 +194,7 @@ def validate_environment_marker(em):
     problems = []
     for c in clauses:
         # TODO: validate parentheses properly. They're allowed by PEP 508.
-        parts = MARKER_OP.split(c.strip('()'))
+        parts = MARKER_OP.split(c.strip().strip('()'))
         if len(parts) != 3:
             problems.append(f"Invalid expression in environment marker: {c!r}")
             continue

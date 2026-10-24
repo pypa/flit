@@ -50,6 +50,10 @@ def test_validate_requires_dist():
     assert check('pexpect; sys_platform == "win32"') == []
     # Altogether now
     assert check('requests[extra-foo] >=2.14; python_version < "3.0"') == []
+    # Marker starting with a parenthesised group
+    assert check(
+        'colorama; (python_version < "3.12" or os_name == "nt") and platform_machine == "x86_64"'
+    ) == []
 
     # URL specifier
     assert check('requests @ https://example.com/requests.tar.gz') == []
@@ -87,6 +91,9 @@ def test_validate_environment_marker():
     assert res[0].startswith("Invalid expression")
 
     assert len(vem('os.name == "linux\'')) == 2
+
+    # A marker that starts with a parenthesised clause, after the space following ';'
+    assert vem(' (python_version < "3.12" or os_name == "nt") and platform_machine == "x86_64"') == []
 
 def test_validate_url():
     vurl = fv.validate_url
