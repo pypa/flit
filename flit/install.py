@@ -185,6 +185,8 @@ class Installer:
             if os.name == 'posix' and (' ' in interpreter or '\t' in interpreter):
                 # A direct shebang splits the interpreter at spaces or tabs.
                 # This shell/Python trampoline keeps the pathname and argv intact.
+                # It's not clear where this trick comes from, but distlib had it long
+                # before flit.
                 script = ("#!/bin/sh\n'''exec' " + shlex.quote(interpreter)
                           + ' "$0" "$@"\n' + "' '''\n"
                           + script.partition('\n')[2])
