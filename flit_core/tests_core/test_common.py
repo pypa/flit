@@ -170,6 +170,10 @@ def test_metadata_multiline(tmp_path):
         ('foo [extra_1, extra.2, extra-3, extra__4, extra..5, extra--6]', 'foo [extra-1, extra-2, extra-3, extra-4, extra-5, extra-6]'),
         ('foo', 'foo'),
         ('foo[bar]', 'foo[bar]'),
+        ('foo[Bar_Baz] @ http://[::1]/foo.whl', 'foo[bar-baz] @ http://[::1]/foo.whl'),
+        ('foo @ http://[::ffff:192.0.2.1]/foo.whl', 'foo @ http://[::ffff:192.0.2.1]/foo.whl'),
+        ('foo; platform_version == "[Custom_Build]"', 'foo; platform_version == "[Custom_Build]"'),
+        ('foo[Bar_Baz]; platform_version == "[Custom_Build]"', 'foo[bar-baz]; platform_version == "[Custom_Build]"'),
         # https://packaging.python.org/en/latest/specifications/core-metadata/#requires-dist-multiple-use
         ('pkginfo', 'pkginfo'),
         ('zope.interface (>3.5.0)', 'zope.interface (>3.5.0)'),

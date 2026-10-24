@@ -1,10 +1,13 @@
 from contextlib import contextmanager
+from email.parser import BytesParser
 import os
 import os.path as osp
 import tarfile
 from testpath import assert_isfile, assert_isdir
 from testpath.tempdir import TemporaryDirectory
 import zipfile
+
+import pytest
 
 from flit_core import buildapi
 
@@ -60,6 +63,33 @@ def test_build_wheel_pep621():
         assert filename.endswith('.whl'), filename
         assert_isfile(osp.join(td, filename))
         assert zipfile.is_zipfile(osp.join(td, filename))
+
+
+@pytest.mark.parametrize(('dependency', 'expected'), [
+    ('dep[Feature_A] @ http://[::1]/dep-1.0-py3-none-any.whl',
+     'dep[feature-a] @ http://[::1]/dep-1.0-py3-none-any.whl'),
+    ('dep @ http://[::ffff:192.0.2.1]/dep-1.0-py3-none-any.whl',
+     'dep @ http://[::ffff:192.0.2.1]/dep-1.0-py3-none-any.whl'),
+    ('dep[Feature_A]; platform_version == "[Custom_Build]"',
+     'dep[feature-a]; platform_version == "[Custom_Build]"'),
+])
+def test_dependency_extras_preserve_url_and_marker(
+    tmp_path, monkeypatch, dependency, expected
+):
+    (tmp_path / 'example.py').write_text('', encoding='utf-8')
+    (tmp_path / 'pyproject.toml').write_text(
+        '[project]\nname = "example"\nversion = "1.0"\n'
+        'description = "Example"\n'
+        f"dependencies = ['{dependency}']\n",
+        encoding='utf-8',
+    )
+    out = tmp_path / 'out'
+    out.mkdir()
+    monkeypatch.chdir(tmp_path)
+    result_dir = out / buildapi.prepare_metadata_for_build_wheel(str(out))
+
+    metadata = (result_dir / 'METADATA').read_bytes()
+    assert BytesParser().parsebytes(metadata).get_all('Requires-Dist') == [expected]
 
 def test_build_editable():
     with TemporaryDirectory() as td, cwd(osp.join(samples_dir,'pep517')):
