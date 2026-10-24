@@ -279,9 +279,7 @@ def _rejection_detail(resp):
     text = resp.text.strip()
     if not text or '\x00' in text:
         return ''
-    start = text.lstrip()[:20].lower()
-    if (start.startswith('<!doctype') or start.startswith('<html')
-            or start.startswith('<head')):
+    if text.startswith("<"):  # Probably HTML
         return ''
     if len(text) > _REJECTION_DETAIL_LIMIT:
         text = text[:_REJECTION_DETAIL_LIMIT].rstrip() + '...'
