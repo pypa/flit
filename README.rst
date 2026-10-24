@@ -78,3 +78,13 @@ To install a package locally for development, run::
 Flit packages a single importable module or package at a time, using the import
 name as the name on PyPI. All subpackages and data files within a package are
 included automatically.
+
+Contributing
+------------
+
+To work on Flit, see `Developing Flit <https://flit.pypa.io/en/latest/development.html>`_
+in the documentation. The `issue tracker <https://github.com/pypa/flit/issues>`_
+is on GitHub.
+
+Please do not use AI/LLMs to work on Flit; see the development page for more
+details.
