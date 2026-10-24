@@ -8,6 +8,7 @@ import json
 import pathlib
 import random
 import shutil
+import shlex
 import site
 import sys
 import tempfile
@@ -171,16 +172,26 @@ class Installer:
     def install_scripts(self, script_defs, scripts_dir):
         for name, ep in script_defs.items():
             module, func = common.parse_entry_point(ep)
+            interpreter = os.fspath(self.python)
             import_name = func.split('.')[0]
             script_file = pathlib.Path(scripts_dir) / name
             log.info('Writing script to %s', script_file)
+            script = common.script_template.format(
+                interpreter=interpreter,
+                module=module,
+                import_name=import_name,
+                func=func
+            )
+            if os.name == 'posix' and (' ' in interpreter or '\t' in interpreter):
+                # A direct shebang splits the interpreter at spaces or tabs.
+                # This shell/Python trampoline keeps the pathname and argv intact.
+                # It's not clear where this trick comes from, but distlib had it long
+                # before flit.
+                script = ("#!/bin/sh\n'''exec' " + shlex.quote(interpreter)
+                          + ' "$0" "$@"\n' + "' '''\n"
+                          + script.partition('\n')[2])
             with script_file.open('w', encoding='utf-8') as f:
-                f.write(common.script_template.format(
-                    interpreter=self.python,
-                    module=module,
-                    import_name=import_name,
-                    func=func
-                ))
+                f.write(script)
             script_file.chmod(0o755)
 
             self.installed_files.append(script_file)

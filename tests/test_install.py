@@ -2,6 +2,7 @@ import json
 import os
 import pathlib
 import sys
+import subprocess
 import tempfile
 from unittest import TestCase, SkipTest, skipIf
 from unittest.mock import patch
@@ -375,3 +376,27 @@ def test_test_writable_dir_win():
             assert install._test_writable_dir_win(td) is False
         finally:
             os.chmod(td, 0o644)
+
+
+@pytest.mark.skipif(os.name != 'posix', reason='POSIX executable shebangs')
+@pytest.mark.parametrize('dirname', ['plain', 'with space', 'with\ttab', "space and 'quote"])
+@pytest.mark.parametrize('path_type', [str, pathlib.Path])
+def test_script_with_whitespace_interpreter(tmp_path, dirname, path_type):
+    interpreter_dir = tmp_path / dirname
+    interpreter_dir.mkdir()
+    interpreter = interpreter_dir / 'python'
+    interpreter.symlink_to(sys.executable)
+    (tmp_path / 'launcher_demo.py').write_text(
+        'import json, sys\ndef main():\n    print(json.dumps(sys.argv[1:]))\n'
+    )
+    installer = Installer.from_ini_path(
+        samples_dir / 'package1' / 'pyproject.toml',
+        python=path_type(interpreter), user=False, deps='none',
+    )
+    installer.install_scripts({'launcher-demo': 'launcher_demo:main'}, tmp_path)
+    args = ['argument with spaces', "'quoted'", '$literal', '*']
+    result = subprocess.check_output(
+        [str(tmp_path / 'launcher-demo'), *args],
+        env=dict(os.environ, PYTHONPATH=str(tmp_path)),
+    )
+    assert json.loads(result) == args
