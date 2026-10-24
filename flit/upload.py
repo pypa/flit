@@ -22,6 +22,16 @@ from .config import read_flit_config
 log = logging.getLogger(__name__)
 
 PYPI = "https://upload.pypi.org/legacy/"
+
+# Keep a rejected upload's explanation on one screen. Longer bodies are
+# truncated rather than dumped into the terminal.
+_REJECTION_DETAIL_LIMIT = 1000
+
+
+class UploadRejectedError(Exception):
+    """The package index rejected an upload with HTTP 400."""
+
+
 PYPIRC_DEFAULT = "~/.pypirc"
 
 SWITCH_TO_HTTPS = (
@@ -270,6 +280,25 @@ def build_post_data(action, metadata:Metadata):
 
     return {k:v for k,v in d.items() if v}
 
+def _reason_text(resp):
+    reason = resp.reason or ''
+    if isinstance(reason, bytes):
+        reason = reason.decode('utf-8', 'replace')
+    return reason
+
+
+def _rejection_detail(resp):
+    """Plain-text explanation from the response body, if it adds anything."""
+    text = resp.text.strip()
+    if not text or '\x00' in text:
+        return ''
+    if text.startswith("<"):  # Probably HTML
+        return ''
+    if len(text) > _REJECTION_DETAIL_LIMIT:
+        text = text[:_REJECTION_DETAIL_LIMIT].rstrip() + '...'
+    return text
+
+
 def upload_file(file:Path, metadata:Metadata, repo: RepoDetails):
     """Upload a file to an index server, given the index server details.
     """
@@ -294,7 +323,18 @@ def upload_file(file:Path, metadata:Metadata, repo: RepoDetails):
         normalize_repository_url(repo.url), data=data, files=files,
         auth=(repo.username, repo.password),
     )
-    resp.raise_for_status()
+    try:
+        resp.raise_for_status()
+    except requests.HTTPError as exc:
+        # 400 means the index refused this package. Show that message instead
+        # of a requests traceback (issue #558). Other status codes still raise.
+        if resp.status_code != 400:
+            raise
+        message = str(exc)
+        detail = _rejection_detail(resp)
+        if detail and detail not in _reason_text(resp):
+            message = message + '\n' + detail
+        raise UploadRejectedError(message) from exc
 
 
 def do_upload(file:Path, metadata:Metadata, repo: RepoDetails):

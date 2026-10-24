@@ -180,9 +180,12 @@ def main(argv=None):
         if args.deprecated_repository:
             log.warning("Passing --repository before the 'upload' subcommand is deprecated: pass it after")
         repository = args.repository or args.deprecated_repository
-        from .upload import main
-        main(args.ini_file, repository, args.pypirc, formats=set(args.format or []),
-             use_vcs=args.use_vcs)
+        from .upload import UploadRejectedError, main
+        try:
+            main(args.ini_file, repository, args.pypirc, formats=set(args.format or []),
+                 use_vcs=args.use_vcs)
+        except UploadRejectedError as e:
+            sys.exit(e.args[0])
 
     elif args.subcmd == 'install':
         from .install import Installer
