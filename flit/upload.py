@@ -52,7 +52,7 @@ def normalize_repository_url(url: str) -> str:
     """
     parsed = urlparse(url)
     path = parsed.path or ''
-    if path.rstrip('/') == '/legacy' and not path.endswith('/'):
+    if path == '/legacy':
         return urlunparse(parsed._replace(path=path + '/'))
     return url
 
