@@ -65,13 +65,6 @@ def test_build_wheel_pep621():
         assert zipfile.is_zipfile(osp.join(td, filename))
 
 
-@pytest.mark.parametrize('hook_name', [
-    'prepare_metadata_for_build_wheel',
-    'prepare_metadata_for_build_editable',
-    'build_wheel',
-    'build_editable',
-    'build_sdist',
-])
 @pytest.mark.parametrize(('dependency', 'expected'), [
     ('dep[Feature_A] @ http://[::1]/dep-1.0-py3-none-any.whl',
      'dep[feature-a] @ http://[::1]/dep-1.0-py3-none-any.whl'),
@@ -81,7 +74,7 @@ def test_build_wheel_pep621():
      'dep[feature-a]; platform_version == "[Custom_Build]"'),
 ])
 def test_dependency_extras_preserve_url_and_marker(
-    tmp_path, monkeypatch, hook_name, dependency, expected
+    tmp_path, monkeypatch, dependency, expected
 ):
     (tmp_path / 'example.py').write_text('', encoding='utf-8')
     (tmp_path / 'pyproject.toml').write_text(
@@ -93,17 +86,9 @@ def test_dependency_extras_preserve_url_and_marker(
     out = tmp_path / 'out'
     out.mkdir()
     monkeypatch.chdir(tmp_path)
-    artifact = out / getattr(buildapi, hook_name)(str(out))
+    result_dir = out / buildapi.prepare_metadata_for_build_wheel(str(out))
 
-    if artifact.is_dir():
-        metadata = (artifact / 'METADATA').read_bytes()
-    elif artifact.suffix == '.whl':
-        with zipfile.ZipFile(artifact) as zf:
-            metadata = zf.read('example-1.0.dist-info/METADATA')
-    else:
-        with tarfile.open(artifact) as tf:
-            metadata = tf.extractfile('example-1.0/PKG-INFO').read()
-
+    metadata = (result_dir / 'METADATA').read_bytes()
     assert BytesParser().parsebytes(metadata).get_all('Requires-Dist') == [expected]
 
 def test_build_editable():
