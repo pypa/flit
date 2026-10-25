@@ -15,8 +15,9 @@ Flit :ref:`now has a policy <llm_policy>` against using AI/LLMs for development.
 
   - If you have sensitive information in your project folder and you rely on
     include/exclude patterns to keep it out of sdists, it's still a good idea
-    to check them carefully. A malicious contributor could use Unicode lookalike
-    characters to make a pattern that doesn't do what it appears to.
+    to check them carefully. A malicious contributor could still use other
+    tricks, such as Unicode lookalike characters, to make a pattern that doesn't
+    do what it appears to.
 
 - Flit will now refuse to build an sdist with symlinks that point outside of
   the project directory. This is a security issue for a consumer unpacking the
