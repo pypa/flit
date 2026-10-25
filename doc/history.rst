@@ -20,7 +20,8 @@ Flit :ref:`now has a policy <llm_policy>` against using AI/LLMs for development.
 
 - Flit will now refuse to build an sdist with symlinks that point outside of
   the project directory. This is a security issue for a consumer unpacking the
-  sdist, and the consumer still needs
+  sdist, and the consumer still needs to verify it, but this makes it harder to
+  accidentally produce an sdist which consumers will reject.
 - Similarly, Flit will refuse to build wheels with symlinks pointing outside of
   the project directory, or using a README from outside the project directory.
   Either of these routes could previously have included files from the build
