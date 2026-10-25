@@ -1,6 +1,49 @@
 Release history
 ===============
 
+Version 4.2
+-----------
+
+Flit :ref:`now has a policy <llm_policy>` against using AI/LLMs for development.
+
+- :ref:`Sdist include & exclude patterns <pyproject_toml_sdist>` are now matched
+  regardless of Unicode normalisation form. This fixes a potential security
+  issue, where a sensitive file may be published in an sdist even though it
+  appears to match an exclusion rule. This may also depend on the filesystem,
+  e.g. a rule that matches on Linux may not match on Mac, because Mac
+  filesystems perform unicode normalisation.
+
+  - If you have sensitive information in your project folder and you rely on
+    include/exclude patterns to keep it out of sdists, it's still a good idea
+    to check them carefully. A malicious contributor could use Unicode lookalike
+    characters to make a pattern that doesn't do what it appears to.
+
+- Flit will now refuse to build an sdist with symlinks that point outside of
+  the project directory. This is a security issue for a consumer unpacking the
+  sdist, and the consumer still needs
+- Similarly, Flit will refuse to build wheels with symlinks pointing outside of
+  the project directory, or using a README from outside the project directory.
+  Either of these routes could previously have included files from the build
+  machine into a wheel.
+
+  - This change does not make it safe to build arbitrary untrusted packages
+    with Flit; code from the package may still be executed. The aim is to make
+    building more predictable, to reduce what needs to be manually verified.
+    If you do not trust the source of a package, it is best to only attempt to
+    build it in a secure sandbox with no access to sensitive information.
+
+- Upload error messages with an HTTP 400 status are now shown without a
+  traceback (:ghpull:`832`).
+- Clearer errors for invalid author or maintainer metadata (:ghpull:`833`).
+- Fix ``flit install --symlink`` installing into a directory with spaces in the
+  path (:ghpull:`835`).
+- Allow environment markers to start with a parenthesised clause (:ghpull:`836`).
+- Text in ``[]`` brackets in requirements should only be name normalised if it
+  is the name of an extra group (:ghpull:`834`).
+- Allow uploading to PyPI with a configured URL missing the trailing slash
+  (:ghpull:`829`).
+
+
 Version 4.1
 -----------
 
