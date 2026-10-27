@@ -454,6 +454,7 @@ def read_pep621_metadata(proj, path) -> LoadedConfig:
         md_dict['description_content_type'] = mimetype
 
     if 'requires-python' in proj:
+        _check_type(proj, 'requires-python', str)
         md_dict['requires_python'] = proj['requires-python']
 
     license_files = set()
