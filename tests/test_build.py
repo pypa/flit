@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 from testpath import assert_isdir, MockCommand
 
 from flit_core import common
+import flit
 from flit import build
 
 samples_dir = Path(__file__).parent / 'samples'
@@ -67,6 +68,14 @@ def test_build_ns_main(copy_sample):
 
     assert_isdir(td / 'dist')
 
+
+def test_build_invalid_version_exits_without_traceback(copy_sample):
+    td = copy_sample('module1_toml')
+    (td / 'module1.py').write_text('"""Example module"""\n\n__version__ = "1.0 beta"\n')
+
+    with pytest.raises(SystemExit) as exc_info:
+        flit.main(['-f', str(td / 'pyproject.toml'), 'build', '--no-use-vcs'])
+    assert exc_info.value.code == "Version number '1.0 beta' does not match PEP 440 rules"
 
 def test_build_module_no_docstring():
     with TemporaryDirectory() as td:
