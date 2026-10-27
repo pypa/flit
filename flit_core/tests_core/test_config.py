@@ -168,6 +168,7 @@ def test_bad_include_paths(path, err_match):
     ),
     ({'keywords': 'foo'}, 'list'),
     ({'keywords': ['foo', 7]}, 'strings'),
+    ({'requires-python': 3.8}, r'requires-python.*str'),
     ({'entry-points': {'foo': 'module1:main'}}, 'entry-point.*tables'),
     ({'entry-points': {'group': {'foo': 7}}}, 'entry-point.*string'),
     ({'entry-points': {'gui_scripts': {'foo': 'a:b'}}}, r'\[project\.gui-scripts\]'),
