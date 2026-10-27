@@ -34,17 +34,16 @@ Flit :ref:`now has a policy <llm_policy>` against using AI/LLMs for development.
     If you do not trust the source of a package, it is best to only attempt to
     build it in a secure sandbox with no access to sensitive information.
 
-- Upload error messages with an HTTP 400 status are now shown without a
-  traceback (:ghpull:`832`).
-- Clearer errors for invalid author or maintainer metadata (:ghpull:`833`).
-- Fix ``flit install --symlink`` installing into a directory with spaces in the
-  path (:ghpull:`835`).
 - Allow environment markers to start with a parenthesised clause (:ghpull:`836`).
 - Text in ``[]`` brackets in requirements should only be name normalised if it
   is the name of an extra group (:ghpull:`834`).
 - Allow uploading to PyPI with a configured URL missing the trailing slash
   (:ghpull:`829`).
-
+- Fix ``flit install --symlink`` installing into a directory with spaces in the
+  path (:ghpull:`835`).
+- Improved error messages for various cases, including hiding tracebacks in
+  more cases where they are not informative (:ghpull:`832`, :ghpull:`833`,
+  :ghpull:`832`, :ghpull:`840`, :ghpull:`841`)
 
 Version 4.1
 -----------
