@@ -174,7 +174,7 @@ def main(argv=None):
         try:
             main(args.ini_file, formats=set(args.format or []),
                  use_vcs=args.use_vcs)
-        except(common.NoDocstringError, common.VCSError, common.NoVersionError) as e:
+        except (common.ProblemInModule, common.VCSError) as e:
             sys.exit(e.args[0])
     elif args.subcmd == 'publish':
         if args.deprecated_repository:
@@ -184,7 +184,7 @@ def main(argv=None):
         try:
             main(args.ini_file, repository, args.pypirc, formats=set(args.format or []),
                  use_vcs=args.use_vcs)
-        except UploadRejectedError as e:
+        except (UploadRejectedError, common.ProblemInModule) as e:
             sys.exit(e.args[0])
 
     elif args.subcmd == 'install':
@@ -204,7 +204,7 @@ def main(argv=None):
                 installer.install_requirements()
             else:
                 installer.install()
-        except (ConfigError, PythonNotFoundError, common.NoDocstringError, common.NoVersionError) as e:
+        except (ConfigError, PythonNotFoundError, common.ProblemInModule) as e:
             sys.exit(e.args[0])
 
     elif args.subcmd == 'init':
