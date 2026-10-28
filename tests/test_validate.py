@@ -69,6 +69,11 @@ def test_validate_requires_dist():
     # Several problems in one requirement
     assert len(check('pexpect[_foo] =3; sys.platform == "win32"')) == 3
 
+def test_validate_requires_dist_no_output(capsys):
+    problems = fv.validate_requires_dist({'requires_dist': ['requests =3']})
+    assert len(problems) == 1
+    assert capsys.readouterr().out == ''
+
 def test_validate_environment_marker():
     vem = fv.validate_environment_marker
 

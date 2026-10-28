@@ -225,7 +225,6 @@ def validate_requires_dist(metadata):
             if version.startswith('@'):
                 pass  # url specifier  TODO: validate URL
             elif not _valid_version_specifier(version):
-                print((extras, version, envmark))
                 probs.append(f"Invalid version specifier {version!r} in requirement {req!r}")
         if envmark is not None:
             probs.extend(validate_environment_marker(envmark[1:]))
