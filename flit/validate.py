@@ -216,8 +216,9 @@ def validate_requires_dist(metadata):
             continue
 
         extras, version, envmark = m.group('extras', 'version', 'envmark')
-        if not (extras is None or all(NAME.match(e.strip())
-                                      for e in extras[1:-1].split(','))):
+        # PEP 508 allows an empty extras list, e.g. 'requests[]'
+        if not (extras is None or not extras[1:-1].strip()
+                or all(NAME.match(e.strip()) for e in extras[1:-1].split(','))):
             probs.append(f"Invalid extras in requirement: {req!r}")
         if version is not None:
             if version.startswith('(') and version.endswith(')'):

@@ -45,6 +45,8 @@ def test_validate_requires_dist():
 
     assert check('requests') == []
     assert check('requests[extra-foo]') == []
+    assert check('requests[]') == []  # empty extras list is allowed by PEP 508
+    assert check('requests[ ] >=2.14') == []
     assert check('requests (>=2.14)') == []  # parentheses allowed but not recommended
     assert check('requests >=2.14') == []
     assert check('pexpect; sys_platform == "win32"') == []
@@ -63,6 +65,7 @@ def test_validate_requires_dist():
 
     # Problems
     assert len(check('Bücher')) == 1
+    assert len(check('requests[foo,]')) == 1
     assert len(check('requests 2.14')) == 1
     assert len(check('pexpect; sys.platform == "win32"')) == 1  # '.' -> '_'
     assert len(check('requests >=2.14 @ https://example.com/requests.tar.gz')) == 1
