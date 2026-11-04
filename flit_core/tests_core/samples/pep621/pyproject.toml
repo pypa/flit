@@ -8,7 +8,8 @@ authors = [
     {name = "Sir Röbin", email = "robin@camelot.uk"}
 ]
 maintainers = [
-    {name = "Sir Galahad"}
+    {name = "Sir Galahad"},
+    {name = "Sir Bedevere", email = "bedevere@camelot.uk"}
 ]
 readme = "README.rst"
 license = {file = "LICENSE"}
