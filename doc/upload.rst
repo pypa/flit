@@ -71,7 +71,7 @@ from a continuous integration job.
 .. warning::
 
    Storing a password in an environment variable is convenient, but it's
-   `easy to accidentally leak it <https://www.diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/>`_.
+   `easy to accidentally leak it <https://web.archive.org/web/20180131001655/https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/>`_.
    Look out for scripts that helpfully print all environment variables for
    debugging, and remember that other scripts and libraries you run in
    that environment have access to your password.
