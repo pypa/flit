@@ -53,11 +53,11 @@ class Module:
 
         if len(existing) > 1:
             existing_str = ", ".join(map(str, sorted(existing)))
-            raise ValueError(
+            raise ProblemInModule(
                 f"Multiple files or folders could be module {name}: {existing_str}"
             )
         elif not existing:
-            raise ValueError(f"No file/folder found for module {name}")
+            raise NoModuleError(f"No file/folder found for module {name}")
 
         self.source_dir = directory / self.prefix
 
@@ -111,6 +111,7 @@ class Module:
             yield str(self.path)
 
 class ProblemInModule(ValueError): pass
+class NoModuleError(ProblemInModule): pass
 class NoDocstringError(ProblemInModule): pass
 class NoVersionError(ProblemInModule): pass
 class InvalidVersion(ProblemInModule): pass

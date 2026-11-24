@@ -8,7 +8,7 @@ from unittest import TestCase
 from flit_core import config
 from flit_core.common import (
     Module, get_info_from_module, InvalidVersion, NoVersionError, check_version,
-    normalize_file_permissions, Metadata, make_metadata,
+    normalize_file_permissions, Metadata, make_metadata, ProblemInModule,
 )
 
 samples_dir = Path(__file__).parent / 'samples'
@@ -40,6 +40,16 @@ class ModuleTests(TestCase):
 
     def test_conflicting_modules(self):
         with pytest.raises(ValueError, match="Multiple"):
+            Module('module1', samples_dir / 'conflicting_modules')
+
+    def test_missing_name_is_problem_in_module(self):
+        # flit's CLI reports ProblemInModule with a one-line message; a plain
+        # ValueError escapes as a traceback instead.
+        with pytest.raises(ProblemInModule):
+            Module('doesnt_exist', samples_dir)
+
+    def test_conflicting_modules_is_problem_in_module(self):
+        with pytest.raises(ProblemInModule, match="Multiple"):
             Module('module1', samples_dir / 'conflicting_modules')
 
     def test_get_info_from_module(self):
