@@ -2,6 +2,7 @@ from pathlib import Path
 import pytest
 import shutil
 import sys
+import zipfile
 from tempfile import TemporaryDirectory
 from testpath import assert_isdir, MockCommand
 
@@ -55,6 +56,20 @@ def test_build_wheel_only(copy_sample):
 
     # Compare str path to work around pathlib/pathlib2 mismatch on Py 3.5
     assert [str(p) for p in (td / 'dist').iterdir()] == [str(res.wheel.file)]
+
+def test_build_wheel_only_honours_vcs_ignores(copy_sample):
+    td = copy_sample('ns1-pkg')
+    (td / '.git').mkdir()   # Fake a git repo
+    (td / 'ns1' / 'pkg' / 'ignored.py').write_text('"""Not tracked by git."""\n')
+
+    with MockCommand('git', LIST_FILES_TEMPLATE.format(
+            python=sys.executable, module='ns1/pkg/__init__.py')):
+        res = build.main(td / 'pyproject.toml', formats={'wheel'})
+
+    assert res.sdist is None
+    with zipfile.ZipFile(res.wheel.file) as zf:
+        assert not any(name.endswith('ignored.py') for name in zf.namelist())
+
 
 def test_build_ns_main(copy_sample):
     td = copy_sample('ns1-pkg')

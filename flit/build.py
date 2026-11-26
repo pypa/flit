@@ -55,7 +55,20 @@ def main(ini_file: Path, formats=None, use_vcs=True):
                     tmp_ini_file = Path(tmpdir, ini_file.name)
                     wheel_info = make_wheel_in(tmp_ini_file, dist_dir)
         elif 'wheel' in formats:
-            wheel_info = make_wheel_in(ini_file, dist_dir)
+            if use_vcs:
+                # Honour the VCS file list when only a wheel is requested, the
+                # same way as when both formats are built. Build a temporary
+                # sdist and use it as the source of the wheel so ignored files
+                # aren't picked up.
+                sb = SdistBuilder.from_ini_path(ini_file, use_vcs=use_vcs)
+                with TemporaryDirectory() as sdist_dir:
+                    sdist_file = sb.build(Path(sdist_dir))
+                    with unpacked_tarball(sdist_file) as tmpdir:
+                        log.debug('Building wheel from unpacked sdist %s', tmpdir)
+                        tmp_ini_file = Path(tmpdir, ini_file.name)
+                        wheel_info = make_wheel_in(tmp_ini_file, dist_dir)
+            else:
+                wheel_info = make_wheel_in(ini_file, dist_dir)
     except ConfigError as e:
         sys.exit(f'Config error: {e}')
 
