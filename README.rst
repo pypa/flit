@@ -21,16 +21,26 @@ Usage
 -----
 
 Say you're writing a module ``foobar`` — either as a single file ``foobar.py``,
-or as a directory — and you want to distribute it.
+or as a package directory ``foobar/`` — and you want to distribute it.
 
-1. Make sure that foobar's docstring starts with a one-line summary of what
-   the module is, and that it has a ``__version__``:
+1. Put a one-line module docstring and a ``__version__`` in the file Flit
+   actually reads: ``foobar.py`` for a single-file module, or
+   ``foobar/__init__.py`` for a package directory.
 
    .. code-block:: python
 
        """An amazing sample package!"""
 
        __version__ = "0.1"
+
+   Keep import-time work (argument parsing, ``sys.exit``, and so on) out of
+   that file. Flit first tries to read the docstring and version without
+   executing your code; if either is missing it imports the module, which
+   will run any top-level code.
+
+   Command-line tools are installed via ``[project.scripts]`` as a reference
+   to a function in the package, not as a script that runs on import. See the
+   `scripts section <https://flit.readthedocs.io/en/latest/pyproject_toml.html#scripts-section>`_.
 
 2. Install flit if you don't already have it::
 
