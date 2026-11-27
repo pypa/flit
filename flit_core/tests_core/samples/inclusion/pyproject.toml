@@ -11,4 +11,4 @@ dynamic = ["version", "description"]
 
 [tool.flit.sdist]
 include = ["doc"]
-exclude = ["doc/*.txt", "doc/**/*.md"]
+exclude = ["doc/*.txt", "doc/**/*.md", "doc/**/*.swp"]
